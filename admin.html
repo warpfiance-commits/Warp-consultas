@@ -309,7 +309,7 @@ function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSoli
 async function verSolicitud(id){
   const s=await req('/api/admin/solicitudes/'+id);
   if(!s) return;
-  document.getElementById('modal-title').textContent=`Solicitud ${s.radicado} · ${badge(s.estado)}`;
+  document.getElementById('modal-title').innerHTML=`Solicitud ${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)}`;
 
   const infoBlocks = [
     ['Solicitante',`${s.primerNombre||''} ${s.primerApellido||''}`],
