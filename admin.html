@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Warp Solicitudes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F4F6F2;color:#111}
+:root{--lime:#A8C400;--navy:#0D2340;--lime-d:#7a9000}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem;width:360px;box-shadow:0 4px 30px rgba(0,0,0,.08)}
+.login-logo{background:var(--navy);color:var(--lime);font-family:'Sora',sans-serif;font-weight:700;font-size:13px;padding:7px 16px;border-radius:7px;letter-spacing:.06em;display:inline-block;margin-bottom:1.5rem}
+.login-title{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.login-sub{font-size:13px;color:#6b7280;margin-bottom:2rem}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+label{font-size:12px;font-weight:500;color:#6b7280}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#111;outline:none;transition:border .2s;width:100%}
+input:focus,select:focus{border-color:var(--lime-d);background:#fff}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--navy);color:var(--lime);width:100%}
+.btn-primary:hover{background:#1a3a5c}
+.err-msg{color:#ef4444;font-size:12px;margin-top:8px;display:none}
+/* Layout admin */
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column}
+.sidebar-logo{padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo-text{color:var(--lime);font-family:'Sora',sans-serif;font-weight:700;font-size:13px;letter-spacing:.06em}
+.sidebar-sub{color:rgba(255,255,255,.3);font-size:11px;margin-top:2px}
+.sidebar-nav{flex:1;padding:1rem 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 1.2rem;font-size:13px;font-weight:500;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:rgba(168,196,0,.15);color:var(--lime)}
+.nav-item .ic{font-size:16px;width:20px}
+.sidebar-footer{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.1)}
+.main{flex:1;overflow:auto}
+.topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.topbar-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--navy)}
+.content{padding:1.5rem}
+/* Cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.5rem}
+.stat-card{background:#fff;border-radius:10px;padding:1rem 1.2rem;border:1px solid #e5e7eb}
+.stat-label{font-size:12px;color:#9ca3af;font-weight:500;margin-bottom:6px}
+.stat-value{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;color:var(--navy)}
+.stat-card.accent .stat-value{color:var(--lime-d)}
+.card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;margin-bottom:1rem}
+.card-header{padding:.9rem 1.2rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--navy)}
+/* Table */
+table{width:100%;font-size:12px;border-collapse:collapse}
+thead tr{background:var(--navy);color:#fff}
+th{padding:10px 14px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+tbody tr{border-bottom:1px solid #f3f4f6;transition:background .1s}
+tbody tr:hover{background:#fafafa}
+td{padding:10px 14px;color:#374151}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-blue{background:#EFF6FF;color:#1d4ed8}
+.badge-amber{background:#FFFBEB;color:#b45309}
+.badge-green{background:#F0FDF4;color:#15803d}
+.badge-red{background:#FEF2F2;color:#dc2626}
+.badge-gray{background:#F9FAFB;color:#6b7280}
+.btn-sm{padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-navy{background:var(--navy);color:var(--lime)}
+.btn-ghost{background:transparent;border:1px solid #d1d5db;color:#6b7280}
+.btn-ghost:hover{background:#f3f4f6}
+.btn-lime{background:var(--lime);color:var(--navy)}
+.btn-red{background:#ef4444;color:#fff}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;width:680px;max-height:85vh;overflow-y:auto}
+.modal-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.info-block{background:#f9fafb;border-radius:8px;padding:10px 12px}
+.info-block .lbl{font-size:11px;color:#9ca3af;margin-bottom:3px}
+.info-block .val{font-size:13px;font-weight:600;color:#111}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:1px solid #f3f4f6}
+/* Search */
+.search-bar{display:flex;gap:10px;margin-bottom:1rem}
+.search-bar input{max-width:280px}
+.search-bar select{max-width:160px}
+.toast{position:fixed;top:20px;right:20px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);display:none}
+.toast.ok{background:var(--lime);color:var(--navy)}
+.toast.err{background:#ef4444;color:#fff}
+.toast.show{display:block}
+.section{display:none}
+.section.visible{display:block}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">WARP FINANCE</div>
+    <div class="login-title">Panel de Solicitudes</div>
+    <div class="login-sub">Administración interna · Acceso restringido</div>
+    <div class="field"><label>Usuario</label><input type="text" id="loginUser" placeholder="admin" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">Ingresar →</button>
+    <div class="err-msg" id="loginErr">Credenciales incorrectas</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appWrap" style="display:none">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">WARP FINANCE</div>
+      <div class="sidebar-sub">Panel de Solicitudes</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showSection('dashboard')"><span class="ic">◉</span>Dashboard</button>
+      <button class="nav-item" onclick="showSection('solicitudes')"><span class="ic">📋</span>Solicitudes</button>
+      <button class="nav-item" onclick="showSection('auditoria')"><span class="ic">🔒</span>Auditoría</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="nav-item" onclick="logout()" style="color:rgba(255,100,100,.7)"><span class="ic">↩</span>Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm btn-ghost" onclick="exportCSV()">📥 Exportar CSV</button>
+        <button class="btn-sm btn-lime" onclick="loadDashboard()">↺ Actualizar</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="section visible" id="sec-dashboard">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">Total solicitudes</div><div class="stat-value" id="st-total">—</div></div>
+          <div class="stat-card"><div class="stat-label">Hoy</div><div class="stat-value" id="st-hoy">—</div></div>
+          <div class="stat-card"><div class="stat-label">Pendientes</div><div class="stat-value" id="st-pend">—</div></div>
+          <div class="stat-card accent"><div class="stat-label">Aprobadas</div><div class="stat-value" id="st-apr">—</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Solicitudes recientes</div></div>
+          <table>
+            <thead><tr><th>Radicado</th><th>Solicitante</th><th>Monto</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+            <tbody id="dash-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SOLICITUDES -->
+      <div class="section" id="sec-solicitudes">
+        <div class="search-bar">
+          <input type="text" id="buscar" placeholder="Buscar por nombre, documento, email..." oninput="debSearch()">
+          <select id="filtroEstado" onchange="loadSolicitudes()">
+            <option value="TODAS">Todos los estados</option>
+            <option value="RADICADA">Radicada</option>
+            <option value="EN_ANALISIS">En análisis</option>
+            <option value="APROBADA">Aprobada</option>
+            <option value="RECHAZADA">Rechazada</option>
+            <option value="DESEMBOLSADA">Desembolsada</option>
+          </select>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Radicado</th><th>Nombre</th><th>Documento</th><th>Celular</th><th>Monto</th><th>Contrato</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+            <tbody id="sol-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AUDITORÍA -->
+      <div class="section" id="sec-auditoria">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Log de auditoría</div></div>
+          <table>
+            <thead><tr><th>Fecha</th><th>Acción</th><th>Solicitud</th><th>Usuario</th><th>Detalle</th></tr></thead>
+            <tbody id="audit-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE SOLICITUD -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-title">Detalle de solicitud</div>
+    <div id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = window.location.origin;
+let TOKEN = localStorage.getItem('warp-admin-token') || '';
+let searchTimer;
+
+function showToast(msg, tipo='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+tipo+' show';
+  setTimeout(()=>t.classList.remove('show'),4500);
+}
+
+async function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const btn=document.getElementById('loginBtn');
+  btn.textContent='Ingresando...'; btn.disabled=true;
+  try{
+    const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,password:p})});
+    const j=await r.json();
+    if(r.ok&&j.token){
+      TOKEN=j.token;
+      localStorage.setItem('warp-admin-token',TOKEN);
+      document.getElementById('loginWrap').style.display='none';
+      document.getElementById('appWrap').style.display='flex';
+      loadDashboard();
+    } else {
+      document.getElementById('loginErr').style.display='block';
+      btn.textContent='Ingresar →'; btn.disabled=false;
+    }
+  }catch(e){
+    document.getElementById('loginErr').style.display='block';
+    btn.textContent='Ingresar →'; btn.disabled=false;
+  }
+}
+
+function logout(){
+  TOKEN=''; localStorage.removeItem('warp-admin-token');
+  document.getElementById('appWrap').style.display='none';
+  document.getElementById('loginWrap').style.display='flex';
+}
+
+function headers(){ return {'Content-Type':'application/json','x-admin-token':TOKEN}; }
+
+async function req(url, opts={}){ 
+  opts.headers={...headers(),...(opts.headers||{})};
+  const r=await fetch(API+url,opts);
+  if(r.status===401){logout();return null;}
+  return r.json();
+}
+
+function showSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.getElementById('sec-'+name).classList.add('visible');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('topbarTitle').textContent={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría'}[name];
+  if(name==='solicitudes') loadSolicitudes();
+  if(name==='auditoria') loadAuditoria();
+  if(name==='dashboard') loadDashboard();
+}
+
+function badge(estado){
+  const map={RADICADA:'badge-blue',EN_ANALISIS:'badge-amber',APROBADA:'badge-green',RECHAZADA:'badge-red',DESEMBOLSADA:'badge-green'};
+  const label={RADICADA:'Radicada',EN_ANALISIS:'En análisis',APROBADA:'Aprobada',RECHAZADA:'Rechazada',DESEMBOLSADA:'Desembolsada'};
+  return `<span class="badge ${map[estado]||'badge-gray'}">${label[estado]||estado}</span>`;
+}
+
+function fmt(n){ return n?'$'+Number(n).toLocaleString('es-CO'):'—'; }
+function fdate(s){ return s?new Date(s).toLocaleDateString('es-CO'):'—'; }
+
+async function loadDashboard(){
+  const d=await req('/api/admin/dashboard');
+  if(!d) return;
+  document.getElementById('st-total').textContent=d.total;
+  document.getElementById('st-hoy').textContent=d.hoy;
+  document.getElementById('st-pend').textContent=(d.radicadas||0)+(d.enAnalisis||0);
+  document.getElementById('st-apr').textContent=d.aprobadas;
+  const tbody=document.getElementById('dash-table');
+  tbody.innerHTML=d.recientes.map(s=>`
+    <tr>
+      <td class="font-mono" style="font-family:monospace;color:#9ca3af">${s.radicado}</td>
+      <td style="font-weight:500">${s.primerNombre||''} ${s.primerApellido||''}</td>
+      <td>${fmt(s.montoSolicitado)}</td>
+      <td>${badge(s.estado)}</td>
+      <td>${fdate(s.createdAt)}</td>
+      <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
+    </tr>`).join('');
+}
+
+async function loadSolicitudes(){
+  const buscar=document.getElementById('buscar').value;
+  const estado=document.getElementById('filtroEstado').value;
+  const d=await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
+  if(!d) return;
+  const tbody=document.getElementById('sol-table');
+  if(!d.solicitudes.length){ tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>'; return; }
+  tbody.innerHTML=d.solicitudes.map(s=>`
+    <tr>
+      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
+      <td style="font-weight:500">${s.primerNombre||''} ${s.primerApellido||''}</td>
+      <td style="color:#6b7280">${s.numDocumento||'—'}</td>
+      <td>${s.celular||'—'}</td>
+      <td>${fmt(s.montoSolicitado)}</td>
+      <td>${s.tipoContrato||'—'}</td>
+      <td>${badge(s.estado)}</td>
+      <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
+      <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
+    </tr>`).join('');
+}
+
+function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSolicitudes,400); }
+
+async function verSolicitud(id){
+  const s=await req('/api/admin/solicitudes/'+id);
+  if(!s) return;
+  document.getElementById('modal-title').textContent=`Solicitud ${s.radicado} · ${badge(s.estado)}`;
+
+  const infoBlocks = [
+    ['Solicitante',`${s.primerNombre||''} ${s.primerApellido||''}`],
+    ['Documento',`${s.tipoDocumento||''} ${s.numDocumento||''}`],
+    ['Celular',s.celular||'—'],['Email',s.email||'—'],
+    ['Ciudad',`${s.ciudad||'—'}, ${s.departamento||''}`],
+    ['Dirección',s.direccion||'—'],
+    ['Ingresos',fmt(s.ingresosMensuales)],['Egresos',fmt(s.egresosMensuales)],
+    ['Obligaciones',fmt(s.obligacionesFinancieras)],['Monto solicitado',fmt(s.montoSolicitado)],
+    ['Plazo',s.plazo||'—'],['Destino',s.destinoCredito||'—'],
+    ['Situación laboral',s.situacionLaboral||'—'],['Empresa',s.empresa||'—'],
+    ['Tipo contrato',s.tipoContrato||'—'],['Antigüedad',s.antiguedad||'—'],
+    ['Garantía',s.garantia||'—'],['Banco',`${s.banco||'—'} · ${s.tipoCuenta||''}`],
+    ['Estado civil',s.estadoCivil||'—'],['Dependientes',s.numeroDependientes||'—'],
+    ['Referencia emergencia',`${s.refNombre||'—'} (${s.refParentesco||''}) ${s.refCelular||''}`],
+    ['Firma electrónica',s.firmaElectronica||'—'],
+    ['Nota analista',s.notaAnalista||'Sin nota'],
+    ['Fecha solicitud',fdate(s.createdAt)],
+  ];
+
+  document.getElementById('modal-body').innerHTML=`
+    <div class="info-grid">${infoBlocks.map(([l,v])=>`<div class="info-block"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('')}</div>
+    ${s.auditoria?.length?`<div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Historial</div>
+    <div style="max-height:120px;overflow-y:auto">${s.auditoria.map(a=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #f3f4f6;color:#6b7280">${fdate(a.createdAt)} · <strong>${a.accion}</strong> · ${a.detalle||''}</div>`).join('')}</div>`:''}
+    <div style="margin-top:14px">
+      <label style="font-size:12px;font-weight:500;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
+      <textarea id="notaDecision" rows="2" placeholder="Escribe una nota..." style="width:100%;font-size:13px;padding:8px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit">${s.notaAnalista||''}</textarea>
+    </div>`;
+
+  const footer=document.getElementById('modal-footer');
+  const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
+  footer.innerHTML=`
+    <button class="btn-sm btn-ghost" onclick="closeModal()">Cerrar</button>
+    ${pendiente?`<button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
+    <button class="btn-sm btn-red" onclick="cambiarEstado('${s.id}','RECHAZADA')">✕ Rechazar</button>
+    <button class="btn-sm btn-lime" onclick="cambiarEstado('${s.id}','APROBADA')">✓ Aprobar</button>`:''}`;
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+async function cambiarEstado(id, estado){
+  const nota=document.getElementById('notaDecision')?.value||'';
+  const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
+  if(r?.ok){
+    showToast(`Solicitud ${estado} correctamente`,'ok');
+    closeModal();
+    loadSolicitudes();
+    loadDashboard();
+  } else showToast('Error cambiando estado','err');
+}
+
+function closeModal(e){
+  if(!e||e.target.id==='modalBg') document.getElementById('modalBg').classList.remove('open');
+}
+
+async function loadAuditoria(){
+  const d=await req('/api/admin/auditoria');
+  if(!d) return;
+  document.getElementById('audit-table').innerHTML=d.logs.map(a=>`
+    <tr>
+      <td style="color:#9ca3af;font-size:11px">${fdate(a.createdAt)}</td>
+      <td><span class="badge badge-blue">${a.accion}</span></td>
+      <td style="font-family:monospace;font-size:11px">${a.solicitudId?.slice(0,8)||'—'}</td>
+      <td>${a.usuario||'—'}</td>
+      <td style="color:#6b7280">${a.detalle||'—'}</td>
+    </tr>`).join('');
+}
+
+function exportCSV(){
+  window.open(API+'/api/admin/exportar?token='+TOKEN,'_blank');
+}
+
+// Auto-login si hay token
+window.onload=()=>{
+  if(TOKEN){
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('appWrap').style.display='flex';
+    loadDashboard();
+  }
+};
+</script>
+</body>
+</html>

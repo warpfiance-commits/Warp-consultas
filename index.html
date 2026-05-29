@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solicitud de Crédito — Warp Finance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F4F6F2;min-height:100vh;color:#111}
+:root{--lime:#A8C400;--navy:#0D2340;--lime-d:#7a9000;--lime-l:#e8f299}
+.wrap{max-width:700px;margin:0 auto;padding:2rem 1rem 4rem}
+.header{display:flex;align-items:center;gap:14px;margin-bottom:2rem}
+.logo{background:var(--navy);color:var(--lime);font-family:'Sora',sans-serif;font-weight:700;font-size:13px;padding:7px 16px;border-radius:7px;letter-spacing:.06em}
+.htitle{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--navy)}
+.hsub{font-size:13px;color:#6b7280;margin-top:2px}
+.progress{display:flex;gap:4px;margin-bottom:1.5rem}
+.prog-bar{flex:1;height:5px;border-radius:3px;background:#e5e7eb;transition:background .3s}
+.prog-bar.done{background:var(--lime)}
+.prog-bar.active{background:var(--lime-d)}
+.tabs{display:flex;border:1px solid #e5e7eb;border-radius:9px;overflow:hidden;margin-bottom:1.5rem}
+.tab{flex:1;padding:9px 4px;font-size:11px;font-weight:500;text-align:center;border:none;cursor:default;transition:all .2s;color:#9ca3af;background:#f9fafb;border-right:1px solid #e5e7eb}
+.tab:last-child{border-right:none}
+.tab.active{background:var(--navy);color:var(--lime);font-weight:600;cursor:pointer}
+.tab.done{background:var(--lime-l);color:var(--lime-d);cursor:pointer}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:13px;padding:1.5rem;margin-bottom:1rem}
+.sec-title{display:flex;align-items:center;gap:8px;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;color:var(--navy);margin-bottom:1rem}
+.sec-title .ic{font-size:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+label{font-size:12px;font-weight:500;color:#6b7280}
+label .req{color:#dc2626;margin-left:2px}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 11px;border:1px solid #d1d5db;border-radius:7px;background:#f9fafb;color:#111;outline:none;transition:border .2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--lime-d);background:#fff}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+textarea{resize:vertical;min-height:80px}
+.divider{height:1px;background:#f3f4f6;margin:14px 0}
+.doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.upload-zone{border:2px dashed #d1d5db;border-radius:9px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa}
+.upload-zone:hover{border-color:var(--lime-d);background:var(--lime-l)}
+.upload-zone.uploaded{border-color:var(--lime-d);background:var(--lime-l)}
+.upload-zone input[type=file]{display:none}
+.uz-icon{font-size:22px;display:block;margin-bottom:4px;color:#9ca3af}
+.uz-label{font-size:12px;color:#6b7280;font-weight:500}
+.uz-hint{font-size:11px;color:#9ca3af;margin-top:2px}
+.uploaded .uz-label{color:var(--lime-d)}
+.alert{background:#FFF8E1;border:1px solid #FAC775;border-radius:8px;padding:10px 12px;font-size:12px;color:#633806;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+.check-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:10px}
+.check-row input[type=checkbox]{margin-top:2px;accent-color:var(--lime-d);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.check-row label{font-size:12px;color:#6b7280;line-height:1.6;cursor:pointer}
+.sumcard{background:#f9fafb;border-radius:9px;padding:14px;margin-bottom:14px}
+.sumcard h4{font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.sumrow{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f3f4f6}
+.sumrow:last-child{border-bottom:none}
+.sumrow span:first-child{color:#9ca3af}
+.sumrow span:last-child{font-weight:500;color:#111}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+.step-info{font-size:11px;color:#9ca3af}
+.btns{display:flex;gap:10px}
+.btn{padding:10px 22px;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-back{background:transparent;border:1px solid #d1d5db;color:#6b7280}
+.btn-back:hover{background:#f3f4f6}
+.btn-next{background:var(--navy);color:var(--lime)}
+.btn-next:hover{background:#1a3a5c}
+.btn-submit{background:var(--lime);color:var(--navy);font-family:'Sora',sans-serif;font-size:14px;font-weight:700;padding:11px 28px}
+.btn-submit:hover{background:var(--lime-d);color:#fff}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed}
+.toast{position:fixed;top:20px;right:20px;z-index:9999;padding:13px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);display:none}
+.toast.ok{background:var(--lime);color:var(--navy)}
+.toast.err{background:#ef4444;color:#fff}
+.toast.show{display:block}
+.success-wrap{text-align:center;padding:3rem 1rem}
+.success-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#A8C400,#C4E000);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:36px}
+.success-title{font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.success-sub{font-size:15px;color:#6b7280;margin-bottom:8px}
+.success-rad{display:inline-block;background:var(--navy);color:var(--lime);font-family:'Sora',sans-serif;font-size:16px;font-weight:700;padding:10px 24px;border-radius:8px;margin:12px 0}
+@media(max-width:600px){.grid-2,.grid-3{grid-template-columns:1fr}.doc-grid{grid-template-columns:1fr}.tabs .tab{font-size:9px;padding:8px 2px}.header{flex-direction:column;align-items:flex-start;gap:8px}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="logo">WARP FINANCE</div>
+    <div>
+      <div class="htitle">Solicitud de Crédito Privado</div>
+      <div class="hsub">Mesa de Dinero · Persona natural · Complete todos los campos</div>
+    </div>
+  </div>
+
+  <div class="progress" id="progress">
+    <div class="prog-bar active" id="pb0"></div>
+    <div class="prog-bar" id="pb1"></div>
+    <div class="prog-bar" id="pb2"></div>
+    <div class="prog-bar" id="pb3"></div>
+    <div class="prog-bar" id="pb4"></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" onclick="goStep(0)">Identidad</div>
+    <div class="tab" onclick="goStep(1)">Financiero</div>
+    <div class="tab" onclick="goStep(2)">Laboral</div>
+    <div class="tab" onclick="goStep(3)">Documentos</div>
+    <div class="tab" onclick="goStep(4)">Declaración</div>
+  </div>
+
+  <!-- STEP 0: IDENTIDAD -->
+  <div id="step0" class="step">
+    <div class="card">
+      <div class="sec-title"><span class="ic">👤</span>Datos de identificación</div>
+      <div class="grid-2">
+        <div class="field"><label>Tipo de documento<span class="req">*</span></label>
+          <select id="tipoDocumento"><option value="">Seleccionar...</option><option>Cédula de ciudadanía</option><option>Cédula de extranjería</option><option>Pasaporte</option><option>NIT (persona natural)</option></select></div>
+        <div class="field"><label>Número de documento<span class="req">*</span></label>
+          <input type="text" id="numDocumento" placeholder="Ej. 1000123456"></div>
+      </div>
+      <div class="grid-3">
+        <div class="field"><label>Primer nombre<span class="req">*</span></label><input type="text" id="primerNombre" placeholder="Juan"></div>
+        <div class="field"><label>Segundo nombre</label><input type="text" id="segundoNombre" placeholder="Carlos"></div>
+        <div class="field"><label>Primer apellido<span class="req">*</span></label><input type="text" id="primerApellido" placeholder="Pérez"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Segundo apellido</label><input type="text" id="segundoApellido" placeholder="Gómez"></div>
+        <div class="field"><label>Fecha de nacimiento<span class="req">*</span></label><input type="date" id="fechaNacimiento"></div>
+      </div>
+      <div class="grid-3" style="margin-bottom:0">
+        <div class="field"><label>País de nacimiento</label>
+          <select id="paisNacimiento"><option value="">Seleccionar...</option><option selected>Colombia</option><option>Venezuela</option><option>Ecuador</option><option>Otro</option></select></div>
+        <div class="field"><label>Ciudad de nacimiento</label><input type="text" id="ciudadNacimiento" placeholder="Medellín"></div>
+        <div class="field"><label>Género</label>
+          <select id="genero"><option value="">Seleccionar...</option><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decir</option></select></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title"><span class="ic">📍</span>Contacto y residencia</div>
+      <div class="grid-2">
+        <div class="field"><label>Celular principal<span class="req">*</span></label><input type="tel" id="celular" placeholder="+57 300 0000000"></div>
+        <div class="field"><label>Teléfono alternativo</label><input type="tel" id="telefonoAlt" placeholder="+57 604 0000000"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Correo electrónico<span class="req">*</span></label><input type="email" id="email" placeholder="nombre@correo.com"></div>
+        <div class="field"><label>Correo alternativo</label><input type="email" id="emailAlt" placeholder="otro@correo.com"></div>
+      </div>
+      <div class="grid-3">
+        <div class="field"><label>Departamento<span class="req">*</span></label>
+          <select id="departamento"><option value="">Seleccionar...</option><option selected>Antioquia</option><option>Bogotá D.C.</option><option>Valle del Cauca</option><option>Cundinamarca</option><option>Otro</option></select></div>
+        <div class="field"><label>Ciudad / Municipio<span class="req">*</span></label><input type="text" id="ciudad" placeholder="Medellín"></div>
+        <div class="field"><label>Barrio</label><input type="text" id="barrio" placeholder="El Poblado"></div>
+      </div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Dirección de residencia<span class="req">*</span></label>
+        <input type="text" id="direccion" placeholder="Cra. 43A # 18-111, Apto 502">
+      </div>
+      <div class="grid-2" style="margin-bottom:0">
+        <div class="field"><label>Tipo de vivienda<span class="req">*</span></label>
+          <select id="tipoVivienda"><option value="">Seleccionar...</option><option>Propia (libre de hipoteca)</option><option>Propia (con hipoteca)</option><option>Arrendada</option><option>Familiar / cedida</option></select></div>
+        <div class="field"><label>Tiempo en dirección actual</label>
+          <select id="tiempoVivienda"><option value="">Seleccionar...</option><option>Menos de 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: FINANCIERO -->
+  <div id="step1" class="step" style="display:none">
+    <div class="card">
+      <div class="sec-title"><span class="ic">💰</span>Perfil financiero</div>
+      <div class="grid-2">
+        <div class="field"><label>Ingresos mensuales totales<span class="req">*</span></label><input type="number" id="ingresosMensuales" placeholder="Ej. 5000000"></div>
+        <div class="field"><label>Fuente principal de ingresos<span class="req">*</span></label>
+          <select id="fuenteIngresos"><option value="">Seleccionar...</option><option>Salario dependiente</option><option>Honorarios / independiente</option><option>Negocio propio / utilidades</option><option>Arrendamientos</option><option>Pensión</option><option>Inversiones / dividendos</option><option>Mixto</option></select></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Ingresos adicionales (mensuales)</label><input type="number" id="ingresosAdicionales" placeholder="Ej. 1500000"></div>
+        <div class="field"><label>Concepto de ingresos adicionales</label><input type="text" id="conceptoIngresosAd" placeholder="Arrendamiento, honorarios..."></div>
+      </div>
+      <div class="grid-2" style="margin-bottom:0">
+        <div class="field"><label>Egresos / gastos mensuales<span class="req">*</span></label><input type="number" id="egresosMensuales" placeholder="Ej. 2500000"></div>
+        <div class="field"><label>Total obligaciones financieras<span class="req">*</span></label><input type="number" id="obligacionesFinancieras" placeholder="Cuotas mensuales vigentes"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title"><span class="ic">🏦</span>Relación bancaria</div>
+      <div class="grid-2">
+        <div class="field"><label>Banco principal<span class="req">*</span></label>
+          <select id="banco"><option value="">Seleccionar...</option><option>Bancolombia</option><option>Davivienda</option><option>BBVA</option><option>Banco de Bogotá</option><option>Nequi</option><option>Daviplata</option><option>Otro</option></select></div>
+        <div class="field"><label>Tipo de cuenta<span class="req">*</span></label>
+          <select id="tipoCuenta"><option value="">Seleccionar...</option><option>Cuenta de ahorros</option><option>Cuenta corriente</option><option>Cuenta digital (Nequi/Daviplata)</option></select></div>
+      </div>
+      <div class="grid-2" style="margin-bottom:0">
+        <div class="field"><label>Número de cuenta<span class="req">*</span></label><input type="text" id="numeroCuenta" placeholder="000-000000-00"></div>
+        <div class="field"><label>¿Tiene cuentas en otras entidades?</label>
+          <select id="otrasCuentas"><option>No</option><option>Sí — 1 entidad más</option><option>Sí — 2 o más entidades</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title"><span class="ic">📄</span>Crédito solicitado</div>
+      <div class="grid-3">
+        <div class="field"><label>Monto solicitado (COP)<span class="req">*</span></label><input type="number" id="montoSolicitado" placeholder="Ej. 10000000"></div>
+        <div class="field"><label>Plazo deseado<span class="req">*</span></label>
+          <select id="plazo"><option value="">Seleccionar...</option><option>1 mes</option><option>3 meses</option><option>6 meses</option><option>12 meses</option><option>18 meses</option><option>24 meses</option><option>36 meses</option><option>48 meses</option><option>60 meses</option></select></div>
+        <div class="field"><label>Garantía ofrecida</label>
+          <select id="garantia"><option value="">Ninguna</option><option>Codeudor / fiador</option><option>Hipoteca inmobiliaria</option><option>Prenda vehicular</option><option>Finca raíz libre</option><option>Otro activo</option></select></div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Destino del crédito<span class="req">*</span></label>
+        <select id="destinoCredito"><option value="">Seleccionar...</option><option>Capital de trabajo</option><option>Compra de vehículo</option><option>Adquisición inmobiliaria</option><option>Libre inversión</option><option>Cancelación de deudas</option><option>Mejoras locativas</option><option>Educación</option><option>Otro</option></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: LABORAL -->
+  <div id="step2" class="step" style="display:none">
+    <div class="card">
+      <div class="sec-title"><span class="ic">💼</span>Información laboral</div>
+      <div class="grid-2">
+        <div class="field"><label>Situación laboral actual<span class="req">*</span></label>
+          <select id="situacionLaboral"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelancer</option><option>Empresario / socio</option><option>Pensionado</option><option>Rentista de capital</option><option>Desempleado</option></select></div>
+        <div class="field"><label>Sector económico<span class="req">*</span></label>
+          <select id="sectorEconomico"><option value="">Seleccionar...</option><option>Comercio</option><option>Servicios profesionales</option><option>Construcción / finca raíz</option><option>Salud</option><option>Tecnología</option><option>Transporte</option><option>Agropecuario</option><option>Financiero</option><option>Educación</option><option>Otro</option></select></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Empresa / razón social</label><input type="text" id="empresa" placeholder="Nombre de la empresa"></div>
+        <div class="field"><label>NIT del empleador</label><input type="text" id="nitEmpresa" placeholder="900.123.456-7"></div>
+      </div>
+      <div class="grid-3">
+        <div class="field"><label>Cargo / ocupación</label><input type="text" id="cargo" placeholder="Gerente comercial"></div>
+        <div class="field"><label>Antigüedad laboral</label>
+          <select id="antiguedad"><option value="">Seleccionar...</option><option>Menos de 6 meses</option><option>6 meses - 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select></div>
+        <div class="field"><label>Tipo de contrato<span class="req">*</span></label>
+          <select id="tipoContrato"><option value="">Seleccionar...</option><option>Término indefinido</option><option>Término fijo</option><option>Obra o labor</option><option>Prestación de servicios</option><option>Aprendizaje (SENA)</option><option>Temporal / agencia</option><option>No aplica</option></select></div>
+      </div>
+      <div class="grid-2" style="margin-bottom:0">
+        <div class="field"><label>Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000"></div>
+        <div class="field"><label>Dirección trabajo</label><input type="text" id="direccionTrabajo" placeholder="Calle 10 # 43-123, Medellín"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title"><span class="ic">👥</span>Información personal adicional</div>
+      <div class="grid-3" style="margin-bottom:0">
+        <div class="field"><label>Estado civil<span class="req">*</span></label>
+          <select id="estadoCivil"><option value="">Seleccionar...</option><option>Soltero(a)</option><option>Casado(a)</option><option>Unión libre</option><option>Divorciado(a)</option><option>Viudo(a)</option></select></div>
+        <div class="field"><label>Nivel educativo</label>
+          <select id="nivelEducativo"><option value="">Seleccionar...</option><option>Primaria</option><option>Bachillerato</option><option>Técnico / Tecnólogo</option><option>Universitario</option><option>Posgrado</option></select></div>
+        <div class="field"><label>Núm. dependientes<span class="req">*</span></label>
+          <select id="numeroDependientes"><option>0</option><option>1</option><option>2</option><option>3</option><option>4 o más</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title"><span class="ic">🚨</span>Referencia en caso de emergencia</div>
+      <div class="grid-2">
+        <div class="field"><label>Nombre completo<span class="req">*</span></label><input type="text" id="refNombre" placeholder="María González"></div>
+        <div class="field"><label>Parentesco<span class="req">*</span></label>
+          <select id="refParentesco"><option value="">Seleccionar...</option><option>Cónyuge / compañero(a)</option><option>Padre / Madre</option><option>Hijo(a)</option><option>Hermano(a)</option><option>Otro familiar</option><option>Amigo</option></select></div>
+      </div>
+      <div class="grid-2" style="margin-bottom:0">
+        <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="refCelular" placeholder="+57 312 0000000"></div>
+        <div class="field"><label>Referencias adicionales</label><input type="text" id="refAdicional" placeholder="Nombre — Teléfono"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: DOCUMENTOS -->
+  <div id="step3" class="step" style="display:none">
+    <div class="card">
+      <div class="sec-title"><span class="ic">📁</span>Carga de documentación</div>
+      <div class="alert">⚠ Archivos legibles, vigentes y sin alteraciones. Formatos: PDF, JPG, PNG. Máximo 5 MB por archivo.</div>
+
+      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos de identidad</p>
+      <div class="doc-grid">
+        <div class="upload-zone" onclick="clickUpload('u0')"><input type="file" id="u0" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Frontal <span style="color:#dc2626">*</span></div><div class="uz-hint">Ambas caras si es posible</div></div>
+        <div class="upload-zone" onclick="clickUpload('u1')"><input type="file" id="u1" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Reverso <span style="color:#dc2626">*</span></div><div class="uz-hint">Con huella y firma</div></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Soporte de ingresos</p>
+      <div class="doc-grid">
+        <div class="upload-zone" onclick="clickUpload('u2')"><input type="file" id="u2" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📋</span><div class="uz-label">Últimas 3 colillas de pago <span style="color:#dc2626">*</span></div><div class="uz-hint">Empleado dependiente</div></div>
+        <div class="upload-zone" onclick="clickUpload('u3')"><input type="file" id="u3" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏢</span><div class="uz-label">Certificado laboral <span style="color:#dc2626">*</span></div><div class="uz-hint">Con salario y antigüedad</div></div>
+        <div class="upload-zone" onclick="clickUpload('u4')"><input type="file" id="u4" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📑</span><div class="uz-label">RUT actualizado</div><div class="uz-hint">Independiente / empresario</div></div>
+        <div class="upload-zone" onclick="clickUpload('u5')"><input type="file" id="u5" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🧾</span><div class="uz-label">Declaración de renta</div><div class="uz-hint">Último año — si aplica</div></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Extractos bancarios</p>
+      <div class="doc-grid">
+        <div class="upload-zone" onclick="clickUpload('u6')"><input type="file" id="u6" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 1 <span style="color:#dc2626">*</span></div><div class="uz-hint">Banco principal</div></div>
+        <div class="upload-zone" onclick="clickUpload('u7')"><input type="file" id="u7" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 2 <span style="color:#dc2626">*</span></div><div class="uz-hint">Banco principal</div></div>
+        <div class="upload-zone" onclick="clickUpload('u8')"><input type="file" id="u8" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 3 <span style="color:#dc2626">*</span></div><div class="uz-hint">Banco principal</div></div>
+        <div class="upload-zone" onclick="clickUpload('u9')"><input type="file" id="u9" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto banco alternativo</div><div class="uz-hint">Si tiene más cuentas</div></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos adicionales</p>
+      <div class="doc-grid" style="margin-bottom:0">
+        <div class="upload-zone" onclick="clickUpload('u10')"><input type="file" id="u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏠</span><div class="uz-label">Recibo de servicios públicos</div><div class="uz-hint">Confirma dirección</div></div>
+        <div class="upload-zone" onclick="clickUpload('u11')"><input type="file" id="u11" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏪</span><div class="uz-label">Cámara de comercio</div><div class="uz-hint">Si tiene empresa</div></div>
+        <div class="upload-zone" onclick="clickUpload('u12')"><input type="file" id="u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. de garantía / colateral</div><div class="uz-hint">Escritura, tarjeta propiedad...</div></div>
+        <div class="upload-zone" onclick="clickUpload('u13')"><input type="file" id="u13" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🤳</span><div class="uz-label">Selfie sosteniendo cédula</div><div class="uz-hint">Validación biométrica básica</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: DECLARACIONES -->
+  <div id="step4" class="step" style="display:none">
+    <div class="card">
+      <div class="sec-title"><span class="ic">🛡</span>Declaraciones y autorización</div>
+      <div class="sumcard">
+        <h4>Resumen de solicitud</h4>
+        <div class="sumrow"><span>Solicitante</span><span id="s-nombre">—</span></div>
+        <div class="sumrow"><span>Documento</span><span id="s-doc">—</span></div>
+        <div class="sumrow"><span>Celular</span><span id="s-cel">—</span></div>
+        <div class="sumrow"><span>Email</span><span id="s-email">—</span></div>
+        <div class="sumrow"><span>Ingresos declarados</span><span id="s-ing">—</span></div>
+        <div class="sumrow"><span>Monto solicitado</span><span id="s-monto">—</span></div>
+        <div class="sumrow"><span>Dirección</span><span id="s-dir">—</span></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Declaraciones obligatorias</p>
+      <div class="check-row"><input type="checkbox" id="ch1"><label for="ch1">Declaro que la información suministrada en este formulario es veraz, completa y verificable. Entiendo que cualquier falsedad puede ser causal de rechazo inmediato y acciones legales.</label></div>
+      <div class="check-row"><input type="checkbox" id="ch2"><label for="ch2">Autorizo a Warp Finance y a las entidades del holding a consultar mi historial crediticio en centrales de riesgo (Datacrédito, CIFIN/TransUnion) y a reportar mi comportamiento de pago.</label></div>
+      <div class="check-row"><input type="checkbox" id="ch3"><label for="ch3">Autorizo el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 y la política de privacidad de Warp Finance, incluyendo contacto para gestión de cobro.</label></div>
+      <div class="check-row"><input type="checkbox" id="ch4"><label for="ch4">Declaro que mis recursos provienen de actividades lícitas y no tengo vínculos con lavado de activos, financiación del terrorismo ni actividades ilícitas (SARLAFT / UIAF Colombia).</label></div>
+      <div class="check-row"><input type="checkbox" id="ch5"><label for="ch5">Declaro que no soy Persona Políticamente Expuesta (PEP), ni familiar de primer grado de PEP. En caso contrario me comprometo a declararlo por escrito.</label></div>
+      <div class="check-row"><input type="checkbox" id="ch6"><label for="ch6">Autorizo el débito automático de las cuotas desde la cuenta registrada en caso de aprobación, de acuerdo con las condiciones pactadas.</label></div>
+
+      <div class="divider"></div>
+      <div class="field">
+        <label>Firma electrónica — Escriba su nombre completo como firma</label>
+        <input type="text" id="firmaElectronica" placeholder="Juan Carlos Pérez Gómez">
+      </div>
+      <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar este formulario, acepta que la digitación de su nombre tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999.</p>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="stepSuccess" style="display:none">
+    <div class="card success-wrap">
+      <div class="success-icon">✓</div>
+      <div class="success-title">¡Solicitud enviada!</div>
+      <p class="success-sub">Recibimos tu información correctamente. Un asesor de <strong>Warp Finance</strong> se pondrá en contacto contigo en las próximas 24 horas hábiles.</p>
+      <div class="success-rad" id="radicado-display">WRP-XXXXXX</div>
+      <p class="success-sub" style="margin-top:8px;font-size:13px">Guarda este número de radicado para hacer seguimiento a tu solicitud.</p>
+    </div>
+  </div>
+
+  <!-- NAVEGACIÓN -->
+  <div class="nav" id="navBar">
+    <span class="step-info" id="stepInfo">Paso 1 de 5</span>
+    <div class="btns">
+      <button class="btn btn-back" id="btnBack" onclick="prevStep()" style="display:none">← Anterior</button>
+      <button class="btn btn-next" id="btnNext" onclick="nextStep()">Siguiente →</button>
+      <button class="btn btn-submit" id="btnSubmit" style="display:none" onclick="submitForm()">Enviar solicitud ↗</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = window.location.origin;
+let currentStep = 0;
+const TOTAL = 5;
+
+function val(id){ return (document.getElementById(id)?.value||'').trim(); }
+function fmt(n){ return n?'$'+Number(n).toLocaleString('es-CO'):'—'; }
+
+function goStep(n){
+  if(n>currentStep) return; // solo retroceso por tabs
+  showStep(n);
+}
+
+function showStep(n){
+  for(let i=0;i<TOTAL;i++) document.getElementById('step'+i).style.display='none';
+  document.getElementById('stepSuccess').style.display='none';
+  if(n>=TOTAL){ showSuccess(); return; }
+  document.getElementById('step'+n).style.display='block';
+  currentStep=n;
+  updateNav();
+  updateProgress();
+  if(n===4) updateSummary();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function nextStep(){ showStep(currentStep+1); }
+function prevStep(){ if(currentStep>0) showStep(currentStep-1); }
+
+function updateNav(){
+  document.getElementById('btnBack').style.display = currentStep>0?'':'none';
+  document.getElementById('btnNext').style.display = currentStep<TOTAL-1?'':'none';
+  document.getElementById('btnSubmit').style.display = currentStep===TOTAL-1?'':'none';
+  document.getElementById('stepInfo').textContent = 'Paso '+(currentStep+1)+' de '+TOTAL;
+}
+
+function updateProgress(){
+  const tabs = document.querySelectorAll('.tab');
+  for(let i=0;i<TOTAL;i++){
+    const pb = document.getElementById('pb'+i);
+    pb.className='prog-bar';
+    if(i<currentStep) pb.classList.add('done');
+    else if(i===currentStep) pb.classList.add('active');
+    tabs[i].className='tab';
+    if(i===currentStep) tabs[i].classList.add('active');
+    else if(i<currentStep) tabs[i].classList.add('done');
+  }
+}
+
+function updateSummary(){
+  const n1=val('primerNombre'), ap=val('primerApellido');
+  document.getElementById('s-nombre').textContent = n1&&ap?n1+' '+ap:'—';
+  document.getElementById('s-doc').textContent = [val('tipoDocumento'),val('numDocumento')].filter(Boolean).join(' ')||'—';
+  document.getElementById('s-cel').textContent = val('celular')||'—';
+  document.getElementById('s-email').textContent = val('email')||'—';
+  document.getElementById('s-ing').textContent = fmt(val('ingresosMensuales'));
+  document.getElementById('s-monto').textContent = fmt(val('montoSolicitado'));
+  document.getElementById('s-dir').textContent = val('direccion')||'—';
+}
+
+function clickUpload(id){ document.getElementById(id).click(); }
+function markUp(input){
+  const zone=input.closest('.upload-zone');
+  if(input.files&&input.files.length>0){
+    zone.classList.add('uploaded');
+    zone.querySelector('.uz-label').textContent='✓ '+input.files[0].name.substring(0,30);
+  }
+}
+
+function showToast(msg,tipo='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+tipo+' show';
+  setTimeout(()=>t.classList.remove('show'),4500);
+}
+
+function showSuccess(){
+  document.querySelectorAll('.step').forEach(s=>s.style.display='none');
+  document.getElementById('stepSuccess').style.display='block';
+  document.getElementById('navBar').style.display='none';
+  document.getElementById('progress').style.display='none';
+  document.getElementById('tabs').style.display='none';
+}
+
+async function submitForm(){
+  // Validar checks
+  const checks=['ch1','ch2','ch3','ch4','ch5','ch6'];
+  const unchecked=checks.filter(id=>!document.getElementById(id).checked);
+  if(unchecked.length>0){ showToast('Acepte todas las declaraciones antes de enviar','err'); return; }
+  const firma=val('firmaElectronica');
+  if(!firma){ showToast('Escriba su nombre como firma electrónica','err'); return; }
+
+  const btn=document.getElementById('btnSubmit');
+  btn.disabled=true; btn.textContent='Enviando...';
+
+  const campos=['tipoDocumento','numDocumento','primerNombre','segundoNombre','primerApellido','segundoApellido','fechaNacimiento','paisNacimiento','ciudadNacimiento','genero','celular','telefonoAlt','email','emailAlt','departamento','ciudad','barrio','direccion','tipoVivienda','tiempoVivienda','ingresosMensuales','fuenteIngresos','ingresosAdicionales','conceptoIngresosAd','egresosMensuales','obligacionesFinancieras','banco','tipoCuenta','numeroCuenta','otrasCuentas','montoSolicitado','plazo','garantia','destinoCredito','situacionLaboral','sectorEconomico','empresa','nitEmpresa','cargo','antiguedad','tipoContrato','telefonoTrabajo','direccionTrabajo','estadoCivil','nivelEducativo','numeroDependientes','refNombre','refParentesco','refCelular','refAdicional','firmaElectronica'];
+  const data={};
+  campos.forEach(c=>{data[c]=val(c)||null;});
+  data.declaracionVeracidad=document.getElementById('ch1').checked;
+  data.autorizacionCentrales=document.getElementById('ch2').checked;
+  data.autorizacionDatos=document.getElementById('ch3').checked;
+  data.declaracionSarlaft=document.getElementById('ch4').checked;
+  data.declaracionPep=document.getElementById('ch5').checked;
+  data.autorizacionDebito=document.getElementById('ch6').checked;
+
+  try{
+    const resp=await fetch(API_URL+'/api/solicitudes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const json=await resp.json();
+    if(resp.ok&&json.radicado){
+      document.getElementById('radicado-display').textContent=json.radicado;
+      showStep(TOTAL);
+    } else {
+      showToast(json.error||'Error enviando. Intenta de nuevo.','err');
+      btn.disabled=false; btn.textContent='Enviar solicitud ↗';
+    }
+  }catch(e){
+    showToast('Error de conexión. Verifica tu internet e intenta de nuevo.','err');
+    btn.disabled=false; btn.textContent='Enviar solicitud ↗';
+  }
+}
+</script>
+</body>
+</html>
