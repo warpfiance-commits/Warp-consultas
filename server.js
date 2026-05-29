@@ -7,7 +7,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Base de datos JSON
+// ── Base de datos JSON ────────────────────────────────────────────────────────
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'db.json');
 
 function readDB() {
@@ -23,14 +23,70 @@ function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
+// ── Cloudinary ────────────────────────────────────────────────────────────────
+const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dtoq5nbz4';
+const API_KEY    = process.env.CLOUDINARY_API_KEY    || '985348958691353';
+const API_SECRET = process.env.CLOUDINARY_API_SECRET || 'N8mnqMCA_xVtSzxL4p13YVvhnLM';
+
+async function uploadToCloudinary(base64Data, fileName, folder) {
+  const https = require('https');
+  const crypto = require('crypto');
+
+  // Limpiar base64
+  const base64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+  const mimeMatch = base64Data.match(/data:([^;]+);/);
+  const resourceType = mimeMatch && mimeMatch[1].includes('pdf') ? 'raw' : 'image';
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const publicId = `${folder}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+
+  const toSign = `folder=warp-solicitudes/${folder}&public_id=${publicId}&timestamp=${timestamp}${API_SECRET}`;
+  const signature = crypto.createHash('sha1').update(toSign).digest('hex');
+
+  const formData = [
+    `file=data:${mimeMatch ? mimeMatch[1] : 'image/jpeg'};base64,${base64}`,
+    `api_key=${API_KEY}`,
+    `timestamp=${timestamp}`,
+    `signature=${signature}`,
+    `folder=warp-solicitudes/${folder}`,
+    `public_id=${publicId}`
+  ].join('&');
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.cloudinary.com',
+      path: `/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(formData)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.secure_url) resolve(json.secure_url);
+          else reject(new Error(json.error?.message || 'Upload failed'));
+        } catch(e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(formData);
+    req.end();
+  });
+}
+
+// ── Config ────────────────────────────────────────────────────────────────────
 const ADMIN_USER  = process.env.ADMIN_USER  || 'admin';
 const ADMIN_PASS  = process.env.ADMIN_PASS  || 'WarpAdmin2024!';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-token-secreto-2024';
 
 app.use(cors({ origin: '*' }));
-app.use(express.json({ limit: '5mb' }));
-
-// Servir frontend - buscar en la misma carpeta del servidor
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
 
 app.use((req, res, next) => {
@@ -60,17 +116,54 @@ function auditLog(solicitudId, accion, usuario, detalle) {
   writeDB(db);
 }
 
+// ── RUTAS PÚBLICAS ────────────────────────────────────────────────────────────
+
 app.get('/health', (req, res) => {
   const db = readDB();
   res.json({ status: 'ok', solicitudes: db.solicitudes.length, timestamp: new Date().toISOString() });
 });
 
-app.post('/api/solicitudes', (req, res) => {
+app.post('/api/solicitudes', async (req, res) => {
   try {
     const db = readDB();
     const id = uuidv4();
     const radicado = generarRadicado();
     const data = req.body;
+
+    // Subir documentos a Cloudinary
+    const documentosUrls = {};
+    if (data.documentos && typeof data.documentos === 'object') {
+      const nombresDoc = {
+        cedula_frontal: 'Cédula Frontal',
+        cedula_reverso: 'Cédula Reverso',
+        colillas: 'Colillas de pago',
+        certificado_laboral: 'Certificado laboral',
+        extracto_1: 'Extracto mes 1',
+        extracto_2: 'Extracto mes 2',
+        extracto_3: 'Extracto mes 3',
+        extracto_alt: 'Extracto alternativo',
+        rut: 'RUT',
+        declaracion_renta: 'Declaración de renta',
+        servicios: 'Recibo servicios',
+        camara: 'Cámara de comercio',
+        garantia: 'Documento garantía',
+        selfie: 'Selfie con cédula'
+      };
+
+      for (const [key, fileData] of Object.entries(data.documentos)) {
+        if (fileData && fileData.base64) {
+          try {
+            console.log(`Subiendo documento: ${key}`);
+            const url = await uploadToCloudinary(fileData.base64, fileData.nombre || key, radicado);
+            documentosUrls[key] = { url, nombre: nombresDoc[key] || key, nombreArchivo: fileData.nombre };
+            console.log(`✓ ${key} subido: ${url}`);
+          } catch(e) {
+            console.error(`Error subiendo ${key}:`, e.message);
+            documentosUrls[key] = { url: null, nombre: nombresDoc[key] || key, error: e.message };
+          }
+        }
+      }
+    }
 
     const solicitud = {
       id, radicado, estado: 'RADICADA',
@@ -112,18 +205,22 @@ app.post('/api/solicitudes', (req, res) => {
       declaracionPep: !!data.declaracionPep,
       autorizacionDebito: !!data.autorizacionDebito,
       firmaElectronica: data.firmaElectronica||null,
+      documentos: documentosUrls,
       notaAnalista: null, analista: null
     };
 
     db.solicitudes.unshift(solicitud);
     writeDB(db);
-    auditLog(id, 'SOLICITUD_CREADA', 'solicitante', `Radicado: ${radicado} | Email: ${data.email}`);
+    auditLog(id, 'SOLICITUD_CREADA', 'solicitante', `Radicado: ${radicado} | Email: ${data.email} | Docs: ${Object.keys(documentosUrls).length}`);
+
     res.status(201).json({ ok: true, radicado, mensaje: '¡Solicitud enviada exitosamente! Te contactaremos pronto.' });
   } catch(err) {
     console.error('Error:', err.message);
     res.status(500).json({ error: 'Error guardando la solicitud.' });
   }
 });
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
 
 app.post('/api/admin/login', (req, res) => {
   const { usuario, password } = req.body;
@@ -221,6 +318,7 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`\n🚀 Warp Solicitudes en puerto ${PORT}`);
+  console.log(`☁️  Cloudinary: ${CLOUD_NAME}`);
   console.log(`🌐 Formulario: http://localhost:${PORT}`);
   console.log(`🛡  Admin:      http://localhost:${PORT}/admin\n`);
 });
