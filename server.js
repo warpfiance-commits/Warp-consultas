@@ -7,7 +7,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Base de datos JSON ────────────────────────────────────────────────────────
+// Base de datos JSON
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'db.json');
 
 function readDB() {
@@ -23,34 +23,27 @@ function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// ── Config ───────────────────────────────────────────────────────────────────
 const ADMIN_USER  = process.env.ADMIN_USER  || 'admin';
 const ADMIN_PASS  = process.env.ADMIN_PASS  || 'WarpAdmin2024!';
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-admin-token-2024';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-token-secreto-2024';
 
-// ── Middlewares ──────────────────────────────────────────────────────────────
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '5mb' }));
 
-// Frontend estático
-const frontendPath = path.join(__dirname, '../frontend');
-if (fs.existsSync(frontendPath)) {
-  app.use(express.static(frontendPath));
-}
+// Servir frontend - buscar en la misma carpeta del servidor
+app.use(express.static(__dirname));
 
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString().slice(11,19)} ${req.method} ${req.path}`);
   next();
 });
 
-// Auth admin
 const authAdmin = (req, res, next) => {
   const token = req.headers['x-admin-token'] || req.query.token;
   if (token === ADMIN_TOKEN) return next();
   return res.status(401).json({ error: 'No autorizado' });
 };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 function generarRadicado() {
   const d = new Date();
   const yy = String(d.getFullYear()).slice(2);
@@ -66,8 +59,6 @@ function auditLog(solicitudId, accion, usuario, detalle) {
   if (db.auditoria.length > 500) db.auditoria = db.auditoria.slice(0, 500);
   writeDB(db);
 }
-
-// ── RUTAS PÚBLICAS ────────────────────────────────────────────────────────────
 
 app.get('/health', (req, res) => {
   const db = readDB();
@@ -85,64 +76,35 @@ app.post('/api/solicitudes', (req, res) => {
       id, radicado, estado: 'RADICADA',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // Identidad
-      tipoDocumento: data.tipoDocumento||null,
-      numDocumento: data.numDocumento||null,
-      primerNombre: data.primerNombre||null,
-      segundoNombre: data.segundoNombre||null,
-      primerApellido: data.primerApellido||null,
-      segundoApellido: data.segundoApellido||null,
-      fechaNacimiento: data.fechaNacimiento||null,
-      paisNacimiento: data.paisNacimiento||null,
-      ciudadNacimiento: data.ciudadNacimiento||null,
-      genero: data.genero||null,
-      // Contacto
-      celular: data.celular||null,
-      telefonoAlt: data.telefonoAlt||null,
-      email: data.email||null,
-      emailAlt: data.emailAlt||null,
-      departamento: data.departamento||null,
-      ciudad: data.ciudad||null,
-      barrio: data.barrio||null,
-      direccion: data.direccion||null,
-      tipoVivienda: data.tipoVivienda||null,
-      tiempoVivienda: data.tiempoVivienda||null,
-      // Financiero
+      tipoDocumento: data.tipoDocumento||null, numDocumento: data.numDocumento||null,
+      primerNombre: data.primerNombre||null, segundoNombre: data.segundoNombre||null,
+      primerApellido: data.primerApellido||null, segundoApellido: data.segundoApellido||null,
+      fechaNacimiento: data.fechaNacimiento||null, paisNacimiento: data.paisNacimiento||null,
+      ciudadNacimiento: data.ciudadNacimiento||null, genero: data.genero||null,
+      celular: data.celular||null, telefonoAlt: data.telefonoAlt||null,
+      email: data.email||null, emailAlt: data.emailAlt||null,
+      departamento: data.departamento||null, ciudad: data.ciudad||null,
+      barrio: data.barrio||null, direccion: data.direccion||null,
+      tipoVivienda: data.tipoVivienda||null, tiempoVivienda: data.tiempoVivienda||null,
       ingresosMensuales: data.ingresosMensuales ? Number(data.ingresosMensuales) : null,
       fuenteIngresos: data.fuenteIngresos||null,
       ingresosAdicionales: data.ingresosAdicionales ? Number(data.ingresosAdicionales) : null,
       conceptoIngresosAd: data.conceptoIngresosAd||null,
       egresosMensuales: data.egresosMensuales ? Number(data.egresosMensuales) : null,
       obligacionesFinancieras: data.obligacionesFinancieras ? Number(data.obligacionesFinancieras) : null,
-      banco: data.banco||null,
-      tipoCuenta: data.tipoCuenta||null,
-      numeroCuenta: data.numeroCuenta||null,
-      otrasCuentas: data.otrasCuentas||null,
-      // Crédito
+      banco: data.banco||null, tipoCuenta: data.tipoCuenta||null,
+      numeroCuenta: data.numeroCuenta||null, otrasCuentas: data.otrasCuentas||null,
       montoSolicitado: data.montoSolicitado ? Number(data.montoSolicitado) : null,
-      plazo: data.plazo||null,
-      garantia: data.garantia||null,
-      destinoCredito: data.destinoCredito||null,
-      // Laboral
-      situacionLaboral: data.situacionLaboral||null,
-      sectorEconomico: data.sectorEconomico||null,
-      empresa: data.empresa||null,
-      nitEmpresa: data.nitEmpresa||null,
-      cargo: data.cargo||null,
-      antiguedad: data.antiguedad||null,
-      tipoContrato: data.tipoContrato||null,
-      telefonoTrabajo: data.telefonoTrabajo||null,
+      plazo: data.plazo||null, garantia: data.garantia||null, destinoCredito: data.destinoCredito||null,
+      situacionLaboral: data.situacionLaboral||null, sectorEconomico: data.sectorEconomico||null,
+      empresa: data.empresa||null, nitEmpresa: data.nitEmpresa||null,
+      cargo: data.cargo||null, antiguedad: data.antiguedad||null,
+      tipoContrato: data.tipoContrato||null, telefonoTrabajo: data.telefonoTrabajo||null,
       direccionTrabajo: data.direccionTrabajo||null,
-      // Personal
-      estadoCivil: data.estadoCivil||null,
-      nivelEducativo: data.nivelEducativo||null,
+      estadoCivil: data.estadoCivil||null, nivelEducativo: data.nivelEducativo||null,
       numeroDependientes: data.numeroDependientes||null,
-      // Referencia
-      refNombre: data.refNombre||null,
-      refParentesco: data.refParentesco||null,
-      refCelular: data.refCelular||null,
-      refAdicional: data.refAdicional||null,
-      // Declaraciones
+      refNombre: data.refNombre||null, refParentesco: data.refParentesco||null,
+      refCelular: data.refCelular||null, refAdicional: data.refAdicional||null,
       declaracionVeracidad: !!data.declaracionVeracidad,
       autorizacionCentrales: !!data.autorizacionCentrales,
       autorizacionDatos: !!data.autorizacionDatos,
@@ -150,23 +112,18 @@ app.post('/api/solicitudes', (req, res) => {
       declaracionPep: !!data.declaracionPep,
       autorizacionDebito: !!data.autorizacionDebito,
       firmaElectronica: data.firmaElectronica||null,
-      // Admin
-      notaAnalista: null,
-      analista: null
+      notaAnalista: null, analista: null
     };
 
     db.solicitudes.unshift(solicitud);
     writeDB(db);
     auditLog(id, 'SOLICITUD_CREADA', 'solicitante', `Radicado: ${radicado} | Email: ${data.email}`);
-
     res.status(201).json({ ok: true, radicado, mensaje: '¡Solicitud enviada exitosamente! Te contactaremos pronto.' });
   } catch(err) {
     console.error('Error:', err.message);
     res.status(500).json({ error: 'Error guardando la solicitud.' });
   }
 });
-
-// ── ADMIN ─────────────────────────────────────────────────────────────────────
 
 app.post('/api/admin/login', (req, res) => {
   const { usuario, password } = req.body;
@@ -180,7 +137,6 @@ app.get('/api/admin/solicitudes', authAdmin, (req, res) => {
   let { estado, buscar, limit=100, offset=0 } = req.query;
   const db = readDB();
   let lista = db.solicitudes;
-
   if (estado && estado !== 'TODAS') lista = lista.filter(s => s.estado === estado);
   if (buscar) {
     const q = buscar.toLowerCase();
@@ -210,17 +166,14 @@ app.patch('/api/admin/solicitudes/:id/estado', authAdmin, (req, res) => {
   const { estado, nota, analista } = req.body;
   const estados = ['RADICADA','EN_ANALISIS','APROBADA','RECHAZADA','DESEMBOLSADA'];
   if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
-
   const db = readDB();
   const idx = db.solicitudes.findIndex(s => s.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'No encontrada' });
-
   db.solicitudes[idx].estado = estado;
   db.solicitudes[idx].notaAnalista = nota || db.solicitudes[idx].notaAnalista;
   db.solicitudes[idx].analista = analista || db.solicitudes[idx].analista;
   db.solicitudes[idx].updatedAt = new Date().toISOString();
   writeDB(db);
-
   auditLog(req.params.id, `CAMBIO_ESTADO_${estado}`, analista||'admin', nota||'');
   res.json({ ok: true, solicitud: db.solicitudes[idx] });
 });
@@ -256,20 +209,18 @@ app.get('/api/admin/auditoria', authAdmin, (req, res) => {
   res.json({ logs: db.auditoria.slice(0,200) });
 });
 
-// SPA catch-all
 app.get('/admin', (req, res) => {
-  const f = path.join(__dirname, '../frontend/admin.html');
+  const f = path.join(__dirname, 'admin.html');
   fs.existsSync(f) ? res.sendFile(f) : res.send('<h2>Admin not found</h2>');
 });
 
 app.get('*', (req, res) => {
-  const f = path.join(__dirname, '../frontend/index.html');
+  const f = path.join(__dirname, 'index.html');
   fs.existsSync(f) ? res.sendFile(f) : res.json({ ok: true, msg: 'Warp Solicitudes API' });
 });
 
 app.listen(PORT, () => {
   console.log(`\n🚀 Warp Solicitudes en puerto ${PORT}`);
-  console.log(`📁 DB: ${DB_FILE}`);
   console.log(`🌐 Formulario: http://localhost:${PORT}`);
   console.log(`🛡  Admin:      http://localhost:${PORT}/admin\n`);
 });
