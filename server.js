@@ -3,11 +3,12 @@ const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ── Base de datos JSON ────────────────────────────────────────────────────────
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'db.json');
 
 function readDB() {
@@ -23,64 +24,10 @@ function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// ── Cloudinary ────────────────────────────────────────────────────────────────
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dtoq5nbz4';
 const API_KEY    = process.env.CLOUDINARY_API_KEY    || '985348958691353';
 const API_SECRET = process.env.CLOUDINARY_API_SECRET || 'N8mnqMCA_xVtSzxL4p13YVvhnLM';
 
-async function uploadToCloudinary(base64Data, fileName, folder) {
-  const https = require('https');
-  const crypto = require('crypto');
-
-  // Limpiar base64
-  const base64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
-  const mimeMatch = base64Data.match(/data:([^;]+);/);
-  const resourceType = mimeMatch && mimeMatch[1].includes('pdf') ? 'raw' : 'image';
-
-  const timestamp = Math.floor(Date.now() / 1000);
-  const publicId = `${folder}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-
-  const toSign = `folder=warp-solicitudes/${folder}&public_id=${publicId}&timestamp=${timestamp}${API_SECRET}`;
-  const signature = crypto.createHash('sha1').update(toSign).digest('hex');
-
-  const formData = [
-    `file=data:${mimeMatch ? mimeMatch[1] : 'image/jpeg'};base64,${base64}`,
-    `api_key=${API_KEY}`,
-    `timestamp=${timestamp}`,
-    `signature=${signature}`,
-    `folder=warp-solicitudes/${folder}`,
-    `public_id=${publicId}`
-  ].join('&');
-
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'api.cloudinary.com',
-      path: `/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(formData)
-      }
-    };
-
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          if (json.secure_url) resolve(json.secure_url);
-          else reject(new Error(json.error?.message || 'Upload failed'));
-        } catch(e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
-    req.write(formData);
-    req.end();
-  });
-}
-
-// ── Config ────────────────────────────────────────────────────────────────────
 const ADMIN_USER  = process.env.ADMIN_USER  || 'admin';
 const ADMIN_PASS  = process.env.ADMIN_PASS  || 'WarpAdmin2024!';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-token-secreto-2024';
@@ -116,7 +63,75 @@ function auditLog(solicitudId, accion, usuario, detalle) {
   writeDB(db);
 }
 
-// ── RUTAS PÚBLICAS ────────────────────────────────────────────────────────────
+async function uploadToCloudinary(base64Data, fileName, folder) {
+  // Detectar tipo
+  const mimeMatch = base64Data.match(/data:([^;]+);/);
+  const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+  const isPdf = mimeType.includes('pdf');
+  const resourceType = isPdf ? 'raw' : 'image';
+
+  // Limpiar base64
+  const base64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const publicId = `warp-solicitudes/${folder}/${Date.now()}_${(fileName||'doc').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+
+  // Firma correcta incluyendo resource_type para raw
+  const paramsToSign = isPdf
+    ? `public_id=${publicId}&timestamp=${timestamp}`
+    : `public_id=${publicId}&timestamp=${timestamp}`;
+  
+  const signature = crypto.createHash('sha1').update(paramsToSign + API_SECRET).digest('hex');
+
+  // Construir form data
+  const boundary = '----FormBoundary' + Math.random().toString(36).substr(2);
+  const fileData = Buffer.from(base64, 'base64');
+  
+  let body = '';
+  const addField = (name, value) => {
+    body += `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`;
+  };
+  
+  addField('api_key', API_KEY);
+  addField('timestamp', timestamp);
+  addField('signature', signature);
+  addField('public_id', publicId);
+
+  const bodyBefore = Buffer.from(body, 'utf8');
+  const fileHeader = Buffer.from(
+    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName||'file'}"\r\nContent-Type: ${mimeType}\r\n\r\n`,
+    'utf8'
+  );
+  const bodyAfter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8');
+  const requestBody = Buffer.concat([bodyBefore, fileHeader, fileData, bodyAfter]);
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.cloudinary.com',
+      path: `/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
+      method: 'POST',
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        'Content-Length': requestBody.length
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          console.log('Cloudinary response:', json.secure_url || json.error);
+          if (json.secure_url) resolve(json.secure_url);
+          else reject(new Error(json.error?.message || JSON.stringify(json)));
+        } catch(e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(requestBody);
+    req.end();
+  });
+}
 
 app.get('/health', (req, res) => {
   const db = readDB();
@@ -130,36 +145,28 @@ app.post('/api/solicitudes', async (req, res) => {
     const radicado = generarRadicado();
     const data = req.body;
 
-    // Subir documentos a Cloudinary
+    const nombresDoc = {
+      cedula_frontal:'Cédula Frontal', cedula_reverso:'Cédula Reverso',
+      colillas:'Colillas de pago', certificado_laboral:'Certificado laboral',
+      extracto_1:'Extracto mes 1', extracto_2:'Extracto mes 2',
+      extracto_3:'Extracto mes 3', extracto_alt:'Extracto alternativo',
+      rut:'RUT', declaracion_renta:'Declaración de renta',
+      servicios:'Recibo servicios', camara:'Cámara de comercio',
+      garantia:'Documento garantía', selfie:'Selfie con cédula'
+    };
+
     const documentosUrls = {};
     if (data.documentos && typeof data.documentos === 'object') {
-      const nombresDoc = {
-        cedula_frontal: 'Cédula Frontal',
-        cedula_reverso: 'Cédula Reverso',
-        colillas: 'Colillas de pago',
-        certificado_laboral: 'Certificado laboral',
-        extracto_1: 'Extracto mes 1',
-        extracto_2: 'Extracto mes 2',
-        extracto_3: 'Extracto mes 3',
-        extracto_alt: 'Extracto alternativo',
-        rut: 'RUT',
-        declaracion_renta: 'Declaración de renta',
-        servicios: 'Recibo servicios',
-        camara: 'Cámara de comercio',
-        garantia: 'Documento garantía',
-        selfie: 'Selfie con cédula'
-      };
-
       for (const [key, fileData] of Object.entries(data.documentos)) {
         if (fileData && fileData.base64) {
           try {
-            console.log(`Subiendo documento: ${key}`);
-            const url = await uploadToCloudinary(fileData.base64, fileData.nombre || key, radicado);
-            documentosUrls[key] = { url, nombre: nombresDoc[key] || key, nombreArchivo: fileData.nombre };
-            console.log(`✓ ${key} subido: ${url}`);
+            console.log(`Subiendo: ${key} (${fileData.tipo})`);
+            const url = await uploadToCloudinary(fileData.base64, fileData.nombre||key, radicado);
+            documentosUrls[key] = { url, nombre: nombresDoc[key]||key, nombreArchivo: fileData.nombre };
+            console.log(`✓ ${key}: ${url}`);
           } catch(e) {
-            console.error(`Error subiendo ${key}:`, e.message);
-            documentosUrls[key] = { url: null, nombre: nombresDoc[key] || key, error: e.message };
+            console.error(`✗ ${key}:`, e.message);
+            documentosUrls[key] = { url: null, nombre: nombresDoc[key]||key, error: e.message };
           }
         }
       }
@@ -167,8 +174,7 @@ app.post('/api/solicitudes', async (req, res) => {
 
     const solicitud = {
       id, radicado, estado: 'RADICADA',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
       tipoDocumento: data.tipoDocumento||null, numDocumento: data.numDocumento||null,
       primerNombre: data.primerNombre||null, segundoNombre: data.segundoNombre||null,
       primerApellido: data.primerApellido||null, segundoApellido: data.segundoApellido||null,
@@ -179,15 +185,15 @@ app.post('/api/solicitudes', async (req, res) => {
       departamento: data.departamento||null, ciudad: data.ciudad||null,
       barrio: data.barrio||null, direccion: data.direccion||null,
       tipoVivienda: data.tipoVivienda||null, tiempoVivienda: data.tiempoVivienda||null,
-      ingresosMensuales: data.ingresosMensuales ? Number(data.ingresosMensuales) : null,
+      ingresosMensuales: data.ingresosMensuales?Number(data.ingresosMensuales):null,
       fuenteIngresos: data.fuenteIngresos||null,
-      ingresosAdicionales: data.ingresosAdicionales ? Number(data.ingresosAdicionales) : null,
+      ingresosAdicionales: data.ingresosAdicionales?Number(data.ingresosAdicionales):null,
       conceptoIngresosAd: data.conceptoIngresosAd||null,
-      egresosMensuales: data.egresosMensuales ? Number(data.egresosMensuales) : null,
-      obligacionesFinancieras: data.obligacionesFinancieras ? Number(data.obligacionesFinancieras) : null,
+      egresosMensuales: data.egresosMensuales?Number(data.egresosMensuales):null,
+      obligacionesFinancieras: data.obligacionesFinancieras?Number(data.obligacionesFinancieras):null,
       banco: data.banco||null, tipoCuenta: data.tipoCuenta||null,
       numeroCuenta: data.numeroCuenta||null, otrasCuentas: data.otrasCuentas||null,
-      montoSolicitado: data.montoSolicitado ? Number(data.montoSolicitado) : null,
+      montoSolicitado: data.montoSolicitado?Number(data.montoSolicitado):null,
       plazo: data.plazo||null, garantia: data.garantia||null, destinoCredito: data.destinoCredito||null,
       situacionLaboral: data.situacionLaboral||null, sectorEconomico: data.sectorEconomico||null,
       empresa: data.empresa||null, nitEmpresa: data.nitEmpresa||null,
@@ -211,22 +217,17 @@ app.post('/api/solicitudes', async (req, res) => {
 
     db.solicitudes.unshift(solicitud);
     writeDB(db);
-    auditLog(id, 'SOLICITUD_CREADA', 'solicitante', `Radicado: ${radicado} | Email: ${data.email} | Docs: ${Object.keys(documentosUrls).length}`);
-
-    res.status(201).json({ ok: true, radicado, mensaje: '¡Solicitud enviada exitosamente! Te contactaremos pronto.' });
+    auditLog(id, 'SOLICITUD_CREADA', 'solicitante', `Radicado: ${radicado} | Docs: ${Object.keys(documentosUrls).length}`);
+    res.status(201).json({ ok: true, radicado, mensaje: '¡Solicitud enviada exitosamente!' });
   } catch(err) {
     console.error('Error:', err.message);
     res.status(500).json({ error: 'Error guardando la solicitud.' });
   }
 });
 
-// ── ADMIN ─────────────────────────────────────────────────────────────────────
-
 app.post('/api/admin/login', (req, res) => {
   const { usuario, password } = req.body;
-  if (usuario === ADMIN_USER && password === ADMIN_PASS) {
-    return res.json({ ok: true, token: ADMIN_TOKEN });
-  }
+  if (usuario === ADMIN_USER && password === ADMIN_PASS) return res.json({ ok: true, token: ADMIN_TOKEN });
   res.status(401).json({ error: 'Credenciales incorrectas' });
 });
 
@@ -243,8 +244,7 @@ app.get('/api/admin/solicitudes', authAdmin, (req, res) => {
       (s.numDocumento||'').toLowerCase().includes(q) ||
       (s.radicado||'').toLowerCase().includes(q) ||
       (s.email||'').toLowerCase().includes(q) ||
-      (s.celular||'').toLowerCase().includes(q)
-    );
+      (s.celular||'').toLowerCase().includes(q));
   }
   const total = lista.length;
   lista = lista.slice(Number(offset), Number(offset)+Number(limit));
@@ -319,6 +319,5 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 Warp Solicitudes en puerto ${PORT}`);
   console.log(`☁️  Cloudinary: ${CLOUD_NAME}`);
-  console.log(`🌐 Formulario: http://localhost:${PORT}`);
-  console.log(`🛡  Admin:      http://localhost:${PORT}/admin\n`);
+  console.log(`🌐 http://localhost:${PORT}\n`);
 });
