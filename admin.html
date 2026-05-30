@@ -22,7 +22,6 @@ input:focus,select:focus{border-color:var(--lime-d);background:#fff}
 .btn-primary{background:var(--navy);color:var(--lime);width:100%}
 .btn-primary:hover{background:#1a3a5c}
 .err-msg{color:#ef4444;font-size:12px;margin-top:8px;display:none}
-/* Layout admin */
 .app{display:flex;min-height:100vh}
 .sidebar{width:220px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column}
 .sidebar-logo{padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -32,13 +31,11 @@ input:focus,select:focus{border-color:var(--lime-d);background:#fff}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 1.2rem;font-size:13px;font-weight:500;color:rgba(255,255,255,.6);cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav-item.active{background:rgba(168,196,0,.15);color:var(--lime)}
-.nav-item .ic{font-size:16px;width:20px}
 .sidebar-footer{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.1)}
 .main{flex:1;overflow:auto}
 .topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
 .topbar-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--navy)}
 .content{padding:1.5rem}
-/* Cards */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.5rem}
 .stat-card{background:#fff;border-radius:10px;padding:1rem 1.2rem;border:1px solid #e5e7eb}
 .stat-label{font-size:12px;color:#9ca3af;font-weight:500;margin-bottom:6px}
@@ -47,7 +44,6 @@ input:focus,select:focus{border-color:var(--lime-d);background:#fff}
 .card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;margin-bottom:1rem}
 .card-header{padding:.9rem 1.2rem;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between}
 .card-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--navy)}
-/* Table */
 table{width:100%;font-size:12px;border-collapse:collapse}
 thead tr{background:var(--navy);color:#fff}
 th{padding:10px 14px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
@@ -66,17 +62,15 @@ td{padding:10px 14px;color:#374151}
 .btn-ghost:hover{background:#f3f4f6}
 .btn-lime{background:var(--lime);color:var(--navy)}
 .btn-red{background:#ef4444;color:#fff}
-/* Modal */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:14px;padding:1.5rem;width:680px;max-height:85vh;overflow-y:auto}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;width:720px;max-height:88vh;overflow-y:auto}
 .modal-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:1rem}
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
 .info-block{background:#f9fafb;border-radius:8px;padding:10px 12px}
 .info-block .lbl{font-size:11px;color:#9ca3af;margin-bottom:3px}
 .info-block .val{font-size:13px;font-weight:600;color:#111}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:1px solid #f3f4f6}
-/* Search */
 .search-bar{display:flex;gap:10px;margin-bottom:1rem}
 .search-bar input{max-width:280px}
 .search-bar select{max-width:160px}
@@ -86,11 +80,16 @@ td{padding:10px 14px;color:#374151}
 .toast.show{display:block}
 .section{display:none}
 .section.visible{display:block}
+.doc-link{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:7px;text-decoration:none;font-size:12px;color:#15803d;font-weight:500;margin-bottom:6px}
+.doc-link:hover{background:#dcfce7}
+.doc-error{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;font-size:12px;color:#dc2626;margin-bottom:6px}
+.datacredito-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#0D2340;color:#A8C400;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;margin-bottom:14px;font-family:'Sora',sans-serif}
+.datacredito-btn:hover{background:#1a3a5c}
+.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-box">
     <div class="login-logo">WARP FINANCE</div>
@@ -103,7 +102,6 @@ td{padding:10px 14px;color:#374151}
   </div>
 </div>
 
-<!-- APP -->
 <div class="app" id="appWrap" style="display:none">
   <div class="sidebar">
     <div class="sidebar-logo">
@@ -111,12 +109,12 @@ td{padding:10px 14px;color:#374151}
       <div class="sidebar-sub">Panel de Solicitudes</div>
     </div>
     <nav class="sidebar-nav">
-      <button class="nav-item active" onclick="showSection('dashboard')"><span class="ic">◉</span>Dashboard</button>
-      <button class="nav-item" onclick="showSection('solicitudes')"><span class="ic">📋</span>Solicitudes</button>
-      <button class="nav-item" onclick="showSection('auditoria')"><span class="ic">🔒</span>Auditoría</button>
+      <button class="nav-item active" onclick="showSection('dashboard',this)">◉ &nbsp;Dashboard</button>
+      <button class="nav-item" onclick="showSection('solicitudes',this)">📋 &nbsp;Solicitudes</button>
+      <button class="nav-item" onclick="showSection('auditoria',this)">🔒 &nbsp;Auditoría</button>
     </nav>
     <div class="sidebar-footer">
-      <button class="nav-item" onclick="logout()" style="color:rgba(255,100,100,.7)"><span class="ic">↩</span>Cerrar sesión</button>
+      <button class="nav-item" onclick="logout()" style="color:rgba(255,100,100,.7)">↩ &nbsp;Cerrar sesión</button>
     </div>
   </div>
 
@@ -125,12 +123,10 @@ td{padding:10px 14px;color:#374151}
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div style="display:flex;gap:8px">
         <button class="btn-sm btn-ghost" onclick="exportCSV()">📥 Exportar CSV</button>
-        <button class="btn-sm btn-lime" onclick="loadDashboard()">↺ Actualizar</button>
+        <button class="btn-sm btn-lime" onclick="recargar()">↺ Actualizar</button>
       </div>
     </div>
     <div class="content">
-
-      <!-- DASHBOARD -->
       <div class="section visible" id="sec-dashboard">
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-label">Total solicitudes</div><div class="stat-value" id="st-total">—</div></div>
@@ -140,14 +136,11 @@ td{padding:10px 14px;color:#374151}
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title">Solicitudes recientes</div></div>
-          <table>
-            <thead><tr><th>Radicado</th><th>Solicitante</th><th>Monto</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
-            <tbody id="dash-table"></tbody>
-          </table>
+          <table><thead><tr><th>Radicado</th><th>Solicitante</th><th>Monto</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody id="dash-table"></tbody></table>
         </div>
       </div>
 
-      <!-- SOLICITUDES -->
       <div class="section" id="sec-solicitudes">
         <div class="search-bar">
           <input type="text" id="buscar" placeholder="Buscar por nombre, documento, email..." oninput="debSearch()">
@@ -161,32 +154,25 @@ td{padding:10px 14px;color:#374151}
           </select>
         </div>
         <div class="card">
-          <table>
-            <thead><tr><th>Radicado</th><th>Nombre</th><th>Documento</th><th>Celular</th><th>Monto</th><th>Contrato</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
-            <tbody id="sol-table"></tbody>
-          </table>
+          <table><thead><tr><th>Radicado</th><th>Nombre</th><th>Documento</th><th>Celular</th><th>Monto</th><th>Contrato</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody id="sol-table"></tbody></table>
         </div>
       </div>
 
-      <!-- AUDITORÍA -->
       <div class="section" id="sec-auditoria">
         <div class="card">
           <div class="card-header"><div class="card-title">Log de auditoría</div></div>
-          <table>
-            <thead><tr><th>Fecha</th><th>Acción</th><th>Solicitud</th><th>Usuario</th><th>Detalle</th></tr></thead>
-            <tbody id="audit-table"></tbody>
-          </table>
+          <table><thead><tr><th>Fecha</th><th>Acción</th><th>Solicitud</th><th>Usuario</th><th>Detalle</th></tr></thead>
+          <tbody id="audit-table"></tbody></table>
         </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<!-- MODAL DETALLE SOLICITUD -->
 <div class="modal-bg" id="modalBg" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title" id="modal-title">Detalle de solicitud</div>
+    <div class="modal-title" id="modal-title"></div>
     <div id="modal-body"></div>
     <div class="modal-footer" id="modal-footer"></div>
   </div>
@@ -237,22 +223,33 @@ function logout(){
 
 function headers(){ return {'Content-Type':'application/json','x-admin-token':TOKEN}; }
 
-async function req(url, opts={}){ 
+async function req(url, opts={}){
   opts.headers={...headers(),...(opts.headers||{})};
   const r=await fetch(API+url,opts);
   if(r.status===401){logout();return null;}
   return r.json();
 }
 
-function showSection(name){
+function showSection(name, btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
   document.getElementById('sec-'+name).classList.add('visible');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById('topbarTitle').textContent={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría'}[name];
+  if(btn) btn.classList.add('active');
+  const titles={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría'};
+  document.getElementById('topbarTitle').textContent=titles[name];
   if(name==='solicitudes') loadSolicitudes();
   if(name==='auditoria') loadAuditoria();
   if(name==='dashboard') loadDashboard();
+}
+
+function recargar(){
+  const visible = document.querySelector('.section.visible');
+  if(visible){
+    const name = visible.id.replace('sec-','');
+    if(name==='dashboard') loadDashboard();
+    if(name==='solicitudes') loadSolicitudes();
+    if(name==='auditoria') loadAuditoria();
+  }
 }
 
 function badge(estado){
@@ -272,13 +269,14 @@ async function loadDashboard(){
   document.getElementById('st-pend').textContent=(d.radicadas||0)+(d.enAnalisis||0);
   document.getElementById('st-apr').textContent=d.aprobadas;
   const tbody=document.getElementById('dash-table');
+  if(!d.recientes.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes aún</td></tr>';return;}
   tbody.innerHTML=d.recientes.map(s=>`
     <tr>
-      <td class="font-mono" style="font-family:monospace;color:#9ca3af">${s.radicado}</td>
+      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
       <td style="font-weight:500">${s.primerNombre||''} ${s.primerApellido||''}</td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${badge(s.estado)}</td>
-      <td>${fdate(s.createdAt)}</td>
+      <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
       <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
     </tr>`).join('');
 }
@@ -289,7 +287,7 @@ async function loadSolicitudes(){
   const d=await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
   if(!d) return;
   const tbody=document.getElementById('sol-table');
-  if(!d.solicitudes.length){ tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>'; return; }
+  if(!d.solicitudes.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';return;}
   tbody.innerHTML=d.solicitudes.map(s=>`
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
@@ -309,7 +307,31 @@ function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSoli
 async function verSolicitud(id){
   const s=await req('/api/admin/solicitudes/'+id);
   if(!s) return;
+
   document.getElementById('modal-title').innerHTML=`Solicitud ${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)}`;
+
+  // Botón Datacrédito
+  const dcBtn = `<a href="https://www.datacredito.com.co" target="_blank" class="datacredito-btn">
+    🔍 Consultar Datacrédito · CC: ${s.numDocumento||'—'}
+  </a>`;
+
+  // Documentos adjuntos
+  let docsHtml = '';
+  if(s.documentos && Object.keys(s.documentos).length > 0){
+    const docItems = Object.entries(s.documentos).map(([k,d])=>{
+      if(d && d.url){
+        return `<a href="${d.url}" target="_blank" class="doc-link">📄 ${d.nombre||k}</a>`;
+      } else {
+        return `<div class="doc-error">⚠ ${d&&d.nombre?d.nombre:k} (no disponible)</div>`;
+      }
+    }).join('');
+    docsHtml = `<div style="margin-bottom:14px">
+      <div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos adjuntos (${Object.keys(s.documentos).length})</div>
+      <div class="docs-grid">${docItems}</div>
+    </div>`;
+  } else {
+    docsHtml = `<div style="font-size:12px;color:#9ca3af;margin-bottom:14px;padding:10px;background:#f9fafb;border-radius:8px">Sin documentos adjuntos</div>`;
+  }
 
   const infoBlocks = [
     ['Solicitante',`${s.primerNombre||''} ${s.primerApellido||''}`],
@@ -324,26 +346,31 @@ async function verSolicitud(id){
     ['Tipo contrato',s.tipoContrato||'—'],['Antigüedad',s.antiguedad||'—'],
     ['Garantía',s.garantia||'—'],['Banco',`${s.banco||'—'} · ${s.tipoCuenta||''}`],
     ['Estado civil',s.estadoCivil||'—'],['Dependientes',s.numeroDependientes||'—'],
-    ['Referencia emergencia',`${s.refNombre||'—'} (${s.refParentesco||''}) ${s.refCelular||''}`],
+    ['Referencia',`${s.refNombre||'—'} (${s.refParentesco||''}) ${s.refCelular||''}`],
     ['Firma electrónica',s.firmaElectronica||'—'],
     ['Nota analista',s.notaAnalista||'Sin nota'],
     ['Fecha solicitud',fdate(s.createdAt)],
   ];
 
-  document.getElementById('modal-body').innerHTML=`
-    <div class="info-grid">${infoBlocks.map(([l,v])=>`<div class="info-block"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('')}</div>
-    ${s.auditoria?.length?`<div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Historial</div>
-    <div style="max-height:120px;overflow-y:auto">${s.auditoria.map(a=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #f3f4f6;color:#6b7280">${fdate(a.createdAt)} · <strong>${a.accion}</strong> · ${a.detalle||''}</div>`).join('')}</div>`:''}
-    <div style="margin-top:14px">
+  const historialHtml = s.auditoria&&s.auditoria.length
+    ? `<div style="font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Historial</div>
+       <div style="max-height:100px;overflow-y:auto;margin-bottom:14px">
+         ${s.auditoria.map(a=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #f3f4f6;color:#6b7280">${fdate(a.createdAt)} · <strong>${a.accion}</strong> · ${a.detalle||''}</div>`).join('')}
+       </div>` : '';
+
+  document.getElementById('modal-body').innerHTML = dcBtn + docsHtml +
+    `<div class="info-grid">${infoBlocks.map(([l,v])=>`<div class="info-block"><div class="lbl">${l}</div><div class="val">${v}</div></div>`).join('')}</div>
+    ${historialHtml}
+    <div>
       <label style="font-size:12px;font-weight:500;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
       <textarea id="notaDecision" rows="2" placeholder="Escribe una nota..." style="width:100%;font-size:13px;padding:8px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit">${s.notaAnalista||''}</textarea>
     </div>`;
 
-  const footer=document.getElementById('modal-footer');
   const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
-  footer.innerHTML=`
+  document.getElementById('modal-footer').innerHTML=`
     <button class="btn-sm btn-ghost" onclick="closeModal()">Cerrar</button>
-    ${pendiente?`<button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
+    ${pendiente?`
+    <button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
     <button class="btn-sm btn-red" onclick="cambiarEstado('${s.id}','RECHAZADA')">✕ Rechazar</button>
     <button class="btn-sm btn-lime" onclick="cambiarEstado('${s.id}','APROBADA')">✓ Aprobar</button>`:''}`;
 
@@ -354,7 +381,7 @@ async function cambiarEstado(id, estado){
   const nota=document.getElementById('notaDecision')?.value||'';
   const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
   if(r?.ok){
-    showToast(`Solicitud ${estado} correctamente`,'ok');
+    showToast(`Solicitud marcada como ${estado}`,'ok');
     closeModal();
     loadSolicitudes();
     loadDashboard();
@@ -382,7 +409,6 @@ function exportCSV(){
   window.open(API+'/api/admin/exportar?token='+TOKEN,'_blank');
 }
 
-// Auto-login si hay token
 window.onload=()=>{
   if(TOKEN){
     document.getElementById('loginWrap').style.display='none';
