@@ -10,6 +10,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'db.json');
+const DOCS_DIR = path.join(__dirname, 'documentos');
+if (!fs.existsSync(DOCS_DIR)) fs.mkdirSync(DOCS_DIR, { recursive: true });
 
 function readDB() {
   if (!fs.existsSync(DB_FILE)) {
@@ -19,15 +21,11 @@ function readDB() {
   }
   return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
 }
-
-function writeDB(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-}
+function writeDB(data) { fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2)); }
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dtoq5nbz4';
 const API_KEY    = process.env.CLOUDINARY_API_KEY    || '985348958691353';
 const API_SECRET = process.env.CLOUDINARY_API_SECRET || 'N8mnqMCA_xVtSzxL4p13YVvhnLM';
-
 const ADMIN_USER  = process.env.ADMIN_USER  || 'admin';
 const ADMIN_PASS  = process.env.ADMIN_PASS  || 'WarpAdmin2024!';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-token-secreto-2024';
@@ -35,6 +33,18 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-token-secreto-2024';
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
+
+// Servir documentos PDF guardados localmente
+app.get('/docs/:radicado/:filename', (req, res) => {
+  const filePath = path.join(DOCS_DIR, req.params.radicado, req.params.filename);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${req.params.filename}"`);
+    res.sendFile(filePath);
+  } else {
+    res.status(404).json({ error: 'Archivo no encontrado' });
+  }
+});
 
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString().slice(11,19)} ${req.method} ${req.path}`);
@@ -63,67 +73,40 @@ function auditLog(solicitudId, accion, usuario, detalle) {
   writeDB(db);
 }
 
-async function uploadToCloudinary(base64Data, fileName, folder) {
-  // Detectar tipo
+async function uploadImageToCloudinary(base64Data, fileName, folder) {
   const mimeMatch = base64Data.match(/data:([^;]+);/);
   const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-  const isPdf = mimeType.includes('pdf');
-  const resourceType = isPdf ? 'raw' : 'image';
-
-  // Limpiar base64
   const base64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
   const timestamp = Math.floor(Date.now() / 1000);
-  const publicId = `warp-solicitudes/${folder}/${Date.now()}_${(fileName||'doc').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-
-  // Firma correcta incluyendo resource_type para raw
-  // Fix: agregar access_mode public
-  const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}&type=upload`;
-  
-  const signature = crypto.createHash('sha1').update(paramsToSign + API_SECRET).digest('hex');
-
-  // Construir form data
-  const boundary = '----FormBoundary' + Math.random().toString(36).substr(2);
+  const publicId = `warp-solicitudes/${folder}/${Date.now()}_${(fileName||'img').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const signature = crypto.createHash('sha1').update(`public_id=${publicId}&timestamp=${timestamp}${API_SECRET}`).digest('hex');
+  const boundary = '----WarpBoundary' + Math.random().toString(36).substr(2);
   const fileData = Buffer.from(base64, 'base64');
-  
   let body = '';
-  const addField = (name, value) => {
-    body += `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`;
-  };
-  
+  const addField = (name, value) => { body += `--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`; };
   addField('api_key', API_KEY);
   addField('timestamp', timestamp);
   addField('signature', signature);
   addField('public_id', publicId);
-  addField('type', 'upload');
-
   const bodyBefore = Buffer.from(body, 'utf8');
-  const fileHeader = Buffer.from(
-    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName||'file'}"\r\nContent-Type: ${mimeType}\r\n\r\n`,
-    'utf8'
-  );
+  const fileHeader = Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName||'image'}"\r\nContent-Type: ${mimeType}\r\n\r\n`, 'utf8');
   const bodyAfter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8');
   const requestBody = Buffer.concat([bodyBefore, fileHeader, fileData, bodyAfter]);
-
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'api.cloudinary.com',
-      path: `/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
+      path: `/v1_1/${CLOUD_NAME}/image/upload`,
       method: 'POST',
-      headers: {
-        'Content-Type': `multipart/form-data; boundary=${boundary}`,
-        'Content-Length': requestBody.length
-      }
+      headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': requestBody.length }
     };
-
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          console.log('Cloudinary response:', json.secure_url || json.error);
           if (json.secure_url) resolve(json.secure_url);
-          else reject(new Error(json.error?.message || JSON.stringify(json)));
+          else reject(new Error(json.error?.message || 'Upload failed'));
         } catch(e) { reject(e); }
       });
     });
@@ -131,6 +114,16 @@ async function uploadToCloudinary(base64Data, fileName, folder) {
     req.write(requestBody);
     req.end();
   });
+}
+
+function saveDocumentLocally(base64Data, fileName, radicado) {
+  const docDir = path.join(DOCS_DIR, radicado);
+  if (!fs.existsSync(docDir)) fs.mkdirSync(docDir, { recursive: true });
+  const base64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+  const safeName = `${Date.now()}_${(fileName||'documento.pdf').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const filePath = path.join(docDir, safeName);
+  fs.writeFileSync(filePath, Buffer.from(base64, 'base64'));
+  return `/docs/${radicado}/${safeName}`;
 }
 
 app.get('/health', (req, res) => {
@@ -160,9 +153,19 @@ app.post('/api/solicitudes', async (req, res) => {
       for (const [key, fileData] of Object.entries(data.documentos)) {
         if (fileData && fileData.base64) {
           try {
-            console.log(`Subiendo: ${key} (${fileData.tipo})`);
-            const url = await uploadToCloudinary(fileData.base64, fileData.nombre||key, radicado);
-            documentosUrls[key] = { url, nombre: nombresDoc[key]||key, nombreArchivo: fileData.nombre };
+            const mimeType = fileData.tipo || '';
+            const isPdf = mimeType.includes('pdf') || (fileData.nombre||'').toLowerCase().endsWith('.pdf');
+            let url;
+            if (isPdf) {
+              // PDFs: guardar localmente en el servidor
+              console.log(`Guardando PDF localmente: ${key}`);
+              url = saveDocumentLocally(fileData.base64, fileData.nombre||key+'.pdf', radicado);
+            } else {
+              // Imágenes: subir a Cloudinary
+              console.log(`Subiendo imagen a Cloudinary: ${key}`);
+              url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado);
+            }
+            documentosUrls[key] = { url, nombre: nombresDoc[key]||key, nombreArchivo: fileData.nombre, tipo: mimeType };
             console.log(`✓ ${key}: ${url}`);
           } catch(e) {
             console.error(`✗ ${key}:`, e.message);
@@ -318,6 +321,6 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`\n🚀 Warp Solicitudes en puerto ${PORT}`);
-  console.log(`☁️  Cloudinary: ${CLOUD_NAME}`);
+  console.log(`📁 Docs: ${DOCS_DIR}`);
   console.log(`🌐 http://localhost:${PORT}\n`);
 });
