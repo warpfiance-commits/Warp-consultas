@@ -76,9 +76,8 @@ async function uploadToCloudinary(base64Data, fileName, folder) {
   const publicId = `warp-solicitudes/${folder}/${Date.now()}_${(fileName||'doc').replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
   // Firma correcta incluyendo resource_type para raw
-  const paramsToSign = isPdf
-    ? `public_id=${publicId}&timestamp=${timestamp}`
-    : `public_id=${publicId}&timestamp=${timestamp}`;
+  // Fix: agregar access_mode public
+  const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}&type=upload`;
   
   const signature = crypto.createHash('sha1').update(paramsToSign + API_SECRET).digest('hex');
 
@@ -95,6 +94,7 @@ async function uploadToCloudinary(base64Data, fileName, folder) {
   addField('timestamp', timestamp);
   addField('signature', signature);
   addField('public_id', publicId);
+  addField('type', 'upload');
 
   const bodyBefore = Buffer.from(body, 'utf8');
   const fileHeader = Buffer.from(
