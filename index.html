@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:#F4F6F2;min-height:100vh;color:#111}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,#E8F5E9 0%,#F1F8E9 100%);min-height:100vh;color:#111}
 :root{--lime:#4CAF50;--navy:#1B5E20;--lime-d:#2E7D32;--lime-l:#E8F5E9}
 .wrap{max-width:700px;margin:0 auto;padding:2rem 1rem 4rem}
 .header{display:flex;align-items:center;gap:14px;margin-bottom:2rem}
@@ -17,8 +17,8 @@ body{font-family:'DM Sans',sans-serif;background:#F4F6F2;min-height:100vh;color:
 .hsub{font-size:13px;color:#6b7280;margin-top:2px}
 .progress{display:flex;gap:4px;margin-bottom:1.5rem}
 .prog-bar{flex:1;height:5px;border-radius:3px;background:#e5e7eb;transition:background .3s}
-.prog-bar.done{background:var(--lime)}
-.prog-bar.active{background:var(--lime-d)}
+.prog-bar.done{background:#4CAF50}
+.prog-bar.active{background:linear-gradient(90deg,#2E7D32,#4CAF50)}
 .tabs{display:flex;border:1px solid #e5e7eb;border-radius:9px;overflow:hidden;margin-bottom:1.5rem}
 .tab{flex:1;padding:9px 4px;font-size:11px;font-weight:500;text-align:center;border:none;cursor:default;transition:all .2s;color:#9ca3af;background:#f9fafb;border-right:1px solid #e5e7eb}
 .tab:last-child{border-right:none}
@@ -64,7 +64,7 @@ textarea{resize:vertical;min-height:80px}
 .btn-back:hover{background:#f3f4f6}
 .btn-next{background:var(--navy);color:var(--lime)}
 .btn-next:hover{background:#1a3a5c}
-.btn-submit{background:var(--lime);color:var(--navy);font-family:'Sora',sans-serif;font-size:14px;font-weight:700;padding:11px 28px}
+.btn-submit{background:linear-gradient(135deg,#2E7D32,#4CAF50);color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;padding:11px 28px;box-shadow:0 4px 12px rgba(46,125,50,0.3)}
 .btn-submit:hover{background:var(--lime-d);color:#fff}
 .btn-submit:disabled{opacity:.6;cursor:not-allowed}
 .toast{position:fixed;top:20px;right:20px;z-index:9999;padding:13px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);display:none}
