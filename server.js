@@ -6,6 +6,7 @@ const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
 const { Pool } = require('pg');
+const sgMail = require('@sendgrid/mail');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,15 @@ const API_SECRET  = process.env.CLOUDINARY_API_SECRET || 'N8mnqMCA_xVtSzxL4p13YV
 const ADMIN_USER  = process.env.ADMIN_USER  || 'admin';
 const ADMIN_PASS  = process.env.ADMIN_PASS  || 'WarpAdmin2024!';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-token-secreto-2024';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'warpfiance@gmail.com';
+const SENDGRID_KEY = process.env.SENDGRID_API_KEY || '';
+
+if (SENDGRID_KEY) {
+  sgMail.setApiKey(SENDGRID_KEY);
+  console.log('✅ SendGrid configurado');
+} else {
+  console.log('⚠️  SENDGRID_API_KEY no definida — emails desactivados');
+}
 
 // ── PostgreSQL ────────────────────────────────────────────────────────────────
 const pool = new Pool({
@@ -84,6 +94,85 @@ async function initDB() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_sol_created ON solicitudes(created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_sol ON auditoria(solicitud_id);`);
   console.log('✅ PostgreSQL tablas listas');
+}
+
+// ── Emails ────────────────────────────────────────────────────────────────────
+async function enviarEmailAdmin(sol) {
+  if (!SENDGRID_KEY) return;
+  const monto = sol.montoSolicitado ? `$${Number(sol.montoSolicitado).toLocaleString('es-CO')}` : 'No especificado';
+  try {
+    await sgMail.send({
+      to: ADMIN_EMAIL,
+      from: { email: ADMIN_EMAIL, name: 'Financial Services' },
+      subject: `📋 Nueva solicitud ${sol.radicado} — ${sol.primerNombre} ${sol.primerApellido}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          <div style="background:#1B5E20;padding:20px;text-align:center">
+            <h1 style="color:#fff;margin:0;font-size:20px">FINANCIAL SERVICES</h1>
+            <p style="color:#A5D6A7;margin:5px 0 0">Nueva solicitud de crédito</p>
+          </div>
+          <div style="background:#f9f9f9;padding:24px">
+            <div style="background:#fff;border-radius:8px;padding:20px;border-left:4px solid #4CAF50">
+              <h2 style="color:#1B5E20;margin:0 0 16px">Radicado: ${sol.radicado}</h2>
+              <table style="width:100%;border-collapse:collapse">
+                <tr><td style="padding:6px 0;color:#666;width:40%">Nombre completo</td><td style="padding:6px 0;font-weight:bold">${sol.primerNombre} ${sol.segundoNombre||''} ${sol.primerApellido} ${sol.segundoApellido||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Documento</td><td style="padding:6px 0">${sol.tipoDocumento||''} ${sol.numDocumento||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Celular</td><td style="padding:6px 0">${sol.celular||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Email</td><td style="padding:6px 0">${sol.email||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Ciudad</td><td style="padding:6px 0">${sol.ciudad||''}, ${sol.departamento||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Monto solicitado</td><td style="padding:6px 0;font-weight:bold;color:#1B5E20;font-size:18px">${monto}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Plazo</td><td style="padding:6px 0">${sol.plazo||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Destino</td><td style="padding:6px 0">${sol.destinoCredito||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Ingresos mensuales</td><td style="padding:6px 0">${sol.ingresosMensuales ? '$'+Number(sol.ingresosMensuales).toLocaleString('es-CO') : ''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Situación laboral</td><td style="padding:6px 0">${sol.situacionLaboral||''}</td></tr>
+                <tr><td style="padding:6px 0;color:#666">Documentos adjuntos</td><td style="padding:6px 0">${Object.keys(sol.documentos||{}).length} archivos</td></tr>
+              </table>
+            </div>
+            <div style="text-align:center;margin-top:20px">
+              <a href="https://warp-consultas-production.up.railway.app/admin" style="background:#4CAF50;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold">Ver en el Panel Admin</a>
+            </div>
+            <p style="color:#999;font-size:12px;text-align:center;margin-top:20px">Financial Services · ${new Date().toLocaleString('es-CO')}</p>
+          </div>
+        </div>
+      `
+    });
+    console.log(`📧 Email admin enviado para ${sol.radicado}`);
+  } catch(e) {
+    console.error('Email admin error:', e.message);
+  }
+}
+
+async function enviarEmailCliente(sol) {
+  if (!SENDGRID_KEY || !sol.email) return;
+  const monto = sol.montoSolicitado ? `$${Number(sol.montoSolicitado).toLocaleString('es-CO')}` : '';
+  try {
+    await sgMail.send({
+      to: sol.email,
+      from: { email: ADMIN_EMAIL, name: 'Financial Services' },
+      subject: `✅ Solicitud recibida — Radicado ${sol.radicado}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          <div style="background:#1B5E20;padding:20px;text-align:center">
+            <h1 style="color:#fff;margin:0;font-size:20px">FINANCIAL SERVICES</h1>
+          </div>
+          <div style="background:#f9f9f9;padding:24px">
+            <h2 style="color:#1B5E20">¡Hola, ${sol.primerNombre}!</h2>
+            <p style="color:#333">Recibimos tu solicitud de crédito correctamente. Un asesor se pondrá en contacto contigo en las próximas <strong>24 horas hábiles</strong>.</p>
+            <div style="background:#fff;border-radius:8px;padding:20px;text-align:center;margin:20px 0;border:2px solid #4CAF50">
+              <p style="color:#666;margin:0 0 8px;font-size:14px">Tu número de radicado es</p>
+              <p style="color:#1B5E20;font-size:28px;font-weight:bold;margin:0;letter-spacing:2px">${sol.radicado}</p>
+              ${monto ? `<p style="color:#666;margin:8px 0 0;font-size:14px">Monto solicitado: <strong>${monto}</strong></p>` : ''}
+            </div>
+            <p style="color:#333">Guarda este número para hacer seguimiento a tu solicitud.</p>
+            <p style="color:#999;font-size:12px;text-align:center;margin-top:30px">Financial Services · ${new Date().toLocaleString('es-CO')}</p>
+          </div>
+        </div>
+      `
+    });
+    console.log(`📧 Email cliente enviado a ${sol.email}`);
+  } catch(e) {
+    console.error('Email cliente error:', e.message);
+  }
 }
 
 // ── Middleware ────────────────────────────────────────────────────────────────
@@ -227,7 +316,7 @@ app.get('/docs/:radicado/:filename', (req, res) => {
 app.get('/health', async (req, res) => {
   try {
     const r = await pool.query('SELECT COUNT(*) FROM solicitudes');
-    res.json({ status: 'ok', db: 'postgresql', solicitudes: Number(r.rows[0].count), timestamp: new Date().toISOString() });
+    res.json({ status: 'ok', db: 'postgresql', solicitudes: Number(r.rows[0].count), email: !!SENDGRID_KEY, timestamp: new Date().toISOString() });
   } catch(e) {
     res.status(500).json({ status: 'error', db: e.message });
   }
@@ -257,14 +346,11 @@ app.post('/api/solicitudes', async (req, res) => {
             const isPdf = mimeType.includes('pdf') || (fileData.nombre||'').toLowerCase().endsWith('.pdf');
             let url;
             if (isPdf) {
-              console.log(`Guardando PDF localmente: ${key}`);
               url = saveDocumentLocally(fileData.base64, fileData.nombre||key+'.pdf', radicado);
             } else {
-              console.log(`Subiendo imagen a Cloudinary: ${key}`);
               url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado);
             }
             documentosUrls[key] = { url, nombre: nombresDoc[key]||key, nombreArchivo: fileData.nombre, tipo: mimeType };
-            console.log(`✓ ${key}: ${url}`);
           } catch(e) {
             console.error(`✗ ${key}:`, e.message);
             documentosUrls[key] = { url: null, nombre: nombresDoc[key]||key, error: e.message };
@@ -335,6 +421,11 @@ app.post('/api/solicitudes', async (req, res) => {
     const result = await pool.query(q, values);
     const { id } = result.rows[0];
     await auditLog(id, 'SOLICITUD_CREADA', 'solicitante', `Radicado: ${radicado} | Docs: ${Object.keys(documentosUrls).length}`);
+
+    const sol = { ...rowToSolicitud({ id, radicado, ...result.rows[0] }), ...data, radicado, documentos: documentosUrls };
+    enviarEmailAdmin(sol);
+    enviarEmailCliente(sol);
+
     res.status(201).json({ ok: true, radicado, mensaje: '¡Solicitud enviada exitosamente!' });
   } catch(err) {
     console.error('Error POST solicitud:', err.message);
@@ -459,6 +550,7 @@ initDB().then(() => {
   app.listen(PORT, () => {
     console.log(`\n🚀 Financial Services en puerto ${PORT}`);
     console.log(`🐘 PostgreSQL conectado`);
+    console.log(`📧 Email: ${SENDGRID_KEY ? 'activo' : 'inactivo (falta SENDGRID_API_KEY)'}`);
     console.log(`🌐 http://localhost:${PORT}\n`);
   });
 }).catch(err => {
