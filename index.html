@@ -364,8 +364,103 @@ const TOTAL = 5;
 function val(id){ return (document.getElementById(id)?.value||'').trim(); }
 function fmt(n){ return n?'$'+Number(n).toLocaleString('es-CO'):'—'; }
 
+// ── Validaciones por paso ─────────────────────────────────────────────────────
+const REQUIRED = {
+  0: [
+    {id:'tipoDocumento', label:'Tipo de documento'},
+    {id:'numDocumento',  label:'Número de documento'},
+    {id:'primerNombre',  label:'Primer nombre'},
+    {id:'primerApellido',label:'Primer apellido'},
+    {id:'fechaNacimiento',label:'Fecha de nacimiento'},
+    {id:'celular',       label:'Celular principal'},
+    {id:'email',         label:'Correo electrónico'},
+    {id:'departamento',  label:'Departamento'},
+    {id:'ciudad',        label:'Ciudad'},
+    {id:'direccion',     label:'Dirección de residencia'},
+    {id:'tipoVivienda',  label:'Tipo de vivienda'},
+  ],
+  1: [
+    {id:'ingresosMensuales',     label:'Ingresos mensuales'},
+    {id:'fuenteIngresos',        label:'Fuente de ingresos'},
+    {id:'egresosMensuales',      label:'Egresos mensuales'},
+    {id:'obligacionesFinancieras',label:'Obligaciones financieras'},
+    {id:'banco',                 label:'Banco principal'},
+    {id:'tipoCuenta',            label:'Tipo de cuenta'},
+    {id:'numeroCuenta',          label:'Número de cuenta'},
+    {id:'montoSolicitado',       label:'Monto solicitado'},
+    {id:'plazo',                 label:'Plazo deseado'},
+    {id:'destinoCredito',        label:'Destino del crédito'},
+  ],
+  2: [
+    {id:'situacionLaboral', label:'Situación laboral'},
+    {id:'sectorEconomico',  label:'Sector económico'},
+    {id:'tipoContrato',     label:'Tipo de contrato'},
+    {id:'estadoCivil',      label:'Estado civil'},
+    {id:'refNombre',        label:'Nombre de referencia'},
+    {id:'refParentesco',    label:'Parentesco de referencia'},
+    {id:'refCelular',       label:'Celular de referencia'},
+  ],
+};
+
+const REQUIRED_DOCS = [
+  {id:'u0', label:'Cédula — Frontal'},
+  {id:'u1', label:'Cédula — Reverso'},
+  {id:'u6', label:'Extracto bancario Mes 1'},
+  {id:'u7', label:'Extracto bancario Mes 2'},
+  {id:'u8', label:'Extracto bancario Mes 3'},
+];
+
+function markError(id, hasError){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.style.borderColor = hasError ? '#dc2626' : '';
+  el.style.background  = hasError ? '#fff5f5' : '';
+}
+
+function validateStep(n){
+  if(n === 3){
+    const missing = REQUIRED_DOCS.filter(d => !archivosSeleccionados[d.id]);
+    if(missing.length > 0){
+      showToast('Falta subir: ' + missing[0].label, 'err');
+      // marcar zona
+      REQUIRED_DOCS.forEach(d => {
+        const zone = document.getElementById(d.id)?.closest('.upload-zone');
+        if(zone) zone.style.borderColor = archivosSeleccionados[d.id] ? '' : '#dc2626';
+      });
+      return false;
+    }
+    return true;
+  }
+  const fields = REQUIRED[n] || [];
+  let firstError = null;
+  fields.forEach(f => {
+    const v = (document.getElementById(f.id)?.value || '').trim();
+    const isEmpty = !v || v === '';
+    markError(f.id, isEmpty);
+    if(isEmpty && !firstError) firstError = f.label;
+  });
+  if(firstError){
+    showToast('Campo requerido: ' + firstError, 'err');
+    // scroll al primer error
+    const errEl = fields.find(f => !(document.getElementById(f.id)?.value||'').trim());
+    if(errEl) document.getElementById(errEl.id)?.scrollIntoView({behavior:'smooth', block:'center'});
+    return false;
+  }
+  // validar email
+  if(n === 0){
+    const emailVal = val('email');
+    if(!/^[^@]+@[^@]+\.[^@]+$/.test(emailVal)){
+      markError('email', true);
+      showToast('Ingrese un correo electrónico válido','err');
+      return false;
+    }
+    markError('email', false);
+  }
+  return true;
+}
+
 function goStep(n){
-  if(n>currentStep) return; // solo retroceso por tabs
+  if(n > currentStep) return; // solo retroceso por tabs
   showStep(n);
 }
 
@@ -381,7 +476,10 @@ function showStep(n){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function nextStep(){ showStep(currentStep+1); }
+function nextStep(){
+  if(!validateStep(currentStep)) return;
+  showStep(currentStep+1);
+}
 function prevStep(){ if(currentStep>0) showStep(currentStep-1); }
 
 function updateNav(){
