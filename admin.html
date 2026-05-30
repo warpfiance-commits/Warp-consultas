@@ -180,6 +180,17 @@ td{padding:10px 14px;color:#374151}
 
 <div class="toast" id="toast"></div>
 
+<!-- VISOR PDF -->
+<div class="modal-bg" id="pdfBg" onclick="closePdf(event)" style="z-index:2000">
+  <div style="background:#fff;border-radius:14px;padding:0;width:90vw;max-width:900px;height:90vh;display:flex;flex-direction:column;overflow:hidden" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;flex-shrink:0">
+      <div style="font-family:Sora,sans-serif;font-size:14px;font-weight:700;color:#0D2340" id="pdfTitle">Documento</div>
+      <button onclick="closePdf()" style="border:none;background:#f3f4f6;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600;color:#374151">✕ Cerrar</button>
+    </div>
+    <iframe id="pdfFrame" src="" style="flex:1;border:none;width:100%;background:#f9fafb"></iframe>
+  </div>
+</div>
+
 <script>
 const API = window.location.origin;
 let TOKEN = localStorage.getItem('warp-admin-token') || '';
@@ -329,7 +340,13 @@ async function verSolicitud(id){
   if(s.documentos && Object.keys(s.documentos).length > 0){
     const docItems = Object.entries(s.documentos).map(([k,d])=>{
       if(d && d.url){
-        return `<a href="${cloudUrl(d.url)}" target="_blank" class="doc-link" download>📄 ${d.nombre||k}</a>`;
+        const nombre = d.nombre||k;
+      const url = d.url;
+      const isPdf = url && (url.includes('.pdf') || url.includes('/docs/'));
+      if (isPdf) {
+        return `<a onclick="abrirPdf('${url}','${nombre}')" class="doc-link" style="cursor:pointer">📄 ${nombre}</a>`;
+      }
+      return `<a href="${url}" target="_blank" class="doc-link">🖼 ${nombre}</a>`;
       } else {
         return `<div class="doc-error">⚠ ${d&&d.nombre?d.nombre:k} (no disponible)</div>`;
       }
@@ -416,6 +433,19 @@ async function loadAuditoria(){
 
 function exportCSV(){
   window.open(API+'/api/admin/exportar?token='+TOKEN,'_blank');
+}
+
+function abrirPdf(url, nombre) {
+  document.getElementById('pdfTitle').textContent = nombre || 'Documento';
+  document.getElementById('pdfFrame').src = url;
+  document.getElementById('pdfBg').classList.add('open');
+}
+
+function closePdf(e) {
+  if (!e || e.target.id === 'pdfBg') {
+    document.getElementById('pdfBg').classList.remove('open');
+    document.getElementById('pdfFrame').src = '';
+  }
 }
 
 window.onload=()=>{
