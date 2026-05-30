@@ -185,6 +185,15 @@ const API = window.location.origin;
 let TOKEN = localStorage.getItem('warp-admin-token') || '';
 let searchTimer;
 
+function cloudUrl(url) {
+  if (!url) return url;
+  // Para archivos raw (PDF), agregar fl_attachment para forzar descarga pública
+  if (url.includes('/raw/upload/')) {
+    return url.replace('/raw/upload/', '/raw/upload/fl_attachment/');
+  }
+  return url;
+}
+
 function showToast(msg, tipo='ok'){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast '+tipo+' show';
@@ -320,7 +329,7 @@ async function verSolicitud(id){
   if(s.documentos && Object.keys(s.documentos).length > 0){
     const docItems = Object.entries(s.documentos).map(([k,d])=>{
       if(d && d.url){
-        return `<a href="${d.url}" target="_blank" class="doc-link">📄 ${d.nombre||k}</a>`;
+        return `<a href="${cloudUrl(d.url)}" target="_blank" class="doc-link" download>📄 ${d.nombre||k}</a>`;
       } else {
         return `<div class="doc-error">⚠ ${d&&d.nombre?d.nombre:k} (no disponible)</div>`;
       }
