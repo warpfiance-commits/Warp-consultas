@@ -176,7 +176,7 @@ textarea{resize:vertical;min-height:80px}
       </div>
       <div class="grid-2" style="margin-bottom:0">
         <div class="field"><label>Egresos / gastos mensuales<span class="req">*</span></label><input type="number" id="egresosMensuales" placeholder="Ej. 2500000"></div>
-        <div class="field"><label>Valor total cuotas mensuales vigentes (COP)<span class="req">*</span></label><input type="number" id="obligacionesFinancieras" placeholder="Ej. 800000"></div>
+        <div class="field"><label>Valor total de tus deudas<span class="req">*</span></label><input type="number" id="obligacionesFinancieras" placeholder="Ej. 800000"></div>
       </div>
     </div>
     <div class="card">
@@ -305,7 +305,7 @@ textarea{resize:vertical;min-height:80px}
         <div class="sumrow"><span>Celular</span><span id="s-cel">—</span></div>
         <div class="sumrow"><span>Email</span><span id="s-email">—</span></div>
         <div class="sumrow"><span>Ingresos declarados</span><span id="s-ing">—</span></div>
-        <div class="sumrow"><span>Cuotas mensuales vigentes</span><span id="s-obl">—</span></div>
+        <div class="sumrow"><span>Valor total de tus deudas</span><span id="s-obl">—</span></div>
         <div class="sumrow"><span>Monto solicitado</span><span id="s-monto">—</span></div>
         <div class="sumrow"><span>Dirección</span><span id="s-dir">—</span></div>
       </div>
@@ -368,7 +368,7 @@ const REQUIRED = {
   ],
   1:[
     {id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},
-    {id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Cuotas mensuales vigentes'},
+    {id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Valor total de tus deudas'},
     {id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},
     {id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},
     {id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'},
