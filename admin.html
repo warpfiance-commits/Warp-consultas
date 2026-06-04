@@ -62,43 +62,47 @@ td{padding:10px 14px;color:#374151}
 .btn-ghost:hover{background:#f3f4f6}
 .btn-lime{background:var(--lime);color:var(--navy)}
 .btn-red{background:#ef4444;color:#fff}
-/* Modal */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center}
+
+/* ── Modal ───────────────────────────────────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:820px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column}
-.modal-header{padding:1.2rem 1.5rem;border-bottom:1px solid #f0f0f0;position:sticky;top:0;background:#fff;z-index:10;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.modal-title-text{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--navy)}
-.modal-body{padding:1.2rem 1.5rem;flex:1}
-.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:1rem 1.5rem;border-top:1px solid #f3f4f6;position:sticky;bottom:0;background:#fff;flex-shrink:0}
-/* Secciones del modal */
-.modal-section{margin-bottom:1.2rem}
-.modal-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:6px}
-.modal-section-title span{font-size:14px}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.info-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.info-block{background:#f9fafb;border-radius:8px;padding:9px 12px;border:1px solid #f0f0f0}
-.info-block .lbl{font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
-.info-block .val{font-size:13px;font-weight:600;color:#111;word-break:break-word}
-.info-block.highlight{background:#f0fdf4;border-color:#86efac}
-.info-block.highlight .val{color:var(--navy)}
-.info-block.wide{grid-column:span 2}
-.info-block.wide3{grid-column:span 3}
-/* Checks */
-.check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.check-item{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:500}
+.modal{background:#fff;border-radius:14px;width:820px;max-width:100%;max-height:92vh;display:flex;flex-direction:column}
+.modal-head{padding:1rem 1.2rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:2;flex-shrink:0}
+.modal-head-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--navy)}
+.modal-body{padding:1.2rem;overflow-y:auto;flex:1}
+.modal-foot{padding:.9rem 1.2rem;border-top:1px solid #f0f0f0;display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;flex-shrink:0}
+
+/* ── Info grid ───────────────────────────────────────────────────────────────── */
+.section-title{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 8px;padding-bottom:5px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:5px}
+.section-title:first-child{margin-top:0}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.info-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.ib{background:#f9fafb;border-radius:7px;padding:8px 10px;border:1px solid #f0f0f0}
+.ib .lbl{font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.ib .val{font-size:13px;font-weight:600;color:#111;word-break:break-word}
+.ib.hl{background:#f0fdf4;border-color:#86efac}
+.ib.hl .val{color:var(--navy)}
+.ib.span2{grid-column:span 2}
+.ib.span3{grid-column:span 3}
+
+/* ── Check grid ──────────────────────────────────────────────────────────────── */
+.check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.check-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:6px 9px;border-radius:6px}
 .check-item.si{background:#f0fdf4;color:#15803d}
 .check-item.no{background:#fef2f2;color:#dc2626}
-/* Documentos */
-.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.doc-link{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:7px;text-decoration:none;font-size:12px;color:#15803d;font-weight:500;cursor:pointer}
+
+/* ── Docs ────────────────────────────────────────────────────────────────────── */
+.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.doc-link{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;text-decoration:none;font-size:12px;color:#15803d;font-weight:500;cursor:pointer}
 .doc-link:hover{background:#dcfce7}
-.doc-error{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;font-size:12px;color:#dc2626}
-.datacredito-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#0D2340;color:#A8C400;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;margin-bottom:14px;font-family:'Sora',sans-serif}
+.doc-error{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;font-size:12px;color:#dc2626}
+.datacredito-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#0D2340;color:#A8C400;border-radius:7px;text-decoration:none;font-size:12px;font-weight:700;margin-bottom:12px;font-family:'Sora',sans-serif}
 .datacredito-btn:hover{background:#1a3a5c}
-/* Historial */
-.historial-item{font-size:12px;padding:6px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;display:flex;gap:8px;align-items:flex-start}
-.historial-item strong{color:#374151}
-/* Misc */
+
+/* ── Historial ───────────────────────────────────────────────────────────────── */
+.hist-item{font-size:12px;padding:5px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;display:flex;gap:8px;align-items:flex-start}
+.hist-item strong{color:#374151}
+
 .search-bar{display:flex;gap:10px;margin-bottom:1rem}
 .search-bar input{max-width:280px}
 .search-bar select{max-width:160px}
@@ -108,11 +112,15 @@ td{padding:10px 14px;color:#374151}
 .toast.show{display:block}
 .section{display:none}
 .section.visible{display:block}
+
+/* PDF viewer */
+.pdf-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
+.pdf-modal-bg.open{display:flex}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ── LOGIN ─────────────────────────────────────────────────────────────────── -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-box">
     <div class="login-logo">FINANCIAL SERVICES</div>
@@ -125,7 +133,7 @@ td{padding:10px 14px;color:#374151}
   </div>
 </div>
 
-<!-- APP -->
+<!-- ── APP ───────────────────────────────────────────────────────────────────── -->
 <div class="app" id="appWrap" style="display:none">
   <div class="sidebar">
     <div class="sidebar-logo">
@@ -199,20 +207,20 @@ td{padding:10px 14px;color:#374151}
   </div>
 </div>
 
-<!-- MODAL SOLICITUD -->
+<!-- ── MODAL SOLICITUD ────────────────────────────────────────────────────────── -->
 <div class="modal-bg" id="modalBg" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-title-text" id="modal-title"></div>
+    <div class="modal-head">
+      <div class="modal-head-title" id="modal-title">Solicitud</div>
       <button class="btn-sm btn-ghost" onclick="closeModal()">✕ Cerrar</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
-    <div class="modal-footer" id="modal-footer"></div>
+    <div class="modal-foot" id="modal-foot"></div>
   </div>
 </div>
 
-<!-- VISOR PDF -->
-<div class="modal-bg" id="pdfBg" onclick="closePdf(event)" style="z-index:2000">
+<!-- ── VISOR PDF ──────────────────────────────────────────────────────────────── -->
+<div class="pdf-modal-bg" id="pdfBg" onclick="closePdf(event)">
   <div style="background:#fff;border-radius:14px;width:90vw;max-width:900px;height:90vh;display:flex;flex-direction:column;overflow:hidden" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;flex-shrink:0">
       <div style="font-family:Sora,sans-serif;font-size:14px;font-weight:700;color:#0D2340" id="pdfTitle">Documento</div>
@@ -229,102 +237,94 @@ const API = window.location.origin;
 let TOKEN = localStorage.getItem('warp-admin-token') || '';
 let searchTimer;
 
-// ── Utilidades ────────────────────────────────────────────────────────────────
+/* ── Utilidades ─────────────────────────────────────────────────────────────── */
 function showToast(msg, tipo='ok'){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast '+tipo+' show';
-  setTimeout(()=>t.classList.remove('show'),4500);
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + tipo + ' show';
+  setTimeout(() => t.classList.remove('show'), 4500);
 }
 function headers(){ return {'Content-Type':'application/json','x-admin-token':TOKEN}; }
 async function req(url, opts={}){
-  opts.headers={...headers(),...(opts.headers||{})};
-  const r=await fetch(API+url,opts);
-  if(r.status===401){logout();return null;}
+  opts.headers = {...headers(), ...(opts.headers||{})};
+  const r = await fetch(API + url, opts);
+  if(r.status === 401){ logout(); return null; }
   return r.json();
 }
 function badge(estado){
-  const map={RADICADA:'badge-blue',EN_ANALISIS:'badge-amber',APROBADA:'badge-green',RECHAZADA:'badge-red',DESEMBOLSADA:'badge-green'};
-  const label={RADICADA:'Radicada',EN_ANALISIS:'En análisis',APROBADA:'Aprobada',RECHAZADA:'Rechazada',DESEMBOLSADA:'Desembolsada'};
+  const map = {RADICADA:'badge-blue',EN_ANALISIS:'badge-amber',APROBADA:'badge-green',RECHAZADA:'badge-red',DESEMBOLSADA:'badge-green'};
+  const label = {RADICADA:'Radicada',EN_ANALISIS:'En análisis',APROBADA:'Aprobada',RECHAZADA:'Rechazada',DESEMBOLSADA:'Desembolsada'};
   return `<span class="badge ${map[estado]||'badge-gray'}">${label[estado]||estado}</span>`;
 }
-function fmt(n){ return n!=null&&n!==''?'$'+Number(n).toLocaleString('es-CO'):'—'; }
-function fdate(s){ return s?new Date(s).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—'; }
-function v(val){ return (val!=null&&val!==''&&val!=='null')?val:'—'; }
-function bool(val){ return val?'<span style="color:#15803d">✓ Sí</span>':'<span style="color:#dc2626">✗ No</span>'; }
-function ib(label,value,cls=''){
-  return `<div class="info-block ${cls}"><div class="lbl">${label}</div><div class="val">${v(value)}</div></div>`;
+function fmt(n){ return (n != null && n !== '') ? '$' + Number(n).toLocaleString('es-CO') : '—'; }
+function fdate(s){ return s ? new Date(s).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}) : '—'; }
+function v(x){ return (x != null && x !== '' && x !== 'null') ? x : '—'; }
+function ib(lbl, val, cls=''){
+  return `<div class="ib ${cls}"><div class="lbl">${lbl}</div><div class="val">${v(val)}</div></div>`;
+}
+function boolItem(lbl, val){
+  const ok = !!val;
+  return `<div class="check-item ${ok?'si':'no'}">${ok?'✓':'✗'} ${lbl}</div>`;
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+/* ── Auth ───────────────────────────────────────────────────────────────────── */
 async function doLogin(){
-  const u=document.getElementById('loginUser').value.trim();
-  const p=document.getElementById('loginPass').value;
-  const btn=document.getElementById('loginBtn');
-  btn.textContent='Ingresando...'; btn.disabled=true;
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Ingresando...'; btn.disabled = true;
   try{
-    const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,password:p})});
-    const j=await r.json();
-    if(r.ok&&j.token){
-      TOKEN=j.token; localStorage.setItem('warp-admin-token',TOKEN);
-      document.getElementById('loginWrap').style.display='none';
-      document.getElementById('appWrap').style.display='flex';
+    const r = await fetch(API + '/api/admin/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario:u, password:p})});
+    const j = await r.json();
+    if(r.ok && j.token){
+      TOKEN = j.token; localStorage.setItem('warp-admin-token', TOKEN);
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('appWrap').style.display = 'flex';
       loadDashboard();
     } else {
-      document.getElementById('loginErr').style.display='block';
-      btn.textContent='Ingresar →'; btn.disabled=false;
+      document.getElementById('loginErr').style.display = 'block';
+      btn.textContent = 'Ingresar →'; btn.disabled = false;
     }
-  }catch(e){
-    document.getElementById('loginErr').style.display='block';
-    btn.textContent='Ingresar →'; btn.disabled=false;
+  } catch(e){
+    document.getElementById('loginErr').style.display = 'block';
+    btn.textContent = 'Ingresar →'; btn.disabled = false;
   }
 }
-
 function logout(){
-  TOKEN=''; localStorage.removeItem('warp-admin-token');
-  document.getElementById('appWrap').style.display='none';
-  document.getElementById('loginWrap').style.display='flex';
+  TOKEN = ''; localStorage.removeItem('warp-admin-token');
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
 }
 
-// ── Navegación ────────────────────────────────────────────────────────────────
+/* ── Navegación ─────────────────────────────────────────────────────────────── */
 function showSection(name, btn){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
-  document.getElementById('sec-'+name).classList.add('visible');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.getElementById('sec-' + name).classList.add('visible');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  const titles={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría'};
-  document.getElementById('topbarTitle').textContent=titles[name];
-  if(name==='solicitudes') loadSolicitudes();
-  if(name==='auditoria') loadAuditoria();
-  if(name==='dashboard') loadDashboard();
+  const titles = {dashboard:'Dashboard', solicitudes:'Solicitudes', auditoria:'Log de Auditoría'};
+  document.getElementById('topbarTitle').textContent = titles[name];
+  if(name === 'solicitudes') loadSolicitudes();
+  if(name === 'auditoria') loadAuditoria();
+  if(name === 'dashboard') loadDashboard();
 }
-
 function recargar(){
-  const visible=document.querySelector('.section.visible');
-  if(visible){
-    const name=visible.id.replace('sec-','');
-    if(name==='dashboard') loadDashboard();
-    if(name==='solicitudes') loadSolicitudes();
-    if(name==='auditoria') loadAuditoria();
-  }
+  const v = document.querySelector('.section.visible');
+  if(v){ const n = v.id.replace('sec-',''); showSection(n); }
 }
 
-// ── Dashboard ─────────────────────────────────────────────────────────────────
+/* ── Dashboard ──────────────────────────────────────────────────────────────── */
 async function loadDashboard(){
-  const d=await req('/api/admin/dashboard');
-  if(!d) return;
-  document.getElementById('st-total').textContent=d.total;
-  document.getElementById('st-hoy').textContent=d.hoy;
-  document.getElementById('st-pend').textContent=(d.radicadas||0)+(d.enAnalisis||0);
-  document.getElementById('st-apr').textContent=d.aprobadas;
-  const tbody=document.getElementById('dash-table');
-  if(!d.recientes.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes aún</td></tr>';
-    return;
-  }
-  tbody.innerHTML=d.recientes.map(s=>`
+  const d = await req('/api/admin/dashboard'); if(!d) return;
+  document.getElementById('st-total').textContent = d.total;
+  document.getElementById('st-hoy').textContent   = d.hoy;
+  document.getElementById('st-pend').textContent  = (d.radicadas||0) + (d.enAnalisis||0);
+  document.getElementById('st-apr').textContent   = d.aprobadas;
+  const tbody = document.getElementById('dash-table');
+  if(!d.recientes.length){ tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes aún</td></tr>'; return; }
+  tbody.innerHTML = d.recientes.map(s => `
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
-      <td style="font-weight:500">${s.primerNombre||''} ${s.primerApellido||''}</td>
+      <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
@@ -332,100 +332,104 @@ async function loadDashboard(){
     </tr>`).join('');
 }
 
-// ── Solicitudes ───────────────────────────────────────────────────────────────
+/* ── Solicitudes ────────────────────────────────────────────────────────────── */
 async function loadSolicitudes(){
-  const buscar=document.getElementById('buscar').value;
-  const estado=document.getElementById('filtroEstado').value;
-  const d=await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
+  const buscar = document.getElementById('buscar').value;
+  const estado = document.getElementById('filtroEstado').value;
+  const d = await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
   if(!d) return;
-  const tbody=document.getElementById('sol-table');
-  if(!d.solicitudes.length){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';
-    return;
-  }
-  tbody.innerHTML=d.solicitudes.map(s=>`
+  const tbody = document.getElementById('sol-table');
+  if(!d.solicitudes.length){ tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>'; return; }
+  tbody.innerHTML = d.solicitudes.map(s => `
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
-      <td style="font-weight:500">${s.primerNombre||''} ${s.primerApellido||''}</td>
-      <td style="color:#6b7280">${s.numDocumento||'—'}</td>
-      <td>${s.celular||'—'}</td>
+      <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
+      <td style="color:#6b7280">${v(s.numDocumento)}</td>
+      <td>${v(s.celular)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
-      <td>${s.tipoContrato||'—'}</td>
+      <td>${v(s.tipoContrato)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
       <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
     </tr>`).join('');
 }
+function debSearch(){ clearTimeout(searchTimer); searchTimer = setTimeout(loadSolicitudes, 400); }
 
-function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSolicitudes,400); }
-
-// ── Modal solicitud — TODOS LOS CAMPOS ───────────────────────────────────────
+/* ── Modal detalle completo ─────────────────────────────────────────────────── */
 async function verSolicitud(id){
-  const s=await req('/api/admin/solicitudes/'+id);
-  if(!s) return;
+  const s = await req('/api/admin/solicitudes/' + id); if(!s) return;
+  document.getElementById('modal-title').innerHTML = `${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)}`;
 
-  document.getElementById('modal-title').innerHTML=
-    `${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)}`;
+  /* Botón Datacrédito */
+  const dcBtn = `<a href="https://www.datacredito.com.co" target="_blank" class="datacredito-btn">🔍 Consultar Datacrédito · CC: ${v(s.numDocumento)}</a>`;
 
-  // ── Botón Datacrédito ──
-  const dcBtn=`<a href="https://www.datacredito.com.co" target="_blank" class="datacredito-btn">
-    🔍 Consultar Datacrédito · CC: ${v(s.numDocumento)}
-  </a>`;
-
-  // ── Paso 1: Identidad ──
-  const secIdentidad=`
-  <div class="modal-section">
-    <div class="modal-section-title"><span>👤</span> Paso 1 — Identidad y Contacto</div>
+  /* ── PASO 1: Identidad ── */
+  const secIdent = `
+    <div class="section-title"><span>👤</span> Paso 1 — Identidad y Contacto</div>
+    <div class="info-grid-3">
+      ${ib('Tipo doc.', s.tipoDocumento)}
+      ${ib('Núm. documento', s.numDocumento)}
+      ${ib('Género', s.genero)}
+    </div>
     <div class="info-grid">
-      ${ib('Tipo de documento', s.tipoDocumento)}
-      ${ib('N° de documento', s.numDocumento)}
       ${ib('Primer nombre', s.primerNombre)}
       ${ib('Segundo nombre', s.segundoNombre)}
       ${ib('Primer apellido', s.primerApellido)}
       ${ib('Segundo apellido', s.segundoApellido)}
-      ${ib('Fecha de nacimiento', s.fechaNacimiento)}
-      ${ib('Género', s.genero)}
-      ${ib('País de nacimiento', s.paisNacimiento)}
-      ${ib('Ciudad de nacimiento', s.ciudadNacimiento)}
+    </div>
+    <div class="info-grid-3">
+      ${ib('Fecha nacimiento', s.fechaNacimiento)}
+      ${ib('País nacimiento', s.paisNacimiento)}
+      ${ib('Ciudad nacimiento', s.ciudadNacimiento)}
+    </div>
+    <div class="info-grid">
       ${ib('Celular', s.celular)}
-      ${ib('Teléfono alternativo', s.telefonoAlt)}
+      ${ib('Tel. alternativo', s.telefonoAlt)}
       ${ib('Email principal', s.email)}
       ${ib('Email alternativo', s.emailAlt)}
+    </div>
+    <div class="info-grid-3">
       ${ib('Departamento', s.departamento)}
       ${ib('Ciudad', s.ciudad)}
       ${ib('Barrio', s.barrio)}
-      <div class="info-block wide"><div class="lbl">Dirección</div><div class="val">${v(s.direccion)}</div></div>
-      ${ib('Tipo de vivienda', s.tipoVivienda)}
-      ${ib('Tiempo en vivienda', s.tiempoVivienda)}
     </div>
-  </div>`;
-
-  // ── Paso 2: Financiero ──
-  const secFinanciero=`
-  <div class="modal-section">
-    <div class="modal-section-title"><span>💰</span> Paso 2 — Información Financiera</div>
     <div class="info-grid">
-      ${ib('Ingresos mensuales', fmt(s.ingresosMensuales), 'highlight')}
+      <div class="ib span2"><div class="lbl">Dirección</div><div class="val">${v(s.direccion)}</div></div>
+      ${ib('Tipo vivienda', s.tipoVivienda)}
+      ${ib('Tiempo en vivienda', s.tiempoVivienda)}
+    </div>`;
+
+  /* ── PASO 2: Financiero ── */
+  const secFin = `
+    <div class="section-title"><span>💰</span> Paso 2 — Perfil Financiero</div>
+    <div class="info-grid">
+      ${ib('Ingresos mensuales', fmt(s.ingresosMensuales), 'hl')}
       ${ib('Egresos mensuales', fmt(s.egresosMensuales))}
       ${ib('Fuente de ingresos', s.fuenteIngresos)}
       ${ib('Obligaciones financieras', fmt(s.obligacionesFinancieras))}
       ${ib('Ingresos adicionales', fmt(s.ingresosAdicionales))}
-      ${ib('Concepto ingresos adicionales', s.conceptoIngresosAd)}
+      ${ib('Concepto ing. adicionales', s.conceptoIngresosAd)}
+    </div>
+    <div class="section-title" style="margin-top:4px"><span>🏦</span> Relación bancaria</div>
+    <div class="info-grid">
       ${ib('Banco', s.banco)}
       ${ib('Tipo de cuenta', s.tipoCuenta)}
-      ${ib('N° de cuenta', s.numeroCuenta)}
+      ${ib('Número de cuenta', s.numeroCuenta)}
       ${ib('Otras cuentas', s.otrasCuentas)}
-      ${ib('Monto solicitado', fmt(s.montoSolicitado), 'highlight')}
+    </div>
+    <div class="section-title" style="margin-top:4px"><span>📄</span> Crédito solicitado</div>
+    <div class="info-grid-3">
+      ${ib('Monto solicitado', fmt(s.montoSolicitado), 'hl')}
       ${ib('Plazo', s.plazo)}
-      ${ib('Destino del crédito', s.destinoCredito)}
       ${ib('Garantía', s.garantia)}
     </div>
-  </div>`;
+    <div class="info-grid">
+      <div class="ib span2"><div class="lbl">Destino del crédito</div><div class="val">${v(s.destinoCredito)}</div></div>
+    </div>`;
 
-  // ── Paso 3: Laboral ──
-  const secLaboral=`
-  <div class="modal-section">
-    <div class="modal-section-title"><span>💼</span> Paso 3 — Información Laboral</div>
+  /* ── PASO 3: Laboral ── */
+  const secLab = `
+    <div class="section-title"><span>💼</span> Paso 3 — Información Laboral</div>
     <div class="info-grid">
       ${ib('Situación laboral', s.situacionLaboral)}
       ${ib('Sector económico', s.sectorEconomico)}
@@ -433,127 +437,108 @@ async function verSolicitud(id){
       ${ib('NIT empresa', s.nitEmpresa)}
       ${ib('Cargo', s.cargo)}
       ${ib('Antigüedad', s.antiguedad)}
-      ${ib('Tipo de contrato', s.tipoContrato)}
-      ${ib('Teléfono trabajo', s.telefonoTrabajo)}
-      <div class="info-block wide"><div class="lbl">Dirección trabajo</div><div class="val">${v(s.direccionTrabajo)}</div></div>
+      ${ib('Tipo contrato', s.tipoContrato)}
+      ${ib('Tel. trabajo', s.telefonoTrabajo)}
+    </div>
+    <div class="info-grid">
+      <div class="ib span2"><div class="lbl">Dirección trabajo</div><div class="val">${v(s.direccionTrabajo)}</div></div>
       ${ib('Estado civil', s.estadoCivil)}
       ${ib('Nivel educativo', s.nivelEducativo)}
-      ${ib('N° dependientes', s.numeroDependientes)}
-      ${ib('Referencia — Nombre', s.refNombre)}
-      ${ib('Referencia — Parentesco', s.refParentesco)}
-      ${ib('Referencia — Celular', s.refCelular)}
-      ${ib('Referencia adicional', s.refAdicional)}
     </div>
-  </div>`;
+    <div class="info-grid-3">
+      ${ib('Núm. dependientes', s.numeroDependientes)}
+      ${ib('Referencia — nombre', s.refNombre)}
+      ${ib('Parentesco', s.refParentesco)}
+    </div>
+    <div class="info-grid">
+      ${ib('Celular referencia', s.refCelular)}
+      ${ib('Referencia adicional', s.refAdicional)}
+    </div>`;
 
-  // ── Paso 4: Documentos ──
-  let docsHtml='';
-  if(s.documentos && Object.keys(s.documentos).length>0){
-    const docItems=Object.entries(s.documentos).map(([k,d])=>{
-      if(d&&d.url){
-        const nombre=d.nombre||k;
-        const url=d.url;
-        const isPdf=url&&(url.includes('.pdf')||url.includes('/docs/'));
-        if(isPdf) return `<div onclick="abrirPdf('${url}','${nombre}')" class="doc-link">📄 ${nombre}</div>`;
-        return `<a href="${url}" target="_blank" class="doc-link">🖼 ${nombre}</a>`;
+  /* ── PASO 4: Documentos ── */
+  let docsHtml = '';
+  if(s.documentos && Object.keys(s.documentos).length > 0){
+    const items = Object.entries(s.documentos).map(([k, d]) => {
+      if(d && d.url){
+        const nombre = d.nombre || k;
+        const isPdf = d.url.includes('.pdf') || d.url.includes('/docs/');
+        if(isPdf) return `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 ${nombre}</div>`;
+        return `<a href="${d.url}" target="_blank" class="doc-link">🖼 ${nombre}</a>`;
       }
-      return `<div class="doc-error">⚠ ${d&&d.nombre?d.nombre:k} — no disponible</div>`;
+      return `<div class="doc-error">⚠ ${d?.nombre || k} — no disponible</div>`;
     }).join('');
-    docsHtml=`<div class="docs-grid">${docItems}</div>`;
+    docsHtml = `<div class="docs-grid">${items}</div>`;
   } else {
-    docsHtml=`<div style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:8px">Sin documentos adjuntos</div>`;
+    docsHtml = `<div style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:7px">Sin documentos adjuntos</div>`;
   }
+  const secDocs = `
+    <div class="section-title"><span>📎</span> Paso 4 — Documentos (${s.documentos ? Object.keys(s.documentos).length : 0})</div>
+    ${docsHtml}`;
 
-  const secDocumentos=`
-  <div class="modal-section">
-    <div class="modal-section-title"><span>📎</span> Paso 4 — Documentos (${s.documentos?Object.keys(s.documentos).length:0})</div>
-    ${docsHtml}
-  </div>`;
-
-  // ── Paso 5: Declaraciones ──
-  const decls=[
-    ['Declaración veracidad', s.declaracionVeracidad],
-    ['Autorización centrales', s.autorizacionCentrales],
-    ['Autorización datos', s.autorizacionDatos],
-    ['Declaración SARLAFT', s.declaracionSarlaft],
-    ['Declaración PEP', s.declaracionPep],
-    ['Autorización débito', s.autorizacionDebito],
-  ];
-  const secDeclaracion=`
-  <div class="modal-section">
-    <div class="modal-section-title"><span>✍️</span> Paso 5 — Declaraciones y Firma</div>
-    <div class="check-grid" style="margin-bottom:10px">
-      ${decls.map(([lbl,val])=>`
-        <div class="check-item ${val?'si':'no'}">
-          ${val?'✓':'✗'} ${lbl}
-        </div>`).join('')}
+  /* ── PASO 5: Declaraciones ── */
+  const secDecl = `
+    <div class="section-title"><span>✍️</span> Paso 5 — Declaraciones y Firma</div>
+    <div class="check-grid">
+      ${boolItem('Veracidad', s.declaracionVeracidad)}
+      ${boolItem('Centrales de riesgo', s.autorizacionCentrales)}
+      ${boolItem('Datos personales', s.autorizacionDatos)}
+      ${boolItem('SARLAFT', s.declaracionSarlaft)}
+      ${boolItem('No PEP', s.declaracionPep)}
+      ${boolItem('Débito automático', s.autorizacionDebito)}
     </div>
     <div class="info-grid">
       ${ib('Firma electrónica', s.firmaElectronica)}
-    </div>
-  </div>`;
+    </div>`;
 
-  // ── Gestión y nota analista ──
-  const secGestion=`
-  <div class="modal-section">
-    <div class="modal-section-title"><span>🗂</span> Gestión</div>
+  /* ── Gestión ── */
+  const secGestion = `
+    <div class="section-title"><span>🗂</span> Gestión</div>
     <div class="info-grid" style="margin-bottom:10px">
-      ${ib('Nota analista', s.notaAnalista||'Sin nota')}
+      ${ib('Nota analista', s.notaAnalista || 'Sin nota')}
       ${ib('Fecha solicitud', fdate(s.createdAt))}
     </div>
     <div>
       <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
-      <textarea id="notaDecision" rows="2" placeholder="Escribe una nota..." style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${s.notaAnalista||''}</textarea>
-    </div>
-  </div>`;
+      <textarea id="notaDecision" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${s.notaAnalista||''}</textarea>
+    </div>`;
 
-  // ── Historial ──
-  const historialHtml= s.auditoria&&s.auditoria.length
-    ? `<div class="modal-section">
-        <div class="modal-section-title"><span>🕓</span> Historial</div>
-        <div style="max-height:120px;overflow-y:auto">
-          ${s.auditoria.map(a=>`
-            <div class="historial-item">
-              <span style="color:#9ca3af;flex-shrink:0">${fdate(a.createdAt)}</span>
-              <strong>· ${a.accion}</strong>
-              <span>${a.detalle?'· '+a.detalle:''}</span>
-            </div>`).join('')}
-        </div>
-      </div>` : '';
+  /* ── Historial ── */
+  const histHtml = s.auditoria?.length ? `
+    <div class="section-title"><span>🕓</span> Historial</div>
+    <div style="max-height:110px;overflow-y:auto">
+      ${s.auditoria.map(a => `
+        <div class="hist-item">
+          <span style="color:#9ca3af;flex-shrink:0">${fdate(a.createdAt)}</span>
+          <strong>· ${a.accion}</strong>
+          <span>${a.detalle ? '· ' + a.detalle : ''}</span>
+        </div>`).join('')}
+    </div>` : '';
 
-  document.getElementById('modal-body').innerHTML=
-    dcBtn + secIdentidad + secFinanciero + secLaboral + secDocumentos + secDeclaracion + secGestion + historialHtml;
+  document.getElementById('modal-body').innerHTML =
+    dcBtn + secIdent + secFin + secLab + secDocs + secDecl + secGestion + histHtml;
 
-  const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
-  document.getElementById('modal-footer').innerHTML=`
-    ${pendiente?`
-    <button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
-    <button class="btn-sm btn-red"   onclick="cambiarEstado('${s.id}','RECHAZADA')">✕ Rechazar</button>
-    <button class="btn-sm btn-lime"  onclick="cambiarEstado('${s.id}','APROBADA')">✓ Aprobar</button>`:''}`;
+  const pendiente = ['RADICADA','EN_ANALISIS'].includes(s.estado);
+  document.getElementById('modal-foot').innerHTML = `
+    ${pendiente ? `
+      <button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
+      <button class="btn-sm btn-red"   onclick="cambiarEstado('${s.id}','RECHAZADA')">✕ Rechazar</button>
+      <button class="btn-sm btn-lime"  onclick="cambiarEstado('${s.id}','APROBADA')">✓ Aprobar</button>` : ''}`;
 
   document.getElementById('modalBg').classList.add('open');
 }
 
 async function cambiarEstado(id, estado){
-  const nota=document.getElementById('notaDecision')?.value||'';
-  const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
-  if(r?.ok){
-    showToast(`Solicitud marcada como ${estado}`,'ok');
-    closeModal();
-    loadSolicitudes();
-    loadDashboard();
-  } else showToast('Error cambiando estado','err');
+  const nota = document.getElementById('notaDecision')?.value || '';
+  const r = await req('/api/admin/solicitudes/' + id + '/estado', {method:'PATCH', body:JSON.stringify({estado, nota, analista:'admin'})});
+  if(r?.ok){ showToast(`Solicitud marcada como ${estado}`, 'ok'); closeModal(); loadSolicitudes(); loadDashboard(); }
+  else showToast('Error cambiando estado', 'err');
 }
+function closeModal(e){ if(!e || e.target.id === 'modalBg') document.getElementById('modalBg').classList.remove('open'); }
 
-function closeModal(e){
-  if(!e||e.target.id==='modalBg') document.getElementById('modalBg').classList.remove('open');
-}
-
-// ── Auditoría ──────────────────────────────────────────────────────────────────
+/* ── Auditoría ──────────────────────────────────────────────────────────────── */
 async function loadAuditoria(){
-  const d=await req('/api/admin/auditoria');
-  if(!d) return;
-  document.getElementById('audit-table').innerHTML=d.logs.map(a=>`
+  const d = await req('/api/admin/auditoria'); if(!d) return;
+  document.getElementById('audit-table').innerHTML = d.logs.map(a => `
     <tr>
       <td style="color:#9ca3af;font-size:11px">${fdate(a.createdAt)}</td>
       <td><span class="badge badge-blue">${a.accion}</span></td>
@@ -563,29 +548,16 @@ async function loadAuditoria(){
     </tr>`).join('');
 }
 
-// ── Exportar ──────────────────────────────────────────────────────────────────
-function exportCSV(){
-  window.open(API+'/api/admin/exportar?token='+TOKEN,'_blank');
-}
+/* ── PDF Viewer ─────────────────────────────────────────────────────────────── */
+function exportCSV(){ window.open(API + '/api/admin/exportar?token=' + TOKEN, '_blank'); }
+function abrirPdf(url, nombre){ document.getElementById('pdfTitle').textContent = nombre||'Documento'; document.getElementById('pdfFrame').src = url; document.getElementById('pdfBg').classList.add('open'); }
+function closePdf(e){ if(!e || e.target.id === 'pdfBg'){ document.getElementById('pdfBg').classList.remove('open'); document.getElementById('pdfFrame').src = ''; } }
 
-// ── PDF Viewer ────────────────────────────────────────────────────────────────
-function abrirPdf(url, nombre){
-  document.getElementById('pdfTitle').textContent=nombre||'Documento';
-  document.getElementById('pdfFrame').src=url;
-  document.getElementById('pdfBg').classList.add('open');
-}
-function closePdf(e){
-  if(!e||e.target.id==='pdfBg'){
-    document.getElementById('pdfBg').classList.remove('open');
-    document.getElementById('pdfFrame').src='';
-  }
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-window.onload=()=>{
+/* ── Init ───────────────────────────────────────────────────────────────────── */
+window.onload = () => {
   if(TOKEN){
-    document.getElementById('loginWrap').style.display='none';
-    document.getElementById('appWrap').style.display='flex';
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('appWrap').style.display = 'flex';
     loadDashboard();
   }
 };
