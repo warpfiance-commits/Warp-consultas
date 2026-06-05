@@ -166,17 +166,17 @@ textarea{resize:vertical;min-height:80px}
     <div class="card">
       <div class="sec-title"><span class="ic">💰</span>Perfil financiero</div>
       <div class="grid-2">
-        <div class="field"><label>Ingresos mensuales totales<span class="req">*</span></label><input type="number" id="ingresosMensuales" placeholder="Ej. 5000000"></div>
+        <div class="field"><label>Ingresos mensuales totales<span class="req">*</span></label><input type="text" id="ingresosMensuales" placeholder="Ej. 5.000.000" oninput="formatMiles(this)" inputmode="numeric"></div>
         <div class="field"><label>Fuente principal de ingresos<span class="req">*</span></label>
           <select id="fuenteIngresos"><option value="">Seleccionar...</option><option>Salario dependiente</option><option>Honorarios / independiente</option><option>Negocio propio / utilidades</option><option>Arrendamientos</option><option>Pensión</option><option>Inversiones / dividendos</option><option>Mixto</option></select></div>
       </div>
       <div class="grid-2">
-        <div class="field"><label>Ingresos adicionales (mensuales)</label><input type="number" id="ingresosAdicionales" placeholder="Ej. 1500000"></div>
+        <div class="field"><label>Ingresos adicionales (mensuales)</label><input type="text" id="ingresosAdicionales" placeholder="Ej. 1.500.000" oninput="formatMiles(this)" inputmode="numeric"></div>
         <div class="field"><label>Concepto de ingresos adicionales</label><input type="text" id="conceptoIngresosAd" placeholder="Arrendamiento, honorarios..."></div>
       </div>
       <div class="grid-2" style="margin-bottom:0">
-        <div class="field"><label>Egresos / gastos mensuales<span class="req">*</span></label><input type="number" id="egresosMensuales" placeholder="Ej. 2500000"></div>
-        <div class="field"><label>Valor total de tus deudas<span class="req">*</span></label><input type="number" id="obligacionesFinancieras" placeholder="Ej. 800000"></div>
+        <div class="field"><label>Egresos / gastos mensuales<span class="req">*</span></label><input type="text" id="egresosMensuales" placeholder="Ej. 2.500.000" oninput="formatMiles(this)" inputmode="numeric"></div>
+        <div class="field"><label>Valor total de tus deudas<span class="req">*</span></label><input type="text" id="obligacionesFinancieras" placeholder="Ej. 800.000" oninput="formatMiles(this)" inputmode="numeric"></div>
       </div>
     </div>
     <div class="card">
@@ -196,7 +196,7 @@ textarea{resize:vertical;min-height:80px}
     <div class="card">
       <div class="sec-title"><span class="ic">📄</span>Crédito solicitado</div>
       <div class="grid-3">
-        <div class="field"><label>Monto solicitado (COP)<span class="req">*</span></label><input type="number" id="montoSolicitado" placeholder="Ej. 10000000"></div>
+        <div class="field"><label>Monto solicitado (COP)<span class="req">*</span></label><input type="text" id="montoSolicitado" placeholder="Ej. 10.000.000" oninput="formatMiles(this)" inputmode="numeric"></div>
         <div class="field"><label>Plazo deseado<span class="req">*</span></label>
           <select id="plazo"><option value="">Seleccionar...</option><option>1 mes</option><option>3 meses</option><option>6 meses</option><option>12 meses</option><option>18 meses</option><option>24 meses</option><option>36 meses</option><option>48 meses</option><option>60 meses</option></select></div>
         <div class="field"><label>Garantía ofrecida</label>
@@ -354,7 +354,19 @@ const API_URL = window.location.origin;
 let currentStep = 0;
 const TOTAL = 5;
 
-function val(id){ return (document.getElementById(id)?.value||'').trim(); }
+const CAMPOS_MILES = ['ingresosMensuales','ingresosAdicionales','egresosMensuales','obligacionesFinancieras','montoSolicitado'];
+
+function formatMiles(el){
+  let raw = el.value.replace(/\./g,'').replace(/[^0-9]/g,'');
+  if(raw===''){el.value='';return;}
+  el.value = Number(raw).toLocaleString('es-CO');
+}
+
+function val(id){
+  const v = (document.getElementById(id)?.value||'').trim();
+  if(CAMPOS_MILES.includes(id)) return v.replace(/\./g,'');
+  return v;
+}
 function fmt(n){ return n?'$'+Number(n).toLocaleString('es-CO'):'—'; }
 
 const REQUIRED = {
