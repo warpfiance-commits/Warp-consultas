@@ -252,11 +252,13 @@ function ib(lbl,val,cls=''){ return `<div class="ib ${cls}"><div class="lbl">${l
 function boolItem(lbl,val){ const ok=!!val; return `<div class="check-item ${ok?'si':'no'}">${ok?'✓':'✗'} ${lbl}</div>`; }
 
 /* ── SCORE INTERNO ── */
+function limpio(x){ return Number(String(x||0).replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.]/g,'')||0); }
+
 function calcScore(s){
   let pts=0, max=100;
-  const ing=Number(s.ingresosMensuales||0);
-  const egr=Number(s.egresosMensuales||0)+Number(s.obligacionesFinancieras||0);
-  const monto=Number(s.montoSolicitado||0);
+  const ing=limpio(s.ingresosMensuales);
+  const egr=limpio(s.egresosMensuales)+limpio(s.obligacionesFinancieras);
+  const monto=limpio(s.montoSolicitado);
   const disp=ing-egr;
 
   // Capacidad de pago (40 pts)
@@ -308,8 +310,8 @@ function scoreBadge(s){
 
 /* ── SEMÁFORO CAPACIDAD MODAL ── */
 function capSemaforo(s){
-  const ing=Number(s.ingresosMensuales||0)+Number(s.ingresosAdicionales||0);
-  const egr=Number(s.egresosMensuales||0)+Number(s.obligacionesFinancieras||0);
+  const ing=limpio(s.ingresosMensuales)+limpio(s.ingresosAdicionales);
+  const egr=limpio(s.egresosMensuales)+limpio(s.obligacionesFinancieras);
   const disp=ing-egr;
   if(!ing) return '';
   const cls=disp<=0?'rojo':disp<ing*0.3?'amarillo':'verde';
@@ -442,8 +444,8 @@ async function verSolicitud(id){
     </div>`;
 
   /* Financiero */
-  const ing=Number(s.ingresosMensuales||0)+Number(s.ingresosAdicionales||0);
-  const egr=Number(s.egresosMensuales||0)+Number(s.obligacionesFinancieras||0);
+  const ing=limpio(s.ingresosMensuales)+limpio(s.ingresosAdicionales);
+  const egr=limpio(s.egresosMensuales)+limpio(s.obligacionesFinancieras);
   const disp=ing-egr;
   const secFin=`
     <div class="section-title"><span>💰</span> Paso 2 — Perfil Financiero</div>
