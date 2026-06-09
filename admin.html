@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:#F4F6F2;color:#111}
-:root{--lime:#4CAF50;--navy:#1B5E20;--lime-d:#2E7D32}
+:root{--lime:#4CAF50;--navy:#1B5E20;--lime-d:#2E7D32;--lime-l:#E8F5E9}
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
 .login-box{background:#fff;border-radius:16px;padding:2.5rem;width:360px;box-shadow:0 4px 30px rgba(0,0,0,.08)}
 .login-logo{background:var(--navy);color:var(--lime);font-family:'Sora',sans-serif;font-weight:700;font-size:13px;padding:7px 16px;border-radius:7px;letter-spacing:.06em;display:inline-block;margin-bottom:1.5rem}
@@ -56,24 +56,24 @@ td{padding:10px 14px;color:#374151}
 .badge-green{background:#F0FDF4;color:#15803d}
 .badge-red{background:#FEF2F2;color:#dc2626}
 .badge-gray{background:#F9FAFB;color:#6b7280}
+/* score badges */
+.score-verde{background:#f0fdf4;color:#15803d;border:1px solid #86efac;font-weight:700;padding:3px 12px;border-radius:20px;font-size:12px}
+.score-amarillo{background:#fffbeb;color:#b45309;border:1px solid #fcd34d;font-weight:700;padding:3px 12px;border-radius:20px;font-size:12px}
+.score-rojo{background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-weight:700;padding:3px 12px;border-radius:20px;font-size:12px}
 .btn-sm{padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
 .btn-navy{background:var(--navy);color:var(--lime)}
 .btn-ghost{background:transparent;border:1px solid #d1d5db;color:#6b7280}
 .btn-ghost:hover{background:#f3f4f6}
 .btn-lime{background:var(--lime);color:var(--navy)}
 .btn-red{background:#ef4444;color:#fff}
-
-/* ── Modal ───────────────────────────────────────────────────────────────────── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:820px;max-width:100%;max-height:92vh;display:flex;flex-direction:column}
+.modal{background:#fff;border-radius:14px;width:860px;max-width:100%;max-height:92vh;display:flex;flex-direction:column}
 .modal-head{padding:1rem 1.2rem;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:2;flex-shrink:0}
 .modal-head-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--navy)}
 .modal-body{padding:1.2rem;overflow-y:auto;flex:1}
 .modal-foot{padding:.9rem 1.2rem;border-top:1px solid #f0f0f0;display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:#fff;flex-shrink:0}
-
-/* ── Info grid ───────────────────────────────────────────────────────────────── */
-.section-title{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 8px;padding-bottom:5px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:5px}
+.section-title{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:5px}
 .section-title:first-child{margin-top:0}
 .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 .info-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
@@ -84,25 +84,26 @@ td{padding:10px 14px;color:#374151}
 .ib.hl .val{color:var(--navy)}
 .ib.span2{grid-column:span 2}
 .ib.span3{grid-column:span 3}
-
-/* ── Check grid ──────────────────────────────────────────────────────────────── */
+/* Semáforo de capacidad en modal */
+.cap-semaforo{border-radius:10px;padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;align-items:center}
+.cap-semaforo.verde{background:#f0fdf4;border:1.5px solid #86efac}
+.cap-semaforo.amarillo{background:#fffbeb;border:1.5px solid #fcd34d}
+.cap-semaforo.rojo{background:#fef2f2;border:1.5px solid #fca5a5}
+.cap-sem-item{text-align:center}
+.cap-sem-label{font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.cap-sem-val{font-family:'Sora',sans-serif;font-size:14px;font-weight:700}
 .check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
 .check-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:6px 9px;border-radius:6px}
 .check-item.si{background:#f0fdf4;color:#15803d}
 .check-item.no{background:#fef2f2;color:#dc2626}
-
-/* ── Docs ────────────────────────────────────────────────────────────────────── */
 .docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
 .doc-link{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;text-decoration:none;font-size:12px;color:#15803d;font-weight:500;cursor:pointer}
 .doc-link:hover{background:#dcfce7}
 .doc-error{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;font-size:12px;color:#dc2626}
 .datacredito-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#0D2340;color:#A8C400;border-radius:7px;text-decoration:none;font-size:12px;font-weight:700;margin-bottom:12px;font-family:'Sora',sans-serif}
 .datacredito-btn:hover{background:#1a3a5c}
-
-/* ── Historial ───────────────────────────────────────────────────────────────── */
 .hist-item{font-size:12px;padding:5px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;display:flex;gap:8px;align-items:flex-start}
 .hist-item strong{color:#374151}
-
 .search-bar{display:flex;gap:10px;margin-bottom:1rem}
 .search-bar input{max-width:280px}
 .search-bar select{max-width:160px}
@@ -112,15 +113,13 @@ td{padding:10px 14px;color:#374151}
 .toast.show{display:block}
 .section{display:none}
 .section.visible{display:block}
-
-/* PDF viewer */
 .pdf-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
 .pdf-modal-bg.open{display:flex}
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN ─────────────────────────────────────────────────────────────────── -->
+<!-- LOGIN -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-box">
     <div class="login-logo">FINANCIAL SERVICES</div>
@@ -133,7 +132,7 @@ td{padding:10px 14px;color:#374151}
   </div>
 </div>
 
-<!-- ── APP ───────────────────────────────────────────────────────────────────── -->
+<!-- APP -->
 <div class="app" id="appWrap" style="display:none">
   <div class="sidebar">
     <div class="sidebar-logo">
@@ -170,7 +169,7 @@ td{padding:10px 14px;color:#374151}
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title">Solicitudes recientes</div></div>
-          <table><thead><tr><th>Radicado</th><th>Solicitante</th><th>Monto</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <table><thead><tr><th>Radicado</th><th>Solicitante</th><th>Monto</th><th>Score</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
           <tbody id="dash-table"></tbody></table>
         </div>
       </div>
@@ -189,7 +188,7 @@ td{padding:10px 14px;color:#374151}
           </select>
         </div>
         <div class="card">
-          <table><thead><tr><th>Radicado</th><th>Nombre</th><th>Documento</th><th>Celular</th><th>Monto</th><th>Contrato</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <table><thead><tr><th>Radicado</th><th>Nombre</th><th>Documento</th><th>Celular</th><th>Monto</th><th>Score</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
           <tbody id="sol-table"></tbody></table>
         </div>
       </div>
@@ -207,7 +206,7 @@ td{padding:10px 14px;color:#374151}
   </div>
 </div>
 
-<!-- ── MODAL SOLICITUD ────────────────────────────────────────────────────────── -->
+<!-- MODAL SOLICITUD -->
 <div class="modal-bg" id="modalBg" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-head">
@@ -219,7 +218,7 @@ td{padding:10px 14px;color:#374151}
   </div>
 </div>
 
-<!-- ── VISOR PDF ──────────────────────────────────────────────────────────────── -->
+<!-- VISOR PDF -->
 <div class="pdf-modal-bg" id="pdfBg" onclick="closePdf(event)">
   <div style="background:#fff;border-radius:14px;width:90vw;max-width:900px;height:90vh;display:flex;flex-direction:column;overflow:hidden" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;flex-shrink:0">
@@ -237,308 +236,338 @@ const API = window.location.origin;
 let TOKEN = localStorage.getItem('warp-admin-token') || '';
 let searchTimer;
 
-/* ── Utilidades ─────────────────────────────────────────────────────────────── */
-function showToast(msg, tipo='ok'){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + tipo + ' show';
-  setTimeout(() => t.classList.remove('show'), 4500);
-}
+function showToast(msg,tipo='ok'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+tipo+' show'; setTimeout(()=>t.classList.remove('show'),4500); }
 function headers(){ return {'Content-Type':'application/json','x-admin-token':TOKEN}; }
-async function req(url, opts={}){
-  opts.headers = {...headers(), ...(opts.headers||{})};
-  const r = await fetch(API + url, opts);
-  if(r.status === 401){ logout(); return null; }
-  return r.json();
-}
+async function req(url,opts={}){ opts.headers={...headers(),...(opts.headers||{})}; const r=await fetch(API+url,opts); if(r.status===401){logout();return null;} return r.json(); }
+
 function badge(estado){
-  const map = {RADICADA:'badge-blue',EN_ANALISIS:'badge-amber',APROBADA:'badge-green',RECHAZADA:'badge-red',DESEMBOLSADA:'badge-green'};
-  const label = {RADICADA:'Radicada',EN_ANALISIS:'En análisis',APROBADA:'Aprobada',RECHAZADA:'Rechazada',DESEMBOLSADA:'Desembolsada'};
+  const map={RADICADA:'badge-blue',EN_ANALISIS:'badge-amber',APROBADA:'badge-green',RECHAZADA:'badge-red',DESEMBOLSADA:'badge-green'};
+  const label={RADICADA:'Radicada',EN_ANALISIS:'En análisis',APROBADA:'Aprobada',RECHAZADA:'Rechazada',DESEMBOLSADA:'Desembolsada'};
   return `<span class="badge ${map[estado]||'badge-gray'}">${label[estado]||estado}</span>`;
 }
-function fmt(n){ return (n != null && n !== '') ? '$' + Number(n).toLocaleString('es-CO') : '—'; }
-function fdate(s){ return s ? new Date(s).toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}) : '—'; }
-function v(x){ return (x != null && x !== '' && x !== 'null') ? x : '—'; }
-function ib(lbl, val, cls=''){
-  return `<div class="ib ${cls}"><div class="lbl">${lbl}</div><div class="val">${v(val)}</div></div>`;
-}
-function boolItem(lbl, val){
-  const ok = !!val;
-  return `<div class="check-item ${ok?'si':'no'}">${ok?'✓':'✗'} ${lbl}</div>`;
-}
+function fmt(n){ return (n!=null&&n!==''&&n!=='0')? '$'+Number(n).toLocaleString('es-CO'):'—'; }
+function fdate(s){ return s?new Date(s).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—'; }
+function v(x){ return (x!=null&&x!==''&&x!=='null')?x:'—'; }
+function ib(lbl,val,cls=''){ return `<div class="ib ${cls}"><div class="lbl">${lbl}</div><div class="val">${v(val)}</div></div>`; }
+function boolItem(lbl,val){ const ok=!!val; return `<div class="check-item ${ok?'si':'no'}">${ok?'✓':'✗'} ${lbl}</div>`; }
 
-/* ── Auth ───────────────────────────────────────────────────────────────────── */
-async function doLogin(){
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  const btn = document.getElementById('loginBtn');
-  btn.textContent = 'Ingresando...'; btn.disabled = true;
-  try{
-    const r = await fetch(API + '/api/admin/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario:u, password:p})});
-    const j = await r.json();
-    if(r.ok && j.token){
-      TOKEN = j.token; localStorage.setItem('warp-admin-token', TOKEN);
-      document.getElementById('loginWrap').style.display = 'none';
-      document.getElementById('appWrap').style.display = 'flex';
-      loadDashboard();
-    } else {
-      document.getElementById('loginErr').style.display = 'block';
-      btn.textContent = 'Ingresar →'; btn.disabled = false;
-    }
-  } catch(e){
-    document.getElementById('loginErr').style.display = 'block';
-    btn.textContent = 'Ingresar →'; btn.disabled = false;
+/* ── SCORE INTERNO ── */
+function calcScore(s){
+  let pts=0, max=100;
+  const ing=Number(s.ingresosMensuales||0);
+  const egr=Number(s.egresosMensuales||0)+Number(s.obligacionesFinancieras||0);
+  const monto=Number(s.montoSolicitado||0);
+  const disp=ing-egr;
+
+  // Capacidad de pago (40 pts)
+  if(ing>0){
+    const ratio=disp/ing;
+    if(ratio>=0.5) pts+=40;
+    else if(ratio>=0.3) pts+=28;
+    else if(ratio>=0.1) pts+=14;
+    else pts+=0;
   }
-}
-function logout(){
-  TOKEN = ''; localStorage.removeItem('warp-admin-token');
-  document.getElementById('appWrap').style.display = 'none';
-  document.getElementById('loginWrap').style.display = 'flex';
+  // Monto vs ingresos (20 pts)
+  if(ing>0){
+    const mr=monto/ing;
+    if(mr<=3) pts+=20;
+    else if(mr<=6) pts+=12;
+    else if(mr<=10) pts+=6;
+  }
+  // Estabilidad laboral (20 pts)
+  const ant=s.antiguedad||'';
+  if(ant.includes('5 años')) pts+=20;
+  else if(ant.includes('3 -')) pts+=16;
+  else if(ant.includes('1 -')) pts+=12;
+  else if(ant.includes('6 meses')) pts+=7;
+  else if(ant.includes('Menos')) pts+=0;
+  else pts+=10;
+  // Tipo contrato (10 pts)
+  const cont=s.tipoContrato||'';
+  if(cont.includes('indefinido')) pts+=10;
+  else if(cont.includes('fijo')) pts+=7;
+  else if(cont.includes('servicios')) pts+=5;
+  else pts+=3;
+  // Vivienda (10 pts)
+  const viv=s.tipoVivienda||'';
+  if(viv.includes('libre de hipoteca')) pts+=10;
+  else if(viv.includes('hipoteca')) pts+=6;
+  else if(viv.includes('Familiar')) pts+=7;
+  else pts+=5;
+
+  const pct=Math.min(pts,max);
+  if(pct>=70) return {pct,clase:'score-verde',label:'🟢 Viable ('+pct+'/100)'};
+  if(pct>=45) return {pct,clase:'score-amarillo',label:'🟡 Revisar ('+pct+'/100)'};
+  return {pct,clase:'score-rojo',label:'🔴 Alto riesgo ('+pct+'/100)'};
 }
 
-/* ── Navegación ─────────────────────────────────────────────────────────────── */
-function showSection(name, btn){
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
-  document.getElementById('sec-' + name).classList.add('visible');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  const titles = {dashboard:'Dashboard', solicitudes:'Solicitudes', auditoria:'Log de Auditoría'};
-  document.getElementById('topbarTitle').textContent = titles[name];
-  if(name === 'solicitudes') loadSolicitudes();
-  if(name === 'auditoria') loadAuditoria();
-  if(name === 'dashboard') loadDashboard();
-}
-function recargar(){
-  const v = document.querySelector('.section.visible');
-  if(v){ const n = v.id.replace('sec-',''); showSection(n); }
+function scoreBadge(s){
+  const sc=calcScore(s);
+  return `<span class="${sc.clase}">${sc.label}</span>`;
 }
 
-/* ── Dashboard ──────────────────────────────────────────────────────────────── */
+/* ── SEMÁFORO CAPACIDAD MODAL ── */
+function capSemaforo(s){
+  const ing=Number(s.ingresosMensuales||0)+Number(s.ingresosAdicionales||0);
+  const egr=Number(s.egresosMensuales||0)+Number(s.obligacionesFinancieras||0);
+  const disp=ing-egr;
+  if(!ing) return '';
+  const cls=disp<=0?'rojo':disp<ing*0.3?'amarillo':'verde';
+  const dispColor=disp<=0?'#dc2626':disp<ing*0.3?'#b45309':'#1B5E20';
+  const alerta=disp<=0?'<div style="font-size:12px;color:#dc2626;margin-top:6px;grid-column:span 4">⚠ Compromisos superan ingresos — riesgo alto de impago</div>':
+    disp<ing*0.3?'<div style="font-size:12px;color:#b45309;margin-top:6px;grid-column:span 4">⚡ Capacidad disponible baja — recomiende monto menor</div>':'';
+  return `
+    <div class="cap-semaforo ${cls}">
+      <div class="cap-sem-item"><div class="cap-sem-label">Ingresos totales</div><div class="cap-sem-val" style="color:#1B5E20">${fmt(ing)}</div></div>
+      <div class="cap-sem-item"><div class="cap-sem-label">Compromisos mes</div><div class="cap-sem-val" style="color:#b45309">${fmt(egr)}</div></div>
+      <div class="cap-sem-item"><div class="cap-sem-label">Disponible</div><div class="cap-sem-val" style="color:${dispColor}">${fmt(disp)}</div></div>
+      <div class="cap-sem-item"><div class="cap-sem-label">Score interno</div><div style="margin-top:2px">${scoreBadge(s)}</div></div>
+      ${alerta}
+    </div>`;
+}
+
+/* ── AUTH ── */
+async function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  const btn=document.getElementById('loginBtn');
+  btn.textContent='Ingresando...'; btn.disabled=true;
+  try{
+    const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,password:p})});
+    const j=await r.json();
+    if(r.ok&&j.token){ TOKEN=j.token; localStorage.setItem('warp-admin-token',TOKEN);
+      document.getElementById('loginWrap').style.display='none';
+      document.getElementById('appWrap').style.display='flex';
+      loadDashboard();
+    }else{ document.getElementById('loginErr').style.display='block'; btn.textContent='Ingresar →'; btn.disabled=false; }
+  }catch(e){ document.getElementById('loginErr').style.display='block'; btn.textContent='Ingresar →'; btn.disabled=false; }
+}
+function logout(){ TOKEN=''; localStorage.removeItem('warp-admin-token');
+  document.getElementById('appWrap').style.display='none';
+  document.getElementById('loginWrap').style.display='flex'; }
+
+/* ── NAVEGACIÓN ── */
+function showSection(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('visible'));
+  document.getElementById('sec-'+name).classList.add('visible');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const titles={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría'};
+  document.getElementById('topbarTitle').textContent=titles[name];
+  if(name==='solicitudes')loadSolicitudes();
+  if(name==='auditoria')loadAuditoria();
+  if(name==='dashboard')loadDashboard();
+}
+function recargar(){ const vi=document.querySelector('.section.visible'); if(vi){const n=vi.id.replace('sec-','');showSection(n);} }
+
+/* ── DASHBOARD ── */
 async function loadDashboard(){
-  const d = await req('/api/admin/dashboard'); if(!d) return;
-  document.getElementById('st-total').textContent = d.total;
-  document.getElementById('st-hoy').textContent   = d.hoy;
-  document.getElementById('st-pend').textContent  = (d.radicadas||0) + (d.enAnalisis||0);
-  document.getElementById('st-apr').textContent   = d.aprobadas;
-  const tbody = document.getElementById('dash-table');
-  if(!d.recientes.length){ tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes aún</td></tr>'; return; }
-  tbody.innerHTML = d.recientes.map(s => `
+  const d=await req('/api/admin/dashboard'); if(!d)return;
+  document.getElementById('st-total').textContent=d.total;
+  document.getElementById('st-hoy').textContent=d.hoy;
+  document.getElementById('st-pend').textContent=(d.radicadas||0)+(d.enAnalisis||0);
+  document.getElementById('st-apr').textContent=d.aprobadas;
+  const tbody=document.getElementById('dash-table');
+  if(!d.recientes.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes aún</td></tr>';return;}
+  tbody.innerHTML=d.recientes.map(s=>`
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
       <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
+      <td>${scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
       <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
     </tr>`).join('');
 }
 
-/* ── Solicitudes ────────────────────────────────────────────────────────────── */
+/* ── SOLICITUDES ── */
 async function loadSolicitudes(){
-  const buscar = document.getElementById('buscar').value;
-  const estado = document.getElementById('filtroEstado').value;
-  const d = await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
-  if(!d) return;
-  const tbody = document.getElementById('sol-table');
-  if(!d.solicitudes.length){ tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>'; return; }
-  tbody.innerHTML = d.solicitudes.map(s => `
+  const buscar=document.getElementById('buscar').value;
+  const estado=document.getElementById('filtroEstado').value;
+  const d=await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
+  if(!d)return;
+  const tbody=document.getElementById('sol-table');
+  if(!d.solicitudes.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';return;}
+  tbody.innerHTML=d.solicitudes.map(s=>`
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
       <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
       <td style="color:#6b7280">${v(s.numDocumento)}</td>
       <td>${v(s.celular)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
-      <td>${v(s.tipoContrato)}</td>
+      <td>${scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
       <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
     </tr>`).join('');
 }
-function debSearch(){ clearTimeout(searchTimer); searchTimer = setTimeout(loadSolicitudes, 400); }
+function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSolicitudes,400); }
 
-/* ── Modal detalle completo ─────────────────────────────────────────────────── */
+/* ── MODAL DETALLE ── */
 async function verSolicitud(id){
-  const s = await req('/api/admin/solicitudes/' + id); if(!s) return;
-  document.getElementById('modal-title').innerHTML = `${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)}`;
+  const s=await req('/api/admin/solicitudes/'+id); if(!s)return;
+  document.getElementById('modal-title').innerHTML=`${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)}`;
 
-  /* Botón Datacrédito */
-  const dcBtn = `<a href="https://www.datacredito.com.co" target="_blank" class="datacredito-btn">🔍 Consultar Datacrédito · CC: ${v(s.numDocumento)}</a>`;
+  const dcBtn=`<a href="https://www.datacredito.com.co" target="_blank" class="datacredito-btn">🔍 Consultar Datacrédito · CC: ${v(s.numDocumento)}</a>`;
 
-  /* ── PASO 1: Identidad ── */
-  const secIdent = `
+  /* Capacidad + Score */
+  const secCap=`
+    <div class="section-title"><span>📊</span> Capacidad de pago & Score interno</div>
+    ${capSemaforo(s)}`;
+
+  /* Identidad */
+  const secIdent=`
     <div class="section-title"><span>👤</span> Paso 1 — Identidad y Contacto</div>
     <div class="info-grid-3">
-      ${ib('Tipo doc.', s.tipoDocumento)}
-      ${ib('Núm. documento', s.numDocumento)}
-      ${ib('Género', s.genero)}
+      ${ib('Tipo doc.',s.tipoDocumento)}${ib('Núm. documento',s.numDocumento)}${ib('Género',s.genero)}
     </div>
     <div class="info-grid">
-      ${ib('Primer nombre', s.primerNombre)}
-      ${ib('Segundo nombre', s.segundoNombre)}
-      ${ib('Primer apellido', s.primerApellido)}
-      ${ib('Segundo apellido', s.segundoApellido)}
+      ${ib('Primer nombre',s.primerNombre)}${ib('Segundo nombre',s.segundoNombre)}
+      ${ib('Primer apellido',s.primerApellido)}${ib('Segundo apellido',s.segundoApellido)}
     </div>
     <div class="info-grid-3">
-      ${ib('Fecha nacimiento', s.fechaNacimiento)}
-      ${ib('País nacimiento', s.paisNacimiento)}
-      ${ib('Ciudad nacimiento', s.ciudadNacimiento)}
+      ${ib('Fecha nacimiento',s.fechaNacimiento)}${ib('País nacimiento',s.paisNacimiento)}${ib('Ciudad nacimiento',s.ciudadNacimiento)}
     </div>
     <div class="info-grid">
-      ${ib('Celular', s.celular)}
-      ${ib('Tel. alternativo', s.telefonoAlt)}
-      ${ib('Email principal', s.email)}
-      ${ib('Email alternativo', s.emailAlt)}
+      ${ib('Celular',s.celular)}${ib('Tel. alternativo',s.telefonoAlt)}
+      ${ib('Email principal',s.email)}${ib('Email alternativo',s.emailAlt)}
     </div>
     <div class="info-grid-3">
-      ${ib('Departamento', s.departamento)}
-      ${ib('Ciudad', s.ciudad)}
-      ${ib('Barrio', s.barrio)}
+      ${ib('Departamento',s.departamento)}${ib('Ciudad',s.ciudad)}${ib('Barrio',s.barrio)}
     </div>
     <div class="info-grid">
       <div class="ib span2"><div class="lbl">Dirección</div><div class="val">${v(s.direccion)}</div></div>
-      ${ib('Tipo vivienda', s.tipoVivienda)}
-      ${ib('Tiempo en vivienda', s.tiempoVivienda)}
+      ${ib('Tipo vivienda',s.tipoVivienda)}${ib('Tiempo en vivienda',s.tiempoVivienda)}
     </div>`;
 
-  /* ── PASO 2: Financiero ── */
-  const secFin = `
+  /* Financiero */
+  const ing=Number(s.ingresosMensuales||0)+Number(s.ingresosAdicionales||0);
+  const egr=Number(s.egresosMensuales||0)+Number(s.obligacionesFinancieras||0);
+  const disp=ing-egr;
+  const secFin=`
     <div class="section-title"><span>💰</span> Paso 2 — Perfil Financiero</div>
     <div class="info-grid">
-      ${ib('Ingresos mensuales', fmt(s.ingresosMensuales), 'hl')}
-      ${ib('Egresos mensuales', fmt(s.egresosMensuales))}
-      ${ib('Fuente de ingresos', s.fuenteIngresos)}
-      ${ib('Obligaciones financieras', fmt(s.obligacionesFinancieras))}
-      ${ib('Ingresos adicionales', fmt(s.ingresosAdicionales))}
-      ${ib('Concepto ing. adicionales', s.conceptoIngresosAd)}
+      ${ib('Ingresos mensuales',fmt(s.ingresosMensuales),'hl')}${ib('Egresos mensuales',fmt(s.egresosMensuales))}
+      ${ib('Fuente de ingresos',s.fuenteIngresos)}${ib('Total deudas mensuales',fmt(s.obligacionesFinancieras))}
+      ${ib('Ingresos adicionales',fmt(s.ingresosAdicionales))}${ib('Concepto ing. adicionales',s.conceptoIngresosAd)}
     </div>
     <div class="section-title" style="margin-top:4px"><span>🏦</span> Relación bancaria</div>
     <div class="info-grid">
-      ${ib('Banco', s.banco)}
-      ${ib('Tipo de cuenta', s.tipoCuenta)}
-      ${ib('Número de cuenta', s.numeroCuenta)}
-      ${ib('Otras cuentas', s.otrasCuentas)}
+      ${ib('Banco',s.banco)}${ib('Tipo de cuenta',s.tipoCuenta)}
+      ${ib('Número de cuenta',s.numeroCuenta)}${ib('Otras cuentas',s.otrasCuentas)}
     </div>
     <div class="section-title" style="margin-top:4px"><span>📄</span> Crédito solicitado</div>
     <div class="info-grid-3">
-      ${ib('Monto solicitado', fmt(s.montoSolicitado), 'hl')}
-      ${ib('Plazo', s.plazo)}
-      ${ib('Garantía', s.garantia)}
+      ${ib('Monto solicitado',fmt(s.montoSolicitado),'hl')}${ib('Plazo',s.plazo)}${ib('Garantía',s.garantia)}
     </div>
     <div class="info-grid">
       <div class="ib span2"><div class="lbl">Destino del crédito</div><div class="val">${v(s.destinoCredito)}</div></div>
     </div>`;
 
-  /* ── PASO 3: Laboral ── */
-  const secLab = `
+  /* Laboral */
+  const secLab=`
     <div class="section-title"><span>💼</span> Paso 3 — Información Laboral</div>
     <div class="info-grid">
-      ${ib('Situación laboral', s.situacionLaboral)}
-      ${ib('Sector económico', s.sectorEconomico)}
-      ${ib('Empresa', s.empresa)}
-      ${ib('NIT empresa', s.nitEmpresa)}
-      ${ib('Cargo', s.cargo)}
-      ${ib('Antigüedad', s.antiguedad)}
-      ${ib('Tipo contrato', s.tipoContrato)}
-      ${ib('Tel. trabajo', s.telefonoTrabajo)}
+      ${ib('Situación laboral',s.situacionLaboral)}${ib('Sector económico',s.sectorEconomico)}
+      ${ib('Empresa',s.empresa)}${ib('NIT empresa',s.nitEmpresa)}
+      ${ib('Cargo',s.cargo)}${ib('Antigüedad',s.antiguedad)}
+      ${ib('Tipo contrato',s.tipoContrato)}${ib('Tel. trabajo',s.telefonoTrabajo)}
     </div>
     <div class="info-grid">
       <div class="ib span2"><div class="lbl">Dirección trabajo</div><div class="val">${v(s.direccionTrabajo)}</div></div>
-      ${ib('Estado civil', s.estadoCivil)}
-      ${ib('Nivel educativo', s.nivelEducativo)}
+      ${ib('Estado civil',s.estadoCivil)}${ib('Nivel educativo',s.nivelEducativo)}
     </div>
     <div class="info-grid-3">
-      ${ib('Núm. dependientes', s.numeroDependientes)}
-      ${ib('Referencia — nombre', s.refNombre)}
-      ${ib('Parentesco', s.refParentesco)}
+      ${ib('Núm. dependientes',s.numeroDependientes)}${ib('Referencia — nombre',s.refNombre)}${ib('Parentesco',s.refParentesco)}
     </div>
     <div class="info-grid">
-      ${ib('Celular referencia', s.refCelular)}
-      ${ib('Referencia adicional', s.refAdicional)}
+      ${ib('Celular referencia',s.refCelular)}${ib('Referencia adicional',s.refAdicional)}
     </div>`;
 
-  /* ── PASO 4: Documentos ── */
-  let docsHtml = '';
-  if(s.documentos && Object.keys(s.documentos).length > 0){
-    const items = Object.entries(s.documentos).map(([k, d]) => {
-      if(d && d.url){
-        const nombre = d.nombre || k;
-        const isPdf = d.url.includes('.pdf') || d.url.includes('/docs/');
-        if(isPdf) return `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 ${nombre}</div>`;
+  /* Documentos */
+  let docsHtml='';
+  if(s.documentos&&Object.keys(s.documentos).length>0){
+    const items=Object.entries(s.documentos).map(([k,d])=>{
+      if(d&&d.url){
+        const nombre=d.nombre||k;
+        const isPdf=d.url.includes('.pdf')||d.url.includes('/docs/');
+        if(isPdf)return `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 ${nombre}</div>`;
         return `<a href="${d.url}" target="_blank" class="doc-link">🖼 ${nombre}</a>`;
       }
-      return `<div class="doc-error">⚠ ${d?.nombre || k} — no disponible</div>`;
+      return `<div class="doc-error">⚠ ${d?.nombre||k} — no disponible</div>`;
     }).join('');
-    docsHtml = `<div class="docs-grid">${items}</div>`;
-  } else {
-    docsHtml = `<div style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:7px">Sin documentos adjuntos</div>`;
+    docsHtml=`<div class="docs-grid">${items}</div>`;
+  }else{
+    docsHtml=`<div style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:7px">Sin documentos adjuntos</div>`;
   }
-  const secDocs = `
-    <div class="section-title"><span>📎</span> Paso 4 — Documentos (${s.documentos ? Object.keys(s.documentos).length : 0})</div>
+  const secDocs=`
+    <div class="section-title"><span>📎</span> Paso 4 — Documentos (${s.documentos?Object.keys(s.documentos).length:0})</div>
     ${docsHtml}`;
 
-  /* ── PASO 5: Declaraciones ── */
-  const secDecl = `
+  /* Declaraciones */
+  const secDecl=`
     <div class="section-title"><span>✍️</span> Paso 5 — Declaraciones y Firma</div>
     <div class="check-grid">
-      ${boolItem('Veracidad', s.declaracionVeracidad)}
-      ${boolItem('Centrales de riesgo', s.autorizacionCentrales)}
-      ${boolItem('Datos personales', s.autorizacionDatos)}
-      ${boolItem('SARLAFT', s.declaracionSarlaft)}
-      ${boolItem('No PEP', s.declaracionPep)}
-      ${boolItem('Débito automático', s.autorizacionDebito)}
+      ${boolItem('Veracidad',s.declaracionVeracidad)}
+      ${boolItem('Centrales de riesgo',s.autorizacionCentrales)}
+      ${boolItem('Datos personales',s.autorizacionDatos)}
+      ${boolItem('SARLAFT',s.declaracionSarlaft)}
+      ${boolItem('No PEP',s.declaracionPep)}
+      ${boolItem('Débito automático',s.autorizacionDebito)}
     </div>
     <div class="info-grid">
-      ${ib('Firma electrónica', s.firmaElectronica)}
+      ${ib('Firma electrónica',s.firmaElectronica)}
     </div>`;
 
-  /* ── Gestión ── */
-  const secGestion = `
+  /* Gestión */
+  const secGestion=`
     <div class="section-title"><span>🗂</span> Gestión</div>
     <div class="info-grid" style="margin-bottom:10px">
-      ${ib('Nota analista', s.notaAnalista || 'Sin nota')}
-      ${ib('Fecha solicitud', fdate(s.createdAt))}
+      ${ib('Nota analista',s.notaAnalista||'Sin nota')}${ib('Fecha solicitud',fdate(s.createdAt))}
     </div>
     <div>
       <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
       <textarea id="notaDecision" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${s.notaAnalista||''}</textarea>
     </div>`;
 
-  /* ── Historial ── */
-  const histHtml = s.auditoria?.length ? `
+  /* Historial */
+  const histHtml=s.auditoria?.length?`
     <div class="section-title"><span>🕓</span> Historial</div>
     <div style="max-height:110px;overflow-y:auto">
-      ${s.auditoria.map(a => `
+      ${s.auditoria.map(a=>`
         <div class="hist-item">
           <span style="color:#9ca3af;flex-shrink:0">${fdate(a.createdAt)}</span>
           <strong>· ${a.accion}</strong>
-          <span>${a.detalle ? '· ' + a.detalle : ''}</span>
+          <span>${a.detalle?'· '+a.detalle:''}</span>
         </div>`).join('')}
-    </div>` : '';
+    </div>`:'' ;
 
-  document.getElementById('modal-body').innerHTML =
-    dcBtn + secIdent + secFin + secLab + secDocs + secDecl + secGestion + histHtml;
+  document.getElementById('modal-body').innerHTML=
+    dcBtn+secCap+secIdent+secFin+secLab+secDocs+secDecl+secGestion+histHtml;
 
-  const pendiente = ['RADICADA','EN_ANALISIS'].includes(s.estado);
-  document.getElementById('modal-foot').innerHTML = `
-    ${pendiente ? `
+  const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
+  document.getElementById('modal-foot').innerHTML=`
+    ${pendiente?`
       <button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
       <button class="btn-sm btn-red"   onclick="cambiarEstado('${s.id}','RECHAZADA')">✕ Rechazar</button>
-      <button class="btn-sm btn-lime"  onclick="cambiarEstado('${s.id}','APROBADA')">✓ Aprobar</button>` : ''}`;
+      <button class="btn-sm btn-lime"  onclick="cambiarEstado('${s.id}','APROBADA')">✓ Aprobar</button>`:''}`;
 
   document.getElementById('modalBg').classList.add('open');
 }
 
-async function cambiarEstado(id, estado){
-  const nota = document.getElementById('notaDecision')?.value || '';
-  const r = await req('/api/admin/solicitudes/' + id + '/estado', {method:'PATCH', body:JSON.stringify({estado, nota, analista:'admin'})});
-  if(r?.ok){ showToast(`Solicitud marcada como ${estado}`, 'ok'); closeModal(); loadSolicitudes(); loadDashboard(); }
-  else showToast('Error cambiando estado', 'err');
+async function cambiarEstado(id,estado){
+  const nota=document.getElementById('notaDecision')?.value||'';
+  const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
+  if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudes();loadDashboard();}
+  else showToast('Error cambiando estado','err');
 }
-function closeModal(e){ if(!e || e.target.id === 'modalBg') document.getElementById('modalBg').classList.remove('open'); }
+function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('modalBg').classList.remove('open'); }
 
-/* ── Auditoría ──────────────────────────────────────────────────────────────── */
+/* ── AUDITORÍA ── */
 async function loadAuditoria(){
-  const d = await req('/api/admin/auditoria'); if(!d) return;
-  document.getElementById('audit-table').innerHTML = d.logs.map(a => `
+  const d=await req('/api/admin/auditoria'); if(!d)return;
+  document.getElementById('audit-table').innerHTML=d.logs.map(a=>`
     <tr>
       <td style="color:#9ca3af;font-size:11px">${fdate(a.createdAt)}</td>
       <td><span class="badge badge-blue">${a.accion}</span></td>
@@ -548,18 +577,14 @@ async function loadAuditoria(){
     </tr>`).join('');
 }
 
-/* ── PDF Viewer ─────────────────────────────────────────────────────────────── */
-function exportCSV(){ window.open(API + '/api/admin/exportar?token=' + TOKEN, '_blank'); }
-function abrirPdf(url, nombre){ document.getElementById('pdfTitle').textContent = nombre||'Documento'; document.getElementById('pdfFrame').src = url; document.getElementById('pdfBg').classList.add('open'); }
-function closePdf(e){ if(!e || e.target.id === 'pdfBg'){ document.getElementById('pdfBg').classList.remove('open'); document.getElementById('pdfFrame').src = ''; } }
+/* ── PDF & EXPORT ── */
+function exportCSV(){ window.open(API+'/api/admin/exportar?token='+TOKEN,'_blank'); }
+function abrirPdf(url,nombre){ document.getElementById('pdfTitle').textContent=nombre||'Documento'; document.getElementById('pdfFrame').src=url; document.getElementById('pdfBg').classList.add('open'); }
+function closePdf(e){ if(!e||e.target.id==='pdfBg'){document.getElementById('pdfBg').classList.remove('open');document.getElementById('pdfFrame').src='';} }
 
-/* ── Init ───────────────────────────────────────────────────────────────────── */
-window.onload = () => {
-  if(TOKEN){
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('appWrap').style.display = 'flex';
-    loadDashboard();
-  }
+/* ── INIT ── */
+window.onload=()=>{
+  if(TOKEN){ document.getElementById('loginWrap').style.display='none'; document.getElementById('appWrap').style.display='flex'; loadDashboard(); }
 };
 </script>
 </body>
