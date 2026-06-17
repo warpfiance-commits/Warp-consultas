@@ -356,7 +356,10 @@ textarea{resize:vertical;min-height:80px}
         <div class="sumrow"><span>Plazo</span><span id="s-plazo">—</span></div>
         <div class="sumrow"><span>Destino</span><span id="s-destino">—</span></div>
       </div>
-      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Declaraciones obligatorias</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em">Declaraciones obligatorias</p>
+        <button type="button" id="btnSelAll" onclick="seleccionarTodo()" style="background:var(--lime-l);border:1.5px solid #86efac;color:var(--lime-d);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 13px;border-radius:20px;cursor:pointer;transition:all .2s">✓ Seleccionar todo</button>
+      </div>
       <div class="check-row"><input type="checkbox" id="ch1"><label for="ch1">Declaro que la información suministrada es veraz, completa y verificable. Entiendo que cualquier falsedad puede ser causal de rechazo inmediato y acciones legales.</label></div>
       <div class="check-row"><input type="checkbox" id="ch2"><label for="ch2">Autorizo a Financial Services a consultar mi historial crediticio en centrales de riesgo (Datacrédito, CIFIN/TransUnion) y a reportar mi comportamiento de pago.</label></div>
       <div class="check-row"><input type="checkbox" id="ch3"><label for="ch3">Autorizo el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 y la política de privacidad de Financial Services.</label></div>
@@ -618,6 +621,15 @@ function markUp(input){
 }
 function fileToBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(file); }); }
 const DOC_KEYS={u0:'cedula_frontal',u1:'cedula_reverso',u2:'colillas',u3:'certificado_laboral',u4:'rut',u5:'declaracion_renta',u6:'extracto_1',u7:'extracto_2',u8:'extracto_3',u9:'extracto_alt',u10:'servicios',u11:'camara',u12:'garantia',u13:'selfie'};
+
+/* ── SELECCIONAR TODO ── */
+function seleccionarTodo(){
+  const checks=['ch1','ch2','ch3','ch4','ch5','ch6'];
+  const todos=checks.every(id=>document.getElementById(id).checked);
+  checks.forEach(id=>{ document.getElementById(id).checked=!todos; });
+  const btn=document.getElementById('btnSelAll');
+  btn.textContent=todos?'✓ Seleccionar todo':'✕ Deseleccionar todo';
+}
 
 /* ── TOAST ── */
 function showToast(msg,tipo='ok'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+tipo+' show'; setTimeout(()=>t.classList.remove('show'),4500); }
