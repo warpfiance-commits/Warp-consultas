@@ -82,7 +82,6 @@ textarea{resize:vertical;min-height:80px}
 .toast.ok{background:var(--lime);color:var(--navy)}
 .toast.err{background:#ef4444;color:#fff}
 .toast.show{display:block}
-/* WhatsApp botón flotante */
 .wa-btn{position:fixed;bottom:24px;right:24px;z-index:999;background:#25D366;color:#fff;border-radius:50%;width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 16px rgba(37,211,102,.4);text-decoration:none;transition:transform .2s}
 .wa-btn:hover{transform:scale(1.1)}
 .success-wrap{text-align:center;padding:3rem 1rem}
@@ -90,13 +89,24 @@ textarea{resize:vertical;min-height:80px}
 .success-title{font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:var(--navy);margin-bottom:8px}
 .success-sub{font-size:15px;color:#6b7280;margin-bottom:8px}
 .success-rad{display:inline-block;background:var(--navy);color:var(--lime);font-family:'Sora',sans-serif;font-size:16px;font-weight:700;padding:10px 24px;border-radius:8px;margin:12px 0}
-@media(max-width:600px){.grid-2,.grid-3,.cap-grid{grid-template-columns:1fr}.doc-grid{grid-template-columns:1fr}.tabs .tab{font-size:9px;padding:8px 2px}.header{flex-direction:column;align-items:flex-start;gap:8px}}
+.tipo-selector{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:1.5rem 0}
+.tipo-card{background:#fff;border:2px solid var(--border);border-radius:16px;padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .25s}
+.tipo-card:hover{border-color:var(--lime-d);box-shadow:0 4px 20px rgba(27,94,32,.1);transform:translateY(-2px)}
+.tipo-card.selected{border-color:var(--lime-d);background:var(--lime-l)}
+.tipo-icon{font-size:48px;display:block;margin-bottom:1rem}
+.tipo-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.tipo-desc{font-size:12px;color:var(--text-soft);line-height:1.5}
+.tipo-badge{display:inline-block;margin-top:10px;background:var(--navy);color:#A5D6A7;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;opacity:0;transition:opacity .2s}
+.tipo-card.selected .tipo-badge{opacity:1}
+.tipo-intro{text-align:center;margin-bottom:.5rem}
+.tipo-intro h2{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.tipo-intro p{font-size:14px;color:var(--text-soft)}
+@media(max-width:600px){.grid-2,.grid-3,.cap-grid{grid-template-columns:1fr}.doc-grid{grid-template-columns:1fr}.tabs .tab{font-size:9px;padding:8px 2px}.header{flex-direction:column;align-items:flex-start;gap:8px}.tipo-selector{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <div class="wrap">
-  <!-- BORRADOR BANNER -->
+
   <div class="draft-banner" id="draftBanner" style="display:none">
     <span>📝 Tienes un borrador guardado. ¿Deseas continuar?</span>
     <div style="display:flex;gap:8px">
@@ -108,535 +118,771 @@ textarea{resize:vertical;min-height:80px}
   <div class="header">
     <div>
       <div class="htitle">Solicitud de Crédito Privado</div>
-      <div class="hsub">Financial Services · Persona natural · Complete todos los campos</div>
-      <div class="timer-badge">⏱ Este formulario toma aproximadamente 8 minutos</div>
+      <div class="hsub" id="headerSub">Financial Services · Complete todos los campos</div>
+      <div class="timer-badge" id="timerBadge">⏱ Seleccione el tipo de solicitud</div>
     </div>
   </div>
 
-  <div class="progress" id="progress">
-    <div class="prog-bar active" id="pb0"></div>
-    <div class="prog-bar" id="pb1"></div>
-    <div class="prog-bar" id="pb2"></div>
-    <div class="prog-bar" id="pb3"></div>
-    <div class="prog-bar" id="pb4"></div>
-  </div>
-
-  <div class="tabs" id="tabs">
-    <div class="tab active" onclick="goStep(0)">Identidad</div>
-    <div class="tab" onclick="goStep(1)">Financiero</div>
-    <div class="tab" onclick="goStep(2)">Laboral</div>
-    <div class="tab" onclick="goStep(3)">Documentos</div>
-    <div class="tab" onclick="goStep(4)">Declaración</div>
-  </div>
-
-  <!-- STEP 0: IDENTIDAD -->
-  <div id="step0" class="step">
-    <div class="card">
-      <div class="sec-title">👤 Datos de identificación</div>
-      <div class="grid-2">
-        <div class="field"><label>Tipo de documento<span class="req">*</span></label>
-          <select id="tipoDocumento"><option value="">Seleccionar...</option><option>Cédula de ciudadanía</option><option>Cédula de extranjería</option><option>Pasaporte</option><option>NIT (persona natural)</option></select></div>
-        <div class="field"><label>Número de documento<span class="req">*</span></label>
-          <input type="text" id="numDocumento" placeholder="Ej. 1000123456"></div>
+  <!-- PANTALLA 0: SELECTOR -->
+  <div id="tipoScreen">
+    <div class="tipo-intro">
+      <h2>¿Quién solicita el crédito?</h2>
+      <p>Selecciona el tipo para mostrarte el formulario correspondiente</p>
+    </div>
+    <div class="tipo-selector">
+      <div class="tipo-card" id="cardNatural" onclick="elegirTipo('natural')">
+        <span class="tipo-icon">👤</span>
+        <div class="tipo-title">Persona Natural</div>
+        <div class="tipo-desc">Solicitud individual a nombre propio. Empleados, independientes y pensionados.</div>
+        <span class="tipo-badge">✓ Seleccionado</span>
       </div>
-      <div class="grid-3">
-        <div class="field"><label>Primer nombre<span class="req">*</span></label><input type="text" id="primerNombre" placeholder="Juan"></div>
-        <div class="field"><label>Segundo nombre</label><input type="text" id="segundoNombre" placeholder="Carlos"></div>
-        <div class="field"><label>Primer apellido<span class="req">*</span></label><input type="text" id="primerApellido" placeholder="Pérez"></div>
-      </div>
-      <div class="grid-2">
-        <div class="field"><label>Segundo apellido</label><input type="text" id="segundoApellido" placeholder="Gómez"></div>
-        <div class="field"><label>Fecha de nacimiento<span class="req">*</span></label><input type="date" id="fechaNacimiento"></div>
-      </div>
-      <div class="grid-3" style="margin-bottom:0">
-        <div class="field"><label>País de nacimiento</label>
-          <select id="paisNacimiento"><option value="">Seleccionar...</option><option selected>Colombia</option><option>Venezuela</option><option>Ecuador</option><option>Otro</option></select></div>
-        <div class="field"><label>Ciudad de nacimiento</label><input type="text" id="ciudadNacimiento" placeholder="Medellín"></div>
-        <div class="field"><label>Género</label>
-          <select id="genero"><option value="">Seleccionar...</option><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decir</option></select></div>
+      <div class="tipo-card" id="cardJuridica" onclick="elegirTipo('juridica')">
+        <span class="tipo-icon">🏢</span>
+        <div class="tipo-title">Persona Jurídica</div>
+        <div class="tipo-desc">Empresas, sociedades y personas jurídicas. Requiere representante legal.</div>
+        <span class="tipo-badge">✓ Seleccionado</span>
       </div>
     </div>
-    <div class="card">
-      <div class="sec-title">📍 Contacto y residencia</div>
-      <div class="grid-2">
-        <div class="field"><label>Celular principal<span class="req">*</span></label><input type="tel" id="celular" placeholder="+57 300 0000000"></div>
-        <div class="field"><label>Teléfono alternativo</label><input type="tel" id="telefonoAlt" placeholder="+57 604 0000000"></div>
-      </div>
-      <div class="grid-2">
-        <div class="field"><label>Correo electrónico<span class="req">*</span></label><input type="email" id="email" placeholder="nombre@correo.com"></div>
-        <div class="field"><label>Correo alternativo</label><input type="email" id="emailAlt" placeholder="otro@correo.com"></div>
-      </div>
-      <div class="grid-3">
-        <div class="field"><label>Departamento<span class="req">*</span></label>
-          <select id="departamento"><option value="">Seleccionar...</option><option selected>Antioquia</option><option>Bogotá D.C.</option><option>Valle del Cauca</option><option>Cundinamarca</option><option>Otro</option></select></div>
-        <div class="field"><label>Ciudad / Municipio<span class="req">*</span></label><input type="text" id="ciudad" placeholder="Medellín"></div>
-        <div class="field"><label>Barrio</label><input type="text" id="barrio" placeholder="El Poblado"></div>
-      </div>
-      <div class="field" style="margin-bottom:12px">
-        <label>Dirección de residencia<span class="req">*</span></label>
-        <input type="text" id="direccion" placeholder="Cra. 43A # 18-111, Apto 502">
-      </div>
-      <div class="grid-2" style="margin-bottom:0">
-        <div class="field"><label>Tipo de vivienda<span class="req">*</span></label>
-          <select id="tipoVivienda"><option value="">Seleccionar...</option><option>Propia (libre de hipoteca)</option><option>Propia (con hipoteca)</option><option>Arrendada</option><option>Familiar / cedida</option></select></div>
-        <div class="field"><label>Tiempo en dirección actual</label>
-          <select id="tiempoVivienda"><option value="">Seleccionar...</option><option>Menos de 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select></div>
-      </div>
+    <div style="text-align:center;margin-top:1rem">
+      <button class="btn btn-next" id="btnIniciar" onclick="iniciarFormulario()" style="display:none">Iniciar solicitud →</button>
     </div>
   </div>
 
-  <!-- STEP 1: FINANCIERO -->
-  <div id="step1" class="step" style="display:none">
-    <div class="card">
-      <div class="sec-title">💰 Perfil financiero</div>
-      <div class="grid-2">
-        <div class="field"><label>Ingresos mensuales totales<span class="req">*</span></label>
-          <input type="text" id="ingresosMensuales" placeholder="Ej. 5.000.000" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
-        <div class="field"><label>Fuente principal de ingresos<span class="req">*</span></label>
-          <select id="fuenteIngresos" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Salario dependiente</option><option>Honorarios / independiente</option><option>Negocio propio / utilidades</option><option>Arrendamientos</option><option>Pensión</option><option>Inversiones / dividendos</option><option>Mixto</option></select></div>
-      </div>
-      <div class="grid-2">
-        <div class="field"><label>Ingresos adicionales (mensuales)</label>
-          <input type="text" id="ingresosAdicionales" placeholder="Ej. 1.500.000" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
-        <div class="field"><label>Concepto de ingresos adicionales</label>
-          <input type="text" id="conceptoIngresosAd" placeholder="Arrendamiento, honorarios..." oninput="guardarBorrador()"></div>
-      </div>
-      <div class="grid-2">
-        <div class="field"><label>Egresos / gastos mensuales<span class="req">*</span></label>
-          <input type="text" id="egresosMensuales" placeholder="Ej. 2.500.000" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
-        <div class="field"><label>Valor total de tus deudas<span class="req">*</span></label>
-          <input type="text" id="obligacionesFinancieras" placeholder="Ej. 800.000" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
-      </div>
-      <!-- CAPACIDAD DE PAGO EN TIEMPO REAL -->
-      <div id="capacidadBox" style="display:none" class="cap-box verde">
-        <div class="cap-label">📊 Capacidad de pago estimada</div>
-        <div class="cap-grid">
-          <div class="cap-item"><div class="cap-item-label">Ingresos totales</div><div class="cap-item-val" id="cap-ing" style="color:var(--navy)">—</div></div>
-          <div class="cap-item"><div class="cap-item-label">Compromisos mes</div><div class="cap-item-val" id="cap-egr" style="color:#b45309">—</div></div>
-          <div class="cap-item"><div class="cap-item-label">Disponible</div><div class="cap-item-val" id="cap-disp" style="color:var(--navy)">—</div></div>
+  <!-- FORMULARIO -->
+  <div id="formularioWrap" style="display:none">
+    <div class="progress" id="progress"></div>
+    <div class="tabs" id="tabs"></div>
+
+    <!-- ══ NATURAL: PASO 0 — IDENTIDAD ══ -->
+    <div id="n-step0" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">👤 Datos de identificación</div>
+        <div class="grid-2">
+          <div class="field"><label>Tipo de documento<span class="req">*</span></label>
+            <select id="tipoDocumento" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Cédula de ciudadanía</option><option>Cédula de extranjería</option><option>Pasaporte</option><option>NIT (persona natural)</option></select></div>
+          <div class="field"><label>Número de documento<span class="req">*</span></label>
+            <input type="text" id="numDocumento" placeholder="Ej. 1000123456" oninput="guardarBorrador()"></div>
         </div>
-        <div id="cap-alerta" style="display:none" class="cap-alerta"></div>
+        <div class="grid-3">
+          <div class="field"><label>Primer nombre<span class="req">*</span></label><input type="text" id="primerNombre" placeholder="Juan" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Segundo nombre</label><input type="text" id="segundoNombre" placeholder="Carlos" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Primer apellido<span class="req">*</span></label><input type="text" id="primerApellido" placeholder="Pérez" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Segundo apellido</label><input type="text" id="segundoApellido" placeholder="Gómez" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Fecha de nacimiento<span class="req">*</span></label><input type="date" id="fechaNacimiento" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-3" style="margin-bottom:0">
+          <div class="field"><label>País de nacimiento</label>
+            <select id="paisNacimiento" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option selected>Colombia</option><option>Venezuela</option><option>Ecuador</option><option>Otro</option></select></div>
+          <div class="field"><label>Ciudad de nacimiento</label><input type="text" id="ciudadNacimiento" placeholder="Medellín" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Género</label>
+            <select id="genero" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Masculino</option><option>Femenino</option><option>No binario</option><option>Prefiero no decir</option></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sec-title">📍 Contacto y residencia</div>
+        <div class="grid-2">
+          <div class="field"><label>Celular principal<span class="req">*</span></label><input type="tel" id="celular" placeholder="+57 300 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Teléfono alternativo</label><input type="tel" id="telefonoAlt" placeholder="+57 604 0000000" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Correo electrónico<span class="req">*</span></label><input type="email" id="email" placeholder="nombre@correo.com" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Correo alternativo</label><input type="email" id="emailAlt" placeholder="otro@correo.com" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Departamento<span class="req">*</span></label>
+            <select id="departamento" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Antioquia</option><option>Bogotá D.C.</option><option>Valle del Cauca</option><option>Cundinamarca</option><option>Otro</option></select></div>
+          <div class="field"><label>Ciudad / Municipio<span class="req">*</span></label><input type="text" id="ciudad" placeholder="Medellín" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Barrio</label><input type="text" id="barrio" placeholder="El Poblado" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label>Dirección de residencia<span class="req">*</span></label>
+          <input type="text" id="direccion" placeholder="Cra. 43A # 18-111, Apto 502" oninput="guardarBorrador()">
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Tipo de vivienda<span class="req">*</span></label>
+            <select id="tipoVivienda" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Propia (libre de hipoteca)</option><option>Propia (con hipoteca)</option><option>Arrendada</option><option>Familiar / cedida</option></select></div>
+          <div class="field"><label>Tiempo en dirección actual</label>
+            <select id="tiempoVivienda" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Menos de 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select></div>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <div class="sec-title">🏦 Relación bancaria</div>
-      <div class="grid-2">
-        <div class="field"><label>Banco principal<span class="req">*</span></label>
-          <select id="banco" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Bancolombia</option><option>Davivienda</option><option>BBVA</option><option>Banco de Bogotá</option><option>Nequi</option><option>Daviplata</option><option>Otro</option></select></div>
-        <div class="field"><label>Tipo de cuenta<span class="req">*</span></label>
-          <select id="tipoCuenta" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Cuenta de ahorros</option><option>Cuenta corriente</option><option>Cuenta digital (Nequi/Daviplata)</option></select></div>
+
+    <!-- ══ NATURAL: PASO 1 — FINANCIERO ══ -->
+    <div id="n-step1" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">💰 Perfil financiero</div>
+        <div class="grid-2">
+          <div class="field"><label>Ingresos mensuales totales<span class="req">*</span></label>
+            <input type="text" id="ingresosMensuales" placeholder="Ej. 5.000.000" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
+          <div class="field"><label>Fuente principal de ingresos<span class="req">*</span></label>
+            <select id="fuenteIngresos" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Salario dependiente</option><option>Honorarios / independiente</option><option>Negocio propio / utilidades</option><option>Arrendamientos</option><option>Pensión</option><option>Inversiones / dividendos</option><option>Mixto</option></select></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Ingresos adicionales (mensuales)</label>
+            <input type="text" id="ingresosAdicionales" placeholder="Ej. 1.500.000" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
+          <div class="field"><label>Concepto ingresos adicionales</label>
+            <input type="text" id="conceptoIngresosAd" placeholder="Ej. Arriendo, freelance..." oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Egresos mensuales<span class="req">*</span></label>
+            <input type="text" id="egresosMensuales" placeholder="Gastos fijos del mes" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
+          <div class="field"><label>Obligaciones financieras<span class="req">*</span></label>
+            <input type="text" id="obligacionesFinancieras" placeholder="Cuotas activas de créditos" oninput="formatMiles(this);calcCapacidad();guardarBorrador()" inputmode="numeric"></div>
+        </div>
+        <div id="capacidadBox" style="display:none">
+          <div class="cap-box verde">
+            <div class="cap-label">Semáforo de capacidad de pago</div>
+            <div class="cap-grid">
+              <div class="cap-item"><div class="cap-item-label">Ingresos totales</div><div class="cap-item-val" id="cap-ing">—</div></div>
+              <div class="cap-item"><div class="cap-item-label">Total egresos</div><div class="cap-item-val" id="cap-egr">—</div></div>
+              <div class="cap-item"><div class="cap-item-label">Capacidad disponible</div><div class="cap-item-val" id="cap-disp">—</div></div>
+            </div>
+            <div class="cap-alerta" id="cap-alerta" style="display:none"></div>
+          </div>
+        </div>
       </div>
-      <div class="grid-2" style="margin-bottom:0">
-        <div class="field"><label>Número de cuenta<span class="req">*</span></label>
-          <input type="text" id="numeroCuenta" placeholder="000-000000-00" oninput="guardarBorrador()"></div>
-        <div class="field"><label>¿Tiene cuentas en otras entidades?</label>
-          <select id="otrasCuentas" onchange="guardarBorrador()"><option>No</option><option>Sí — 1 entidad más</option><option>Sí — 2 o más entidades</option></select></div>
+      <div class="card">
+        <div class="sec-title">🏦 Datos bancarios y crédito</div>
+        <div class="grid-3">
+          <div class="field"><label>Banco principal<span class="req">*</span></label>
+            <select id="banco" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Bancolombia</option><option>Davivienda</option><option>Banco de Bogotá</option><option>BBVA</option><option>Banco Popular</option><option>Nequi</option><option>Daviplata</option><option>Otro</option></select></div>
+          <div class="field"><label>Tipo de cuenta<span class="req">*</span></label>
+            <select id="tipoCuenta" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Ahorros</option><option>Corriente</option></select></div>
+          <div class="field"><label>Número de cuenta<span class="req">*</span></label>
+            <input type="text" id="numeroCuenta" placeholder="0000000000" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label>Otras cuentas bancarias</label>
+          <input type="text" id="otrasCuentas" placeholder="Banco — Tipo — Número" oninput="guardarBorrador()">
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Monto solicitado<span class="req">*</span></label>
+            <input type="text" id="montoSolicitado" placeholder="Ej. 10.000.000" oninput="formatMiles(this);validarMonto();guardarBorrador()" inputmode="numeric">
+            <div class="monto-warn" id="monto-warn">⚠ El monto supera 10 veces tus ingresos mensuales.</div></div>
+          <div class="field"><label>Plazo deseado<span class="req">*</span></label>
+            <select id="plazo" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>6 meses</option><option>12 meses</option><option>18 meses</option><option>24 meses</option><option>36 meses</option><option>48 meses</option><option>60 meses</option></select></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Garantía ofrecida</label>
+            <select id="garantia" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Sin garantía (libre inversión)</option><option>Vehículo</option><option>Inmueble</option><option>CDT / Inversión</option><option>Codeudor</option><option>Otra</option></select></div>
+          <div class="field"><label>Destino del crédito<span class="req">*</span></label>
+            <select id="destinoCredito" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Libre inversión</option><option>Compra de vehículo</option><option>Vivienda / remodelación</option><option>Educación</option><option>Salud</option><option>Consolidación de deudas</option><option>Capital de trabajo</option><option>Otro</option></select></div>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <div class="sec-title">📄 Crédito solicitado</div>
-      <div class="grid-3">
+
+    <!-- ══ NATURAL: PASO 2 — LABORAL ══ -->
+    <div id="n-step2" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">💼 Información laboral</div>
+        <div class="grid-2">
+          <div class="field"><label>Situación laboral<span class="req">*</span></label>
+            <select id="situacionLaboral" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option><option>Desempleado</option></select></div>
+          <div class="field"><label>Sector económico</label>
+            <select id="sectorEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Salud</option><option>Educación</option><option>Comercio</option><option>Construcción</option><option>Tecnología</option><option>Transporte</option><option>Financiero</option><option>Agropecuario</option><option>Otro</option></select></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Empresa / razón social</label><input type="text" id="empresa" placeholder="Nombre de la empresa" oninput="guardarBorrador()"></div>
+          <div class="field"><label>NIT del empleador</label><input type="text" id="nitEmpresa" placeholder="900.123.456-7" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Cargo / ocupación</label><input type="text" id="cargo" placeholder="Gerente comercial" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Antigüedad laboral</label>
+            <select id="antiguedad" onchange="verificarAntiguedad();guardarBorrador()"><option value="">Seleccionar...</option><option>Menos de 6 meses</option><option>6 meses - 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select>
+            <div id="ant-warn" style="display:none;font-size:11px;margin-top:3px;color:#b45309;background:#fffbeb;padding:4px 8px;border-radius:5px">⚠ Antigüedad menor a 6 meses puede afectar la aprobación.</div></div>
+          <div class="field"><label>Tipo de contrato<span class="req">*</span></label>
+            <select id="tipoContrato" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Término indefinido</option><option>Término fijo</option><option>Obra o labor</option><option>Prestación de servicios</option><option>Aprendizaje (SENA)</option><option>Temporal / agencia</option><option>No aplica</option></select></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Dirección trabajo</label><input type="text" id="direccionTrabajo" placeholder="Calle 10 # 43-123, Medellín" oninput="guardarBorrador()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sec-title">👥 Información personal adicional</div>
+        <div class="grid-3" style="margin-bottom:0">
+          <div class="field"><label>Estado civil<span class="req">*</span></label>
+            <select id="estadoCivil" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Soltero(a)</option><option>Casado(a)</option><option>Unión libre</option><option>Divorciado(a)</option><option>Viudo(a)</option></select></div>
+          <div class="field"><label>Nivel educativo</label>
+            <select id="nivelEducativo" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Primaria</option><option>Bachillerato</option><option>Técnico / Tecnólogo</option><option>Universitario</option><option>Posgrado</option></select></div>
+          <div class="field"><label>Núm. dependientes<span class="req">*</span></label>
+            <select id="numeroDependientes" onchange="guardarBorrador()"><option>0</option><option>1</option><option>2</option><option>3</option><option>4 o más</option></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="sec-title">🚨 Referencia en caso de emergencia</div>
+        <div class="grid-2">
+          <div class="field"><label>Nombre completo<span class="req">*</span></label><input type="text" id="refNombre" placeholder="María González" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Parentesco<span class="req">*</span></label>
+            <select id="refParentesco" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Cónyuge / compañero(a)</option><option>Padre / Madre</option><option>Hijo(a)</option><option>Hermano(a)</option><option>Otro familiar</option><option>Amigo</option></select></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="refCelular" placeholder="+57 312 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Referencias adicionales</label><input type="text" id="refAdicional" placeholder="Nombre — Teléfono" oninput="guardarBorrador()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ NATURAL: PASO 3 — DOCUMENTOS ══ -->
+    <div id="n-step3" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">📁 Documentación — Persona Natural</div>
+        <div class="alert">⚠ Archivos legibles, vigentes y sin alteraciones. Formatos: PDF, JPG, PNG. Máximo 5 MB por archivo.</div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos de identidad</p>
+        <div class="doc-grid">
+          <div class="upload-zone" onclick="clickUpload('u0')"><input type="file" id="u0" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Frontal <span style="color:#dc2626">*</span></div><div class="uz-hint">Ambas caras si es posible</div></div>
+          <div class="upload-zone" onclick="clickUpload('u1')"><input type="file" id="u1" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Reverso <span style="color:#dc2626">*</span></div><div class="uz-hint">Con huella y firma</div></div>
+        </div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Soporte de ingresos</p>
+        <div class="doc-grid">
+          <div class="upload-zone" onclick="clickUpload('u2')"><input type="file" id="u2" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📋</span><div class="uz-label">Últimas 3 colillas de pago <span style="color:#dc2626">*</span></div><div class="uz-hint">Empleado dependiente</div></div>
+          <div class="upload-zone" onclick="clickUpload('u3')"><input type="file" id="u3" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏢</span><div class="uz-label">Certificado laboral <span style="color:#dc2626">*</span></div><div class="uz-hint">Con salario y antigüedad</div></div>
+          <div class="upload-zone" onclick="clickUpload('u4')"><input type="file" id="u4" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📑</span><div class="uz-label">RUT actualizado</div><div class="uz-hint">Independiente / empresario</div></div>
+          <div class="upload-zone" onclick="clickUpload('u5')"><input type="file" id="u5" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🧾</span><div class="uz-label">Declaración de renta</div><div class="uz-hint">Último año — si aplica</div></div>
+        </div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Extractos bancarios</p>
+        <div class="doc-grid">
+          <div class="upload-zone" onclick="clickUpload('u6')"><input type="file" id="u6" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 1 <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('u7')"><input type="file" id="u7" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 2 <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('u8')"><input type="file" id="u8" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 3 <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('u9')"><input type="file" id="u9" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto banco alternativo</div><div class="uz-hint">Si tiene más cuentas</div></div>
+        </div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos adicionales</p>
+        <div class="doc-grid" style="margin-bottom:0">
+          <div class="upload-zone" onclick="clickUpload('u10')"><input type="file" id="u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏠</span><div class="uz-label">Recibo de servicios públicos</div><div class="uz-hint">Confirma dirección</div></div>
+          <div class="upload-zone" onclick="clickUpload('u12')"><input type="file" id="u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. de garantía / colateral</div><div class="uz-hint">Escritura, tarjeta propiedad...</div></div>
+          <div class="upload-zone" onclick="clickUpload('u13')"><input type="file" id="u13" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🤳</span><div class="uz-label">Selfie sosteniendo cédula <span style="color:#dc2626">*</span></div><div class="uz-hint">Validación biométrica básica</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ NATURAL: PASO 4 — DECLARACIONES ══ -->
+    <div id="n-step4" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">🛡 Declaraciones y autorización</div>
+        <div class="sumcard">
+          <h4>Resumen de solicitud</h4>
+          <div class="sumrow"><span>Solicitante</span><span id="s-nombre">—</span></div>
+          <div class="sumrow"><span>Documento</span><span id="s-doc">—</span></div>
+          <div class="sumrow"><span>Celular</span><span id="s-cel">—</span></div>
+          <div class="sumrow"><span>Ingresos declarados</span><span id="s-ing">—</span></div>
+          <div class="sumrow"><span>Total deudas mensuales</span><span id="s-obl">—</span></div>
+          <div class="sumrow"><span>💚 Capacidad de pago</span><span id="s-cap" style="font-weight:700;color:var(--lime-d)">—</span></div>
+          <div class="sumrow"><span>Monto solicitado</span><span id="s-monto">—</span></div>
+          <div class="sumrow"><span>Plazo</span><span id="s-plazo">—</span></div>
+          <div class="sumrow"><span>Destino</span><span id="s-destino">—</span></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em">Declaraciones obligatorias</p>
+          <button type="button" id="btnSelAll" onclick="seleccionarTodo('natural')" style="background:var(--lime-l);border:1.5px solid #86efac;color:var(--lime-d);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 13px;border-radius:20px;cursor:pointer">✓ Seleccionar todo</button>
+        </div>
+        <div class="check-row"><input type="checkbox" id="ch1"><label for="ch1">Declaro que la información suministrada es veraz, completa y verificable. Entiendo que cualquier falsedad puede ser causal de rechazo inmediato y acciones legales.</label></div>
+        <div class="check-row"><input type="checkbox" id="ch2"><label for="ch2">Autorizo a Financial Services a consultar mi historial crediticio en centrales de riesgo (Datacrédito, CIFIN/TransUnion) y a reportar mi comportamiento de pago.</label></div>
+        <div class="check-row"><input type="checkbox" id="ch3"><label for="ch3">Autorizo el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 y la política de privacidad de Financial Services.</label></div>
+        <div class="check-row"><input type="checkbox" id="ch4"><label for="ch4">Declaro que mis recursos provienen de actividades lícitas y no tengo vínculos con lavado de activos ni actividades ilícitas (SARLAFT / UIAF Colombia).</label></div>
+        <div class="check-row"><input type="checkbox" id="ch5"><label for="ch5">Declaro que no soy Persona Políticamente Expuesta (PEP). En caso contrario me comprometo a declararlo por escrito.</label></div>
+        <div class="check-row"><input type="checkbox" id="ch6"><label for="ch6">Autorizo el débito automático de las cuotas desde la cuenta registrada en caso de aprobación.</label></div>
+        <div class="divider"></div>
         <div class="field">
-          <label>Monto solicitado (COP)<span class="req">*</span></label>
-          <input type="text" id="montoSolicitado" placeholder="Ej. 10.000.000" oninput="formatMiles(this);validarMonto();guardarBorrador()" inputmode="numeric">
-          <div class="monto-warn" id="monto-warn">⚠ El monto supera 10 veces tus ingresos declarados. Esto puede dificultar la aprobación.</div>
+          <label>Firma electrónica — Escriba su nombre completo como firma</label>
+          <input type="text" id="firmaElectronica" placeholder="Juan Carlos Pérez Gómez">
         </div>
-        <div class="field"><label>Plazo deseado<span class="req">*</span></label>
-          <select id="plazo" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>1 mes</option><option>3 meses</option><option>6 meses</option><option>12 meses</option><option>18 meses</option><option>24 meses</option><option>36 meses</option><option>48 meses</option><option>60 meses</option></select></div>
-        <div class="field"><label>Garantía ofrecida</label>
-          <select id="garantia" onchange="guardarBorrador()"><option value="">Ninguna</option><option>Codeudor / fiador</option><option>Hipoteca inmobiliaria</option><option>Prenda vehicular</option><option>Finca raíz libre</option><option>Otro activo</option></select></div>
-      </div>
-      <div class="field" style="margin-bottom:0">
-        <label>Destino del crédito<span class="req">*</span></label>
-        <select id="destinoCredito" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Capital de trabajo</option><option>Compra de vehículo</option><option>Adquisición inmobiliaria</option><option>Libre inversión</option><option>Cancelación de deudas</option><option>Mejoras locativas</option><option>Educación</option><option>Otro</option></select>
+        <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar, acepta que la digitación de su nombre tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999.</p>
       </div>
     </div>
-  </div>
 
-  <!-- STEP 2: LABORAL -->
-  <div id="step2" class="step" style="display:none">
-    <div class="card">
-      <div class="sec-title">💼 Información laboral</div>
-      <div class="grid-2">
-        <div class="field"><label>Situación laboral actual<span class="req">*</span></label>
-          <select id="situacionLaboral" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelancer</option><option>Empresario / socio</option><option>Pensionado</option><option>Rentista de capital</option><option>Desempleado</option></select></div>
-        <div class="field"><label>Sector económico<span class="req">*</span></label>
-          <select id="sectorEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Comercio</option><option>Servicios profesionales</option><option>Construcción / finca raíz</option><option>Salud</option><option>Tecnología</option><option>Transporte</option><option>Agropecuario</option><option>Financiero</option><option>Educación</option><option>Otro</option></select></div>
-      </div>
-      <div class="grid-2">
-        <div class="field"><label>Empresa / razón social</label><input type="text" id="empresa" placeholder="Nombre de la empresa" oninput="guardarBorrador()"></div>
-        <div class="field"><label>NIT del empleador</label><input type="text" id="nitEmpresa" placeholder="900.123.456-7" oninput="guardarBorrador()"></div>
-      </div>
-      <div class="grid-3">
-        <div class="field"><label>Cargo / ocupación</label><input type="text" id="cargo" placeholder="Gerente comercial" oninput="guardarBorrador()"></div>
-        <div class="field"><label>Antigüedad laboral</label>
-          <select id="antiguedad" onchange="verificarAntiguedad();guardarBorrador()"><option value="">Seleccionar...</option><option>Menos de 6 meses</option><option>6 meses - 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select>
-          <div id="ant-warn" style="display:none;font-size:11px;margin-top:3px;color:#b45309;background:#fffbeb;padding:4px 8px;border-radius:5px">⚠ Antigüedad menor a 6 meses puede afectar la aprobación.</div>
+    <!-- ══ JURÍDICA: PASO 0 — EMPRESA + REP. LEGAL ══ -->
+    <div id="j-step0" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">🏢 Datos de la empresa</div>
+        <div class="grid-2">
+          <div class="field"><label>Razón social<span class="req">*</span></label><input type="text" id="j-razonSocial" placeholder="Empresa S.A.S." oninput="guardarBorrador()"></div>
+          <div class="field"><label>NIT<span class="req">*</span></label><input type="text" id="j-nit" placeholder="900.123.456-7" oninput="guardarBorrador()"></div>
         </div>
-        <div class="field"><label>Tipo de contrato<span class="req">*</span></label>
-          <select id="tipoContrato" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Término indefinido</option><option>Término fijo</option><option>Obra o labor</option><option>Prestación de servicios</option><option>Aprendizaje (SENA)</option><option>Temporal / agencia</option><option>No aplica</option></select></div>
+        <div class="grid-2">
+          <div class="field"><label>Tipo de sociedad<span class="req">*</span></label>
+            <select id="j-tipoSociedad" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>S.A.S.</option><option>S.A.</option><option>Ltda.</option><option>E.U.</option><option>S.C.S.</option><option>Cooperativa</option><option>Fundación / ONG</option><option>Otra</option></select></div>
+          <div class="field"><label>Fecha de constitución<span class="req">*</span></label><input type="date" id="j-fechaConstitucion" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Actividad económica (CIIU)<span class="req">*</span></label><input type="text" id="j-actividadEconomica" placeholder="Ej. 4711 - Comercio al por menor" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Sector económico<span class="req">*</span></label>
+            <select id="j-sectorEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Comercio</option><option>Industria / manufactura</option><option>Servicios</option><option>Construcción</option><option>Tecnología</option><option>Salud</option><option>Educación</option><option>Agropecuario</option><option>Financiero</option><option>Transporte</option><option>Otro</option></select></div>
+        </div>
+        <div class="grid-3">
+          <div class="field"><label>Número de empleados</label>
+            <select id="j-numEmpleados" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>1 - 5</option><option>6 - 10</option><option>11 - 50</option><option>51 - 200</option><option>Más de 200</option></select></div>
+          <div class="field"><label>Departamento<span class="req">*</span></label>
+            <select id="j-departamento" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Antioquia</option><option>Bogotá D.C.</option><option>Valle del Cauca</option><option>Cundinamarca</option><option>Otro</option></select></div>
+          <div class="field"><label>Ciudad<span class="req">*</span></label><input type="text" id="j-ciudad" placeholder="Medellín" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Dirección comercial<span class="req">*</span></label>
+          <input type="text" id="j-direccionComercial" placeholder="Cra. 43A # 18-111, Of. 502" oninput="guardarBorrador()">
+        </div>
       </div>
-      <div class="grid-2" style="margin-bottom:0">
-        <div class="field"><label>Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000" oninput="guardarBorrador()"></div>
-        <div class="field"><label>Dirección trabajo</label><input type="text" id="direccionTrabajo" placeholder="Calle 10 # 43-123, Medellín" oninput="guardarBorrador()"></div>
+      <div class="card">
+        <div class="sec-title">👔 Representante legal</div>
+        <div class="grid-3">
+          <div class="field"><label>Primer nombre<span class="req">*</span></label><input type="text" id="j-repNombre" placeholder="Carlos" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Segundo nombre</label><input type="text" id="j-repSegundoNombre" placeholder="Andrés" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Primer apellido<span class="req">*</span></label><input type="text" id="j-repApellido" placeholder="Gómez" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Tipo de documento<span class="req">*</span></label>
+            <select id="j-repTipoDoc" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Cédula de ciudadanía</option><option>Cédula de extranjería</option><option>Pasaporte</option></select></div>
+          <div class="field"><label>Número de documento<span class="req">*</span></label><input type="text" id="j-repNumDoc" placeholder="1000123456" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Cargo<span class="req">*</span></label><input type="text" id="j-repCargo" placeholder="Gerente General / Representante Legal" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="j-repCelular" placeholder="+57 300 0000000" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Correo electrónico<span class="req">*</span></label><input type="email" id="j-repEmail" placeholder="rep@empresa.com" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Fecha de nacimiento</label><input type="date" id="j-repFechaNac" oninput="guardarBorrador()"></div>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <div class="sec-title">👥 Información personal adicional</div>
-      <div class="grid-3" style="margin-bottom:0">
-        <div class="field"><label>Estado civil<span class="req">*</span></label>
-          <select id="estadoCivil" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Soltero(a)</option><option>Casado(a)</option><option>Unión libre</option><option>Divorciado(a)</option><option>Viudo(a)</option></select></div>
-        <div class="field"><label>Nivel educativo</label>
-          <select id="nivelEducativo" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Primaria</option><option>Bachillerato</option><option>Técnico / Tecnólogo</option><option>Universitario</option><option>Posgrado</option></select></div>
-        <div class="field"><label>Núm. dependientes<span class="req">*</span></label>
-          <select id="numeroDependientes" onchange="guardarBorrador()"><option>0</option><option>1</option><option>2</option><option>3</option><option>4 o más</option></select></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="sec-title">🚨 Referencia en caso de emergencia</div>
-      <div class="grid-2">
-        <div class="field"><label>Nombre completo<span class="req">*</span></label><input type="text" id="refNombre" placeholder="María González" oninput="guardarBorrador()"></div>
-        <div class="field"><label>Parentesco<span class="req">*</span></label>
-          <select id="refParentesco" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Cónyuge / compañero(a)</option><option>Padre / Madre</option><option>Hijo(a)</option><option>Hermano(a)</option><option>Otro familiar</option><option>Amigo</option></select></div>
-      </div>
-      <div class="grid-2" style="margin-bottom:0">
-        <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="refCelular" placeholder="+57 312 0000000" oninput="guardarBorrador()"></div>
-        <div class="field"><label>Referencias adicionales</label><input type="text" id="refAdicional" placeholder="Nombre — Teléfono" oninput="guardarBorrador()"></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- STEP 3: DOCUMENTOS -->
-  <div id="step3" class="step" style="display:none">
-    <div class="card">
-      <div class="sec-title">📁 Carga de documentación</div>
-      <div class="alert">⚠ Archivos legibles, vigentes y sin alteraciones. Formatos: PDF, JPG, PNG. Máximo 5 MB por archivo.</div>
-      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos de identidad</p>
-      <div class="doc-grid">
-        <div class="upload-zone" onclick="clickUpload('u0')"><input type="file" id="u0" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Frontal <span style="color:#dc2626">*</span></div><div class="uz-hint">Ambas caras si es posible</div></div>
-        <div class="upload-zone" onclick="clickUpload('u1')"><input type="file" id="u1" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Reverso <span style="color:#dc2626">*</span></div><div class="uz-hint">Con huella y firma</div></div>
+    <!-- ══ JURÍDICA: PASO 1 — FINANCIERO EMPRESARIAL ══ -->
+    <div id="j-step1" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">💰 Perfil financiero empresarial</div>
+        <div class="grid-2">
+          <div class="field"><label>Ventas / ingresos anuales<span class="req">*</span></label>
+            <input type="text" id="j-ventasAnuales" placeholder="Ej. 500.000.000" oninput="formatMiles(this);guardarBorrador()" inputmode="numeric"></div>
+          <div class="field"><label>Ingresos mensuales promedio<span class="req">*</span></label>
+            <input type="text" id="j-ingresosMensuales" placeholder="Ej. 40.000.000" oninput="formatMiles(this);calcCapacidadJ();guardarBorrador()" inputmode="numeric"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Total activos<span class="req">*</span></label>
+            <input type="text" id="j-totalActivos" placeholder="Ej. 200.000.000" oninput="formatMiles(this);guardarBorrador()" inputmode="numeric"></div>
+          <div class="field"><label>Total pasivos<span class="req">*</span></label>
+            <input type="text" id="j-totalPasivos" placeholder="Ej. 80.000.000" oninput="formatMiles(this);guardarBorrador()" inputmode="numeric"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Egresos mensuales<span class="req">*</span></label>
+            <input type="text" id="j-egresosMensuales" placeholder="Ej. 25.000.000" oninput="formatMiles(this);calcCapacidadJ();guardarBorrador()" inputmode="numeric"></div>
+          <div class="field"><label>Obligaciones financieras vigentes<span class="req">*</span></label>
+            <input type="text" id="j-obligaciones" placeholder="Ej. 5.000.000 / mes" oninput="formatMiles(this);calcCapacidadJ();guardarBorrador()" inputmode="numeric"></div>
+        </div>
+        <div id="capacidadBoxJ" style="display:none">
+          <div class="cap-box verde">
+            <div class="cap-label">Semáforo de capacidad empresarial</div>
+            <div class="cap-grid">
+              <div class="cap-item"><div class="cap-item-label">Ingresos mensuales</div><div class="cap-item-val" id="jcap-ing">—</div></div>
+              <div class="cap-item"><div class="cap-item-label">Total egresos</div><div class="cap-item-val" id="jcap-egr">—</div></div>
+              <div class="cap-item"><div class="cap-item-label">Capacidad disponible</div><div class="cap-item-val" id="jcap-disp">—</div></div>
+            </div>
+            <div class="cap-alerta" id="jcap-alerta" style="display:none"></div>
+          </div>
+        </div>
       </div>
-      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Soporte de ingresos</p>
-      <div class="doc-grid">
-        <div class="upload-zone" onclick="clickUpload('u2')"><input type="file" id="u2" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📋</span><div class="uz-label">Últimas 3 colillas de pago <span style="color:#dc2626">*</span></div><div class="uz-hint">Empleado dependiente</div></div>
-        <div class="upload-zone" onclick="clickUpload('u3')"><input type="file" id="u3" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏢</span><div class="uz-label">Certificado laboral <span style="color:#dc2626">*</span></div><div class="uz-hint">Con salario y antigüedad</div></div>
-        <div class="upload-zone" onclick="clickUpload('u4')"><input type="file" id="u4" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📑</span><div class="uz-label">RUT actualizado</div><div class="uz-hint">Independiente / empresario</div></div>
-        <div class="upload-zone" onclick="clickUpload('u5')"><input type="file" id="u5" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🧾</span><div class="uz-label">Declaración de renta</div><div class="uz-hint">Último año — si aplica</div></div>
-      </div>
-      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Extractos bancarios</p>
-      <div class="doc-grid">
-        <div class="upload-zone" onclick="clickUpload('u6')"><input type="file" id="u6" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 1 <span style="color:#dc2626">*</span></div><div class="uz-hint">Banco principal</div></div>
-        <div class="upload-zone" onclick="clickUpload('u7')"><input type="file" id="u7" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 2 <span style="color:#dc2626">*</span></div><div class="uz-hint">Banco principal</div></div>
-        <div class="upload-zone" onclick="clickUpload('u8')"><input type="file" id="u8" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 3 <span style="color:#dc2626">*</span></div><div class="uz-hint">Banco principal</div></div>
-        <div class="upload-zone" onclick="clickUpload('u9')"><input type="file" id="u9" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto banco alternativo</div><div class="uz-hint">Si tiene más cuentas</div></div>
-      </div>
-      <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos adicionales</p>
-      <div class="doc-grid" style="margin-bottom:0">
-        <div class="upload-zone" onclick="clickUpload('u10')"><input type="file" id="u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏠</span><div class="uz-label">Recibo de servicios públicos</div><div class="uz-hint">Confirma dirección</div></div>
-        <div class="upload-zone" onclick="clickUpload('u11')"><input type="file" id="u11" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏪</span><div class="uz-label">Cámara de comercio</div><div class="uz-hint">Si tiene empresa</div></div>
-        <div class="upload-zone" onclick="clickUpload('u12')"><input type="file" id="u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. de garantía / colateral</div><div class="uz-hint">Escritura, tarjeta propiedad...</div></div>
-        <div class="upload-zone" onclick="clickUpload('u13')"><input type="file" id="u13" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🤳</span><div class="uz-label">Selfie sosteniendo cédula</div><div class="uz-hint">Validación biométrica básica</div></div>
+      <div class="card">
+        <div class="sec-title">🏦 Datos bancarios y crédito solicitado</div>
+        <div class="grid-3">
+          <div class="field"><label>Banco principal<span class="req">*</span></label>
+            <select id="j-banco" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Bancolombia</option><option>Davivienda</option><option>Banco de Bogotá</option><option>BBVA</option><option>Banco Popular</option><option>Banco de Occidente</option><option>Otro</option></select></div>
+          <div class="field"><label>Tipo de cuenta<span class="req">*</span></label>
+            <select id="j-tipoCuenta" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Corriente</option><option>Ahorros</option></select></div>
+          <div class="field"><label>Número de cuenta<span class="req">*</span></label>
+            <input type="text" id="j-numeroCuenta" placeholder="0000000000" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Monto solicitado<span class="req">*</span></label>
+            <input type="text" id="j-montoSolicitado" placeholder="Ej. 50.000.000" oninput="formatMiles(this);guardarBorrador()" inputmode="numeric"></div>
+          <div class="field"><label>Plazo deseado<span class="req">*</span></label>
+            <select id="j-plazo" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>6 meses</option><option>12 meses</option><option>18 meses</option><option>24 meses</option><option>36 meses</option><option>48 meses</option><option>60 meses</option></select></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Garantía ofrecida</label>
+            <select id="j-garantia" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Sin garantía</option><option>Inmueble comercial</option><option>Maquinaria / equipos</option><option>CDT / Inversión</option><option>Codeudor persona natural</option><option>Otra</option></select></div>
+          <div class="field"><label>Destino del crédito<span class="req">*</span></label>
+            <select id="j-destinoCredito" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Capital de trabajo</option><option>Expansión / nuevas sedes</option><option>Compra de maquinaria</option><option>Compra de vehículo</option><option>Consolidación de deudas</option><option>Nómina</option><option>Inventario</option><option>Otro</option></select></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- STEP 4: DECLARACIONES -->
-  <div id="step4" class="step" style="display:none">
-    <div class="card">
-      <div class="sec-title">🛡 Declaraciones y autorización</div>
-      <div class="sumcard">
-        <h4>Resumen de solicitud</h4>
-        <div class="sumrow"><span>Solicitante</span><span id="s-nombre">—</span></div>
-        <div class="sumrow"><span>Documento</span><span id="s-doc">—</span></div>
-        <div class="sumrow"><span>Celular</span><span id="s-cel">—</span></div>
-        <div class="sumrow"><span>Ingresos declarados</span><span id="s-ing">—</span></div>
-        <div class="sumrow"><span>Total deudas mensuales</span><span id="s-obl">—</span></div>
-        <div class="sumrow"><span>💚 Capacidad de pago</span><span id="s-cap" style="font-weight:700;color:var(--lime-d)">—</span></div>
-        <div class="sumrow"><span>Monto solicitado</span><span id="s-monto">—</span></div>
-        <div class="sumrow"><span>Plazo</span><span id="s-plazo">—</span></div>
-        <div class="sumrow"><span>Destino</span><span id="s-destino">—</span></div>
+    <!-- ══ JURÍDICA: PASO 2 — OPERACIONAL ══ -->
+    <div id="j-step2" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">⚙️ Información operacional</div>
+        <div class="grid-2">
+          <div class="field"><label>Antigüedad de la empresa<span class="req">*</span></label>
+            <select id="j-antiguedadEmpresa" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Menos de 1 año</option><option>1 - 2 años</option><option>2 - 5 años</option><option>5 - 10 años</option><option>Más de 10 años</option></select></div>
+          <div class="field"><label>Número de sucursales</label>
+            <select id="j-sucursales" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Solo sede principal</option><option>2 - 3 sedes</option><option>4 - 10 sedes</option><option>Más de 10 sedes</option></select></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Principales clientes / mercado</label>
+            <input type="text" id="j-mercado" placeholder="Ej. B2B, gobierno, consumidor final" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Principales proveedores</label>
+            <input type="text" id="j-proveedores" placeholder="Nombres o sectores" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Descripción de la actividad comercial</label>
+          <textarea id="j-descripcionActividad" placeholder="Describa brevemente a qué se dedica la empresa..." oninput="guardarBorrador()"></textarea>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em">Declaraciones obligatorias</p>
-        <button type="button" id="btnSelAll" onclick="seleccionarTodo()" style="background:var(--lime-l);border:1.5px solid #86efac;color:var(--lime-d);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 13px;border-radius:20px;cursor:pointer;transition:all .2s">✓ Seleccionar todo</button>
+      <div class="card">
+        <div class="sec-title">👥 Composición accionaria</div>
+        <div class="grid-2">
+          <div class="field"><label>Socio / accionista principal<span class="req">*</span></label>
+            <input type="text" id="j-socioPrincipal" placeholder="Nombre completo" oninput="guardarBorrador()"></div>
+          <div class="field"><label>% de participación<span class="req">*</span></label>
+            <input type="text" id="j-porcentajePart" placeholder="Ej. 60%" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Otros socios (resumen)</label>
+            <input type="text" id="j-otrosSocios" placeholder="Nombre — % participación" oninput="guardarBorrador()"></div>
+          <div class="field"><label>¿Vinculada a grupo económico?</label>
+            <select id="j-grupoEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>No</option><option>Sí — especificar abajo</option></select></div>
+        </div>
       </div>
-      <div class="check-row"><input type="checkbox" id="ch1"><label for="ch1">Declaro que la información suministrada es veraz, completa y verificable. Entiendo que cualquier falsedad puede ser causal de rechazo inmediato y acciones legales.</label></div>
-      <div class="check-row"><input type="checkbox" id="ch2"><label for="ch2">Autorizo a Financial Services a consultar mi historial crediticio en centrales de riesgo (Datacrédito, CIFIN/TransUnion) y a reportar mi comportamiento de pago.</label></div>
-      <div class="check-row"><input type="checkbox" id="ch3"><label for="ch3">Autorizo el tratamiento de mis datos personales conforme a la Ley 1581 de 2012 y la política de privacidad de Financial Services.</label></div>
-      <div class="check-row"><input type="checkbox" id="ch4"><label for="ch4">Declaro que mis recursos provienen de actividades lícitas y no tengo vínculos con lavado de activos ni actividades ilícitas (SARLAFT / UIAF Colombia).</label></div>
-      <div class="check-row"><input type="checkbox" id="ch5"><label for="ch5">Declaro que no soy Persona Políticamente Expuesta (PEP). En caso contrario me comprometo a declararlo por escrito.</label></div>
-      <div class="check-row"><input type="checkbox" id="ch6"><label for="ch6">Autorizo el débito automático de las cuotas desde la cuenta registrada en caso de aprobación.</label></div>
-      <div class="divider"></div>
-      <div class="field">
-        <label>Firma electrónica — Escriba su nombre completo como firma</label>
-        <input type="text" id="firmaElectronica" placeholder="Juan Carlos Pérez Gómez">
+      <div class="card">
+        <div class="sec-title">🚨 Referencia comercial</div>
+        <div class="grid-2">
+          <div class="field"><label>Empresa de referencia<span class="req">*</span></label><input type="text" id="j-refEmpresa" placeholder="Proveedor o cliente de referencia" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Contacto<span class="req">*</span></label><input type="text" id="j-refContacto" placeholder="Nombre del contacto" oninput="guardarBorrador()"></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:0">
+          <div class="field"><label>Teléfono<span class="req">*</span></label><input type="tel" id="j-refTelefono" placeholder="+57 300 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Relación comercial</label>
+            <select id="j-refRelacion" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Proveedor</option><option>Cliente</option><option>Aliado estratégico</option><option>Otro</option></select></div>
+        </div>
       </div>
-      <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar, acepta que la digitación de su nombre tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999.</p>
     </div>
-  </div>
 
-  <!-- SUCCESS -->
-  <div id="stepSuccess" style="display:none">
-    <div class="card success-wrap">
-      <div class="success-icon">✓</div>
-      <div class="success-title">¡Solicitud enviada!</div>
-      <p class="success-sub">Recibimos tu información. Un asesor de <strong>Financial Services</strong> se pondrá en contacto en las próximas 24 horas hábiles.</p>
-      <div class="success-rad" id="radicado-display">WRP-XXXXXX</div>
-      <p class="success-sub" style="margin-top:8px;font-size:13px">Guarda este número de radicado para dar seguimiento a tu solicitud.</p>
+    <!-- ══ JURÍDICA: PASO 3 — DOCUMENTOS ══ -->
+    <div id="j-step3" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">📁 Documentación — Persona Jurídica</div>
+        <div class="alert">⚠ Archivos legibles, vigentes y sin alteraciones. Formatos: PDF, JPG, PNG. Máximo 5 MB por archivo.</div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos de la empresa</p>
+        <div class="doc-grid">
+          <div class="upload-zone" onclick="clickUpload('j-u0')"><input type="file" id="j-u0" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏛</span><div class="uz-label">Cámara de comercio <span style="color:#dc2626">*</span></div><div class="uz-hint">Vigente — menos de 30 días</div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u1')"><input type="file" id="j-u1" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📑</span><div class="uz-label">RUT empresa <span style="color:#dc2626">*</span></div><div class="uz-hint">Actualizado</div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u2')"><input type="file" id="j-u2" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📋</span><div class="uz-label">Acta nombramiento rep. legal <span style="color:#dc2626">*</span></div><div class="uz-hint">Vigente y registrada</div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u3')"><input type="file" id="j-u3" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📊</span><div class="uz-label">Composición accionaria <span style="color:#dc2626">*</span></div><div class="uz-hint">Listado de socios</div></div>
+        </div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos del representante legal</p>
+        <div class="doc-grid">
+          <div class="upload-zone" onclick="clickUpload('j-u4')"><input type="file" id="j-u4" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula rep. legal — Frontal <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u5')"><input type="file" id="j-u5" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula rep. legal — Reverso <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u6')"><input type="file" id="j-u6" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🤳</span><div class="uz-label">Selfie rep. legal con cédula <span style="color:#dc2626">*</span></div></div>
+        </div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Estados financieros</p>
+        <div class="doc-grid">
+          <div class="upload-zone" onclick="clickUpload('j-u7')"><input type="file" id="j-u7" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📈</span><div class="uz-label">Balance general <span style="color:#dc2626">*</span></div><div class="uz-hint">Último año fiscal</div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u8')"><input type="file" id="j-u8" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📉</span><div class="uz-label">Estado de resultados (P&amp;G) <span style="color:#dc2626">*</span></div><div class="uz-hint">Último año fiscal</div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u9')"><input type="file" id="j-u9" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🧾</span><div class="uz-label">Declaración de renta empresa <span style="color:#dc2626">*</span></div><div class="uz-hint">Último año</div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u10')"><input type="file" id="j-u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📰</span><div class="uz-label">Estados financieros intermedios</div><div class="uz-hint">Corte reciente — si aplica</div></div>
+        </div>
+        <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Extractos bancarios empresa</p>
+        <div class="doc-grid" style="margin-bottom:0">
+          <div class="upload-zone" onclick="clickUpload('j-u11')"><input type="file" id="j-u11" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto empresa — Mes 1 <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u12')"><input type="file" id="j-u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto empresa — Mes 2 <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u13')"><input type="file" id="j-u13" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto empresa — Mes 3 <span style="color:#dc2626">*</span></div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u14')"><input type="file" id="j-u14" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. garantía / colateral</div><div class="uz-hint">Escritura, avalúo...</div></div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="nav" id="navBar">
-    <span class="step-info" id="stepInfo">Paso 1 de 5</span>
-    <div class="btns">
-      <button class="btn btn-back" id="btnBack" onclick="prevStep()" style="display:none">← Anterior</button>
-      <button class="btn btn-next" id="btnNext" onclick="nextStep()">Siguiente →</button>
-      <button class="btn btn-submit" id="btnSubmit" style="display:none" onclick="submitForm()">Enviar solicitud ↗</button>
+    <!-- ══ JURÍDICA: PASO 4 — DECLARACIONES ══ -->
+    <div id="j-step4" class="step" style="display:none">
+      <div class="card">
+        <div class="sec-title">🛡 Declaraciones y autorización empresarial</div>
+        <div class="sumcard">
+          <h4>Resumen de solicitud</h4>
+          <div class="sumrow"><span>Empresa</span><span id="js-nombre">—</span></div>
+          <div class="sumrow"><span>NIT</span><span id="js-nit">—</span></div>
+          <div class="sumrow"><span>Representante legal</span><span id="js-rep">—</span></div>
+          <div class="sumrow"><span>Ingresos mensuales</span><span id="js-ing">—</span></div>
+          <div class="sumrow"><span>Total activos</span><span id="js-activos">—</span></div>
+          <div class="sumrow"><span>Monto solicitado</span><span id="js-monto">—</span></div>
+          <div class="sumrow"><span>Plazo</span><span id="js-plazo">—</span></div>
+          <div class="sumrow"><span>Destino</span><span id="js-destino">—</span></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em">Declaraciones obligatorias</p>
+          <button type="button" id="btnSelAllJ" onclick="seleccionarTodo('juridica')" style="background:var(--lime-l);border:1.5px solid #86efac;color:var(--lime-d);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 13px;border-radius:20px;cursor:pointer">✓ Seleccionar todo</button>
+        </div>
+        <div class="check-row"><input type="checkbox" id="jch1"><label for="jch1">Declaro que la información suministrada es veraz, completa y verificable, y que estoy facultado para actuar en nombre de la empresa.</label></div>
+        <div class="check-row"><input type="checkbox" id="jch2"><label for="jch2">Autorizo a Financial Services a consultar el historial crediticio de la empresa y del representante legal en centrales de riesgo (Datacrédito, CIFIN/TransUnion).</label></div>
+        <div class="check-row"><input type="checkbox" id="jch3"><label for="jch3">Autorizo el tratamiento de los datos personales de la empresa y sus representantes conforme a la Ley 1581 de 2012.</label></div>
+        <div class="check-row"><input type="checkbox" id="jch4"><label for="jch4">Declaro que los recursos y actividades de la empresa son de origen lícito y no tiene vínculos con lavado de activos ni financiación del terrorismo (SARLAFT / UIAF Colombia).</label></div>
+        <div class="check-row"><input type="checkbox" id="jch5"><label for="jch5">Declaro que el representante legal y los socios mayoritarios no son Personas Políticamente Expuestas (PEP). En caso contrario me comprometo a declararlo por escrito.</label></div>
+        <div class="check-row"><input type="checkbox" id="jch6"><label for="jch6">Autorizo el débito automático desde la cuenta registrada de la empresa para el pago de las cuotas del crédito.</label></div>
+        <div class="check-row"><input type="checkbox" id="jch7"><label for="jch7">Declaro que la empresa no se encuentra en proceso de liquidación, concordato, insolvencia ni cesación de pagos.</label></div>
+        <div class="check-row"><input type="checkbox" id="jch8"><label for="jch8">Autorizo en nombre de la empresa la verificación de la información tributaria ante la DIAN y demás entidades competentes.</label></div>
+        <div class="divider"></div>
+        <div class="field">
+          <label>Firma electrónica del representante legal — Escriba su nombre completo</label>
+          <input type="text" id="j-firmaElectronica" placeholder="Nombre completo del representante legal">
+        </div>
+        <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar, el representante legal acepta que la digitación de su nombre tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999.</p>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="stepSuccess" style="display:none">
+      <div class="card success-wrap">
+        <div class="success-icon">✓</div>
+        <div class="success-title">¡Solicitud enviada!</div>
+        <p class="success-sub">Recibimos tu información. Un asesor de <strong>Financial Services</strong> se pondrá en contacto en las próximas 24 horas hábiles.</p>
+        <div class="success-rad" id="radicado-display">WRP-XXXXXX</div>
+        <p class="success-sub" style="margin-top:8px;font-size:13px">Guarda este número de radicado para dar seguimiento a tu solicitud.</p>
+      </div>
+    </div>
+
+    <div class="nav" id="navBar">
+      <span class="step-info" id="stepInfo">Paso 1</span>
+      <div class="btns">
+        <button class="btn btn-back" id="btnBack" onclick="prevStep()" style="display:none">← Anterior</button>
+        <button class="btn btn-next" id="btnNext" onclick="nextStep()">Siguiente →</button>
+        <button class="btn btn-submit" id="btnSubmit" style="display:none" onclick="submitForm()">Enviar solicitud ↗</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- WhatsApp flotante -->
 <a class="wa-btn" href="https://wa.me/573000000000?text=Hola%2C+tengo+dudas+sobre+el+formulario+de+cr%C3%A9dito" target="_blank" title="¿Dudas? Escríbenos por WhatsApp">💬</a>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const API_URL = window.location.origin;
-let currentStep = 0;
-const TOTAL = 5;
 const DRAFT_KEY = 'warp_credito_draft';
-const CAMPOS_MILES = ['ingresosMensuales','ingresosAdicionales','egresosMensuales','obligacionesFinancieras','montoSolicitado'];
-const CAMPOS_TEXTO = ['tipoDocumento','numDocumento','primerNombre','segundoNombre','primerApellido','segundoApellido','fechaNacimiento','paisNacimiento','ciudadNacimiento','genero','celular','telefonoAlt','email','emailAlt','departamento','ciudad','barrio','direccion','tipoVivienda','tiempoVivienda','fuenteIngresos','conceptoIngresosAd','banco','tipoCuenta','numeroCuenta','otrasCuentas','plazo','garantia','destinoCredito','situacionLaboral','sectorEconomico','empresa','nitEmpresa','cargo','antiguedad','tipoContrato','telefonoTrabajo','direccionTrabajo','estadoCivil','nivelEducativo','numeroDependientes','refNombre','refParentesco','refCelular','refAdicional'];
+let tipoPersona = null;
+let currentStep = 0;
 
-function formatMiles(el){
-  let raw = el.value.replace(/\./g,'').replace(/[^0-9]/g,'');
-  if(raw===''){el.value='';return;}
-  el.value = Number(raw).toLocaleString('es-CO');
-}
-function val(id){
-  const v=(document.getElementById(id)?.value||'').trim();
-  if(CAMPOS_MILES.includes(id)) return v.replace(/\./g,'');
-  return v;
-}
-function fmt(n){ return (n&&n!=='0')? '$'+Number(n).toLocaleString('es-CO'):'—'; }
-
-/* ── CAPACIDAD DE PAGO ── */
-function calcCapacidad(){
-  const ing = Number(val('ingresosMensuales')||0) + Number(val('ingresosAdicionales')||0);
-  const egr = Number(val('egresosMensuales')||0) + Number(val('obligacionesFinancieras')||0);
-  const box = document.getElementById('capacidadBox');
-  if(!ing){ box.style.display='none'; return; }
-  box.style.display='block';
-  const disp = ing - egr;
-  document.getElementById('cap-ing').textContent  = fmt(ing);
-  document.getElementById('cap-egr').textContent  = fmt(egr);
-  document.getElementById('cap-disp').textContent = fmt(disp);
-  const alerta = document.getElementById('cap-alerta');
-  box.className = 'cap-box';
-  if(disp <= 0){
-    box.classList.add('rojo');
-    alerta.style.display='block';
-    alerta.style.background='#fef2f2';
-    alerta.style.color='#dc2626';
-    alerta.textContent='⚠ Tus compromisos superan tus ingresos. Esto puede impedir la aprobación del crédito.';
-  } else if(disp < ing * 0.3){
-    box.classList.add('amarillo');
-    alerta.style.display='block';
-    alerta.style.background='#fffbeb';
-    alerta.style.color='#b45309';
-    alerta.textContent='⚡ Tu capacidad disponible es baja. Te recomendamos solicitar un monto menor.';
-  } else {
-    box.classList.add('verde');
-    alerta.style.display='none';
+const CONFIG = {
+  natural: {
+    totalSteps: 5,
+    tabs: ['Identidad','Financiero','Laboral','Documentos','Declaración'],
+    prefix: 'n-',
+    timer: '⏱ Aprox. 8 minutos',
+    sub: 'Financial Services · Persona Natural · Complete todos los campos',
+    camposMiles: ['ingresosMensuales','ingresosAdicionales','egresosMensuales','obligacionesFinancieras','montoSolicitado'],
+    camposTexto: ['tipoDocumento','numDocumento','primerNombre','segundoNombre','primerApellido','segundoApellido','fechaNacimiento','paisNacimiento','ciudadNacimiento','genero','celular','telefonoAlt','email','emailAlt','departamento','ciudad','barrio','direccion','tipoVivienda','tiempoVivienda','fuenteIngresos','conceptoIngresosAd','banco','tipoCuenta','numeroCuenta','otrasCuentas','plazo','garantia','destinoCredito','situacionLaboral','sectorEconomico','empresa','nitEmpresa','cargo','antiguedad','tipoContrato','telefonoTrabajo','direccionTrabajo','estadoCivil','nivelEducativo','numeroDependientes','refNombre','refParentesco','refCelular','refAdicional'],
+    required: {
+      0:[{id:'tipoDocumento',label:'Tipo de documento'},{id:'numDocumento',label:'Número de documento'},{id:'primerNombre',label:'Primer nombre'},{id:'primerApellido',label:'Primer apellido'},{id:'fechaNacimiento',label:'Fecha de nacimiento'},{id:'celular',label:'Celular principal'},{id:'email',label:'Correo electrónico'},{id:'departamento',label:'Departamento'},{id:'ciudad',label:'Ciudad'},{id:'direccion',label:'Dirección de residencia'},{id:'tipoVivienda',label:'Tipo de vivienda'}],
+      1:[{id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},{id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Obligaciones financieras'},{id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},{id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},{id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'}],
+      2:[{id:'situacionLaboral',label:'Situación laboral'},{id:'tipoContrato',label:'Tipo de contrato'},{id:'estadoCivil',label:'Estado civil'},{id:'refNombre',label:'Nombre de referencia'},{id:'refParentesco',label:'Parentesco'},{id:'refCelular',label:'Celular de referencia'}],
+    },
+    requiredDocs:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extracto Mes 1'},{id:'u7',label:'Extracto Mes 2'},{id:'u8',label:'Extracto Mes 3'},{id:'u13',label:'Selfie con cédula'}],
+    checks:['ch1','ch2','ch3','ch4','ch5','ch6'],
+    firmaId:'firmaElectronica',
+  },
+  juridica: {
+    totalSteps: 5,
+    tabs: ['Empresa','Financiero','Operacional','Documentos','Declaración'],
+    prefix: 'j-',
+    timer: '⏱ Aprox. 15 minutos',
+    sub: 'Financial Services · Persona Jurídica · Complete todos los campos',
+    camposMiles: ['j-ventasAnuales','j-ingresosMensuales','j-totalActivos','j-totalPasivos','j-egresosMensuales','j-obligaciones','j-montoSolicitado'],
+    camposTexto: ['j-razonSocial','j-nit','j-tipoSociedad','j-fechaConstitucion','j-actividadEconomica','j-sectorEconomico','j-numEmpleados','j-departamento','j-ciudad','j-direccionComercial','j-repNombre','j-repSegundoNombre','j-repApellido','j-repTipoDoc','j-repNumDoc','j-repCargo','j-repCelular','j-repEmail','j-repFechaNac','j-banco','j-tipoCuenta','j-numeroCuenta','j-plazo','j-garantia','j-destinoCredito','j-antiguedadEmpresa','j-sucursales','j-mercado','j-proveedores','j-descripcionActividad','j-socioPrincipal','j-porcentajePart','j-otrosSocios','j-grupoEconomico','j-refEmpresa','j-refContacto','j-refTelefono','j-refRelacion'],
+    required: {
+      0:[{id:'j-razonSocial',label:'Razón social'},{id:'j-nit',label:'NIT'},{id:'j-tipoSociedad',label:'Tipo de sociedad'},{id:'j-fechaConstitucion',label:'Fecha de constitución'},{id:'j-actividadEconomica',label:'Actividad económica'},{id:'j-sectorEconomico',label:'Sector económico'},{id:'j-departamento',label:'Departamento'},{id:'j-ciudad',label:'Ciudad'},{id:'j-direccionComercial',label:'Dirección comercial'},{id:'j-repNombre',label:'Nombre representante legal'},{id:'j-repApellido',label:'Apellido representante legal'},{id:'j-repTipoDoc',label:'Tipo doc. representante'},{id:'j-repNumDoc',label:'Número doc. representante'},{id:'j-repCargo',label:'Cargo representante'},{id:'j-repCelular',label:'Celular representante'},{id:'j-repEmail',label:'Correo representante'}],
+      1:[{id:'j-ingresosMensuales',label:'Ingresos mensuales'},{id:'j-ventasAnuales',label:'Ventas anuales'},{id:'j-totalActivos',label:'Total activos'},{id:'j-totalPasivos',label:'Total pasivos'},{id:'j-egresosMensuales',label:'Egresos mensuales'},{id:'j-obligaciones',label:'Obligaciones financieras'},{id:'j-banco',label:'Banco principal'},{id:'j-tipoCuenta',label:'Tipo de cuenta'},{id:'j-numeroCuenta',label:'Número de cuenta'},{id:'j-montoSolicitado',label:'Monto solicitado'},{id:'j-plazo',label:'Plazo deseado'},{id:'j-destinoCredito',label:'Destino del crédito'}],
+      2:[{id:'j-antiguedadEmpresa',label:'Antigüedad de la empresa'},{id:'j-socioPrincipal',label:'Socio / accionista principal'},{id:'j-porcentajePart',label:'Porcentaje de participación'},{id:'j-refEmpresa',label:'Empresa de referencia'},{id:'j-refContacto',label:'Contacto de referencia'},{id:'j-refTelefono',label:'Teléfono de referencia'}],
+    },
+    requiredDocs:[{id:'j-u0',label:'Cámara de comercio'},{id:'j-u1',label:'RUT empresa'},{id:'j-u2',label:'Acta nombramiento rep. legal'},{id:'j-u3',label:'Composición accionaria'},{id:'j-u4',label:'Cédula rep. legal Frontal'},{id:'j-u5',label:'Cédula rep. legal Reverso'},{id:'j-u6',label:'Selfie rep. legal'},{id:'j-u7',label:'Balance general'},{id:'j-u8',label:'Estado de resultados'},{id:'j-u9',label:'Declaración de renta'},{id:'j-u11',label:'Extracto empresa Mes 1'},{id:'j-u12',label:'Extracto empresa Mes 2'},{id:'j-u13',label:'Extracto empresa Mes 3'}],
+    checks:['jch1','jch2','jch3','jch4','jch5','jch6','jch7','jch8'],
+    firmaId:'j-firmaElectronica',
   }
+};
+
+const CAMPOS_MILES_ALL = [...CONFIG.natural.camposMiles,...CONFIG.juridica.camposMiles];
+
+function elegirTipo(tipo){
+  tipoPersona=tipo;
+  document.getElementById('cardNatural').classList.toggle('selected',tipo==='natural');
+  document.getElementById('cardJuridica').classList.toggle('selected',tipo==='juridica');
+  document.getElementById('btnIniciar').style.display='inline-block';
 }
 
-/* ── LÍMITE DE MONTO ── */
-function validarMonto(){
-  const ing = Number(val('ingresosMensuales')||0);
-  const monto = Number(val('montoSolicitado')||0);
-  const warn = document.getElementById('monto-warn');
-  warn.style.display = (ing>0 && monto > ing*10) ? 'block' : 'none';
+function iniciarFormulario(){
+  if(!tipoPersona) return;
+  const cfg=CONFIG[tipoPersona];
+  document.getElementById('tipoScreen').style.display='none';
+  document.getElementById('formularioWrap').style.display='block';
+  document.getElementById('headerSub').textContent=cfg.sub;
+  document.getElementById('timerBadge').textContent=cfg.timer;
+  const progress=document.getElementById('progress');
+  const tabs=document.getElementById('tabs');
+  progress.innerHTML=cfg.tabs.map((_,i)=>`<div class="prog-bar${i===0?' active':''}" id="pb${i}"></div>`).join('');
+  tabs.innerHTML=cfg.tabs.map((t,i)=>`<div class="tab${i===0?' active':''}" id="tab${i}" onclick="goStep(${i})">${t}</div>`).join('');
+  showStep(0);
 }
 
-/* ── ANTIGÜEDAD ── */
-function verificarAntiguedad(){
-  const ant = val('antiguedad');
-  document.getElementById('ant-warn').style.display = ant==='Menos de 6 meses' ? 'block' : 'none';
+function formatMiles(el){let raw=el.value.replace(/\./g,'').replace(/[^0-9]/g,'');if(raw===''){el.value='';return;}el.value=Number(raw).toLocaleString('es-CO');}
+function val(id){const el=document.getElementById(id);if(!el)return'';const v=(el.value||'').trim();if(CAMPOS_MILES_ALL.includes(id))return v.replace(/\./g,'');return v;}
+function fmt(n){return(n&&n!=='0')?'$'+Number(n).toLocaleString('es-CO'):'—';}
+function markError(id,e){const el=document.getElementById(id);if(!el)return;el.style.borderColor=e?'#dc2626':'';el.style.background=e?'#fff5f5':'';}
+
+function calcCapacidad(){
+  const ing=Number(val('ingresosMensuales')||0)+Number(val('ingresosAdicionales')||0);
+  const egr=Number(val('egresosMensuales')||0)+Number(val('obligacionesFinancieras')||0);
+  const box=document.getElementById('capacidadBox');
+  if(!ing){box.style.display='none';return;}
+  box.style.display='block';
+  const disp=ing-egr;
+  document.getElementById('cap-ing').textContent=fmt(ing);
+  document.getElementById('cap-egr').textContent=fmt(egr);
+  document.getElementById('cap-disp').textContent=fmt(disp);
+  const inner=box.querySelector('.cap-box');
+  const alerta=document.getElementById('cap-alerta');
+  inner.className='cap-box';
+  if(disp<=0){inner.classList.add('rojo');alerta.style.display='block';alerta.style.background='#fef2f2';alerta.style.color='#dc2626';alerta.textContent='⚠ Tus compromisos superan tus ingresos.';}
+  else if(disp<ing*0.3){inner.classList.add('amarillo');alerta.style.display='block';alerta.style.background='#fffbeb';alerta.style.color='#b45309';alerta.textContent='⚡ Capacidad disponible baja. Considera un monto menor.';}
+  else{inner.classList.add('verde');alerta.style.display='none';}
 }
 
-/* ── BORRADOR LOCAL ── */
+function calcCapacidadJ(){
+  const ing=Number(val('j-ingresosMensuales')||0);
+  const egr=Number(val('j-egresosMensuales')||0)+Number(val('j-obligaciones')||0);
+  const box=document.getElementById('capacidadBoxJ');
+  if(!ing){box.style.display='none';return;}
+  box.style.display='block';
+  const disp=ing-egr;
+  document.getElementById('jcap-ing').textContent=fmt(ing);
+  document.getElementById('jcap-egr').textContent=fmt(egr);
+  document.getElementById('jcap-disp').textContent=fmt(disp);
+  const inner=box.querySelector('.cap-box');
+  const alerta=document.getElementById('jcap-alerta');
+  inner.className='cap-box';
+  if(disp<=0){inner.classList.add('rojo');alerta.style.display='block';alerta.style.background='#fef2f2';alerta.style.color='#dc2626';alerta.textContent='⚠ Los egresos superan los ingresos.';}
+  else if(disp<ing*0.3){inner.classList.add('amarillo');alerta.style.display='block';alerta.style.background='#fffbeb';alerta.style.color='#b45309';alerta.textContent='⚡ Margen ajustado. Considere revisar el monto.';}
+  else{inner.classList.add('verde');alerta.style.display='none';}
+}
+
+function validarMonto(){const ing=Number(val('ingresosMensuales')||0);const monto=Number(val('montoSolicitado')||0);const warn=document.getElementById('monto-warn');if(warn)warn.style.display=(ing>0&&monto>ing*10)?'block':'none';}
+function verificarAntiguedad(){const ant=val('antiguedad');const w=document.getElementById('ant-warn');if(w)w.style.display=ant==='Menos de 6 meses'?'block':'none';}
+
 function guardarBorrador(){
+  if(!tipoPersona)return;
   try{
-    const data={};
-    CAMPOS_TEXTO.forEach(id=>{ const el=document.getElementById(id); if(el) data[id]=el.value; });
-    CAMPOS_MILES.forEach(id=>{ const el=document.getElementById(id); if(el) data[id]=el.value; });
-    data._step = currentStep;
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    const cfg=CONFIG[tipoPersona];
+    const data={_tipo:tipoPersona,_step:currentStep};
+    [...cfg.camposTexto,...cfg.camposMiles].forEach(id=>{const el=document.getElementById(id);if(el)data[id]=el.value;});
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(data));
   }catch(e){}
 }
 
 function cargarBorrador(){
   try{
-    const raw = localStorage.getItem(DRAFT_KEY);
-    if(!raw) return;
-    const data = JSON.parse(raw);
-    Object.entries(data).forEach(([id,v])=>{
-      if(id==='_step') return;
-      const el = document.getElementById(id);
-      if(el) el.value = v;
-    });
+    const raw=localStorage.getItem(DRAFT_KEY);if(!raw)return;
+    const data=JSON.parse(raw);
+    if(data._tipo){tipoPersona=data._tipo;elegirTipo(data._tipo);iniciarFormulario();}
+    Object.entries(data).forEach(([id,v])=>{if(id.startsWith('_'))return;const el=document.getElementById(id);if(el)el.value=v;});
     document.getElementById('draftBanner').style.display='none';
-    const step = data._step || 0;
-    for(let i=0;i<=step;i++){ updateProgress_i(i); }
-    showStep(step);
-    calcCapacidad();
+    showStep(data._step||0);
     showToast('Borrador cargado ✓','ok');
   }catch(e){}
 }
 
-function descartarBorrador(){
-  localStorage.removeItem(DRAFT_KEY);
-  document.getElementById('draftBanner').style.display='none';
-}
-
-function updateProgress_i(i){
-  const pb=document.getElementById('pb'+i);
-  if(!pb) return;
-  pb.className='prog-bar done';
-  const tabs=document.querySelectorAll('.tab');
-  if(tabs[i]) tabs[i].className='tab done';
-}
-
-/* ── VALIDACIÓN ── */
-const REQUIRED = {
-  0:[
-    {id:'tipoDocumento',label:'Tipo de documento'},{id:'numDocumento',label:'Número de documento'},
-    {id:'primerNombre',label:'Primer nombre'},{id:'primerApellido',label:'Primer apellido'},
-    {id:'fechaNacimiento',label:'Fecha de nacimiento'},{id:'celular',label:'Celular principal'},
-    {id:'email',label:'Correo electrónico'},{id:'departamento',label:'Departamento'},
-    {id:'ciudad',label:'Ciudad'},{id:'direccion',label:'Dirección de residencia'},
-    {id:'tipoVivienda',label:'Tipo de vivienda'},
-  ],
-  1:[
-    {id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},
-    {id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Valor total de tus deudas'},
-    {id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},
-    {id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},
-    {id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'},
-  ],
-  2:[
-    {id:'situacionLaboral',label:'Situación laboral'},{id:'sectorEconomico',label:'Sector económico'},
-    {id:'tipoContrato',label:'Tipo de contrato'},{id:'estadoCivil',label:'Estado civil'},
-    {id:'refNombre',label:'Nombre de referencia'},{id:'refParentesco',label:'Parentesco'},
-    {id:'refCelular',label:'Celular de referencia'},
-  ],
-};
-const REQUIRED_DOCS=[
-  {id:'u0',label:'Cédula — Frontal'},{id:'u1',label:'Cédula — Reverso'},
-  {id:'u6',label:'Extracto bancario Mes 1'},{id:'u7',label:'Extracto bancario Mes 2'},
-  {id:'u8',label:'Extracto bancario Mes 3'},
-];
-
-function markError(id,e){ const el=document.getElementById(id); if(!el)return; el.style.borderColor=e?'#dc2626':''; el.style.background=e?'#fff5f5':''; }
+function descartarBorrador(){localStorage.removeItem(DRAFT_KEY);document.getElementById('draftBanner').style.display='none';}
 
 function validateStep(n){
+  const cfg=CONFIG[tipoPersona];
   if(n===3){
-    const missing=REQUIRED_DOCS.filter(d=>!archivosSeleccionados[d.id]);
-    if(missing.length){ showToast('Falta subir: '+missing[0].label,'err');
-      REQUIRED_DOCS.forEach(d=>{ const z=document.getElementById(d.id)?.closest('.upload-zone'); if(z)z.style.borderColor=archivosSeleccionados[d.id]?'':'#dc2626'; }); return false; }
+    const missing=cfg.requiredDocs.filter(d=>!archivosSeleccionados[d.id]);
+    if(missing.length){showToast('Falta subir: '+missing[0].label,'err');cfg.requiredDocs.forEach(d=>{const z=document.getElementById(d.id)?.closest('.upload-zone');if(z)z.style.borderColor=archivosSeleccionados[d.id]?'':'#dc2626';});return false;}
     return true;
   }
-  const fields=REQUIRED[n]||[]; let firstErr=null;
-  fields.forEach(f=>{ const empty=!(document.getElementById(f.id)?.value||'').trim(); markError(f.id,empty); if(empty&&!firstErr)firstErr=f.label; });
-  if(firstErr){ showToast('Campo requerido: '+firstErr,'err');
-    const e=fields.find(f=>!(document.getElementById(f.id)?.value||'').trim());
-    if(e)document.getElementById(e.id)?.scrollIntoView({behavior:'smooth',block:'center'}); return false; }
-  if(n===0 && !/^[^@]+@[^@]+\.[^@]+$/.test(val('email'))){ markError('email',true); showToast('Correo electrónico inválido','err'); return false; }
-  markError('email',false);
+  const fields=cfg.required[n]||[];let firstErr=null;
+  fields.forEach(f=>{const empty=!(document.getElementById(f.id)?.value||'').trim();markError(f.id,empty);if(empty&&!firstErr)firstErr=f.label;});
+  if(firstErr){showToast('Campo requerido: '+firstErr,'err');const e=fields.find(f=>!(document.getElementById(f.id)?.value||'').trim());if(e)document.getElementById(e.id)?.scrollIntoView({behavior:'smooth',block:'center'});return false;}
+  if(n===0&&tipoPersona==='natural'&&!/^[^@]+@[^@]+\.[^@]+$/.test(val('email'))){markError('email',true);showToast('Correo electrónico inválido','err');return false;}
+  if(n===0&&tipoPersona==='juridica'&&!/^[^@]+@[^@]+\.[^@]+$/.test(val('j-repEmail'))){markError('j-repEmail',true);showToast('Correo del representante inválido','err');return false;}
   return true;
 }
 
-/* ── NAVEGACIÓN ── */
-function goStep(n){ if(n>currentStep)return; showStep(n); }
+function goStep(n){if(n>currentStep)return;showStep(n);}
+
 function showStep(n){
-  for(let i=0;i<TOTAL;i++) document.getElementById('step'+i).style.display='none';
+  const cfg=CONFIG[tipoPersona];
+  for(let i=0;i<cfg.totalSteps;i++){const el=document.getElementById(cfg.prefix+'step'+i);if(el)el.style.display='none';}
   document.getElementById('stepSuccess').style.display='none';
-  if(n>=TOTAL){showSuccess();return;}
-  document.getElementById('step'+n).style.display='block';
-  currentStep=n; updateNav(); updateProgress();
-  if(n===4) updateSummary();
+  if(n>=cfg.totalSteps){showSuccess();return;}
+  const stepEl=document.getElementById(cfg.prefix+'step'+n);if(stepEl)stepEl.style.display='block';
+  currentStep=n;updateNav();updateProgress();
+  if(n===cfg.totalSteps-1)updateSummary();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function nextStep(){ if(!validateStep(currentStep))return; guardarBorrador(); showStep(currentStep+1); }
-function prevStep(){ if(currentStep>0)showStep(currentStep-1); }
+
+function nextStep(){if(!validateStep(currentStep))return;guardarBorrador();showStep(currentStep+1);}
+function prevStep(){if(currentStep>0)showStep(currentStep-1);}
+
 function updateNav(){
+  const cfg=CONFIG[tipoPersona];
   document.getElementById('btnBack').style.display=currentStep>0?'':'none';
-  document.getElementById('btnNext').style.display=currentStep<TOTAL-1?'':'none';
-  document.getElementById('btnSubmit').style.display=currentStep===TOTAL-1?'':'none';
-  document.getElementById('stepInfo').textContent='Paso '+(currentStep+1)+' de '+TOTAL;
+  document.getElementById('btnNext').style.display=currentStep<cfg.totalSteps-1?'':'none';
+  document.getElementById('btnSubmit').style.display=currentStep===cfg.totalSteps-1?'':'none';
+  document.getElementById('stepInfo').textContent='Paso '+(currentStep+1)+' de '+cfg.totalSteps;
 }
+
 function updateProgress(){
-  const tabs=document.querySelectorAll('.tab');
-  for(let i=0;i<TOTAL;i++){
-    const pb=document.getElementById('pb'+i); pb.className='prog-bar';
-    if(i<currentStep)pb.classList.add('done'); else if(i===currentStep)pb.classList.add('active');
-    tabs[i].className='tab';
-    if(i===currentStep)tabs[i].classList.add('active'); else if(i<currentStep)tabs[i].classList.add('done');
+  const cfg=CONFIG[tipoPersona];
+  for(let i=0;i<cfg.totalSteps;i++){
+    const pb=document.getElementById('pb'+i);if(!pb)continue;
+    pb.className='prog-bar';
+    if(i<currentStep)pb.classList.add('done');else if(i===currentStep)pb.classList.add('active');
+    const tab=document.getElementById('tab'+i);if(!tab)continue;
+    tab.className='tab';
+    if(i===currentStep)tab.classList.add('active');else if(i<currentStep)tab.classList.add('done');
   }
 }
 
-/* ── RESUMEN PASO 5 ── */
 function updateSummary(){
-  const n1=val('primerNombre'), ap=val('primerApellido');
-  document.getElementById('s-nombre').textContent = n1&&ap ? n1+' '+ap : '—';
-  document.getElementById('s-doc').textContent     = [val('tipoDocumento'),val('numDocumento')].filter(Boolean).join(' ')||'—';
-  document.getElementById('s-cel').textContent     = val('celular')||'—';
-  document.getElementById('s-ing').textContent     = fmt(val('ingresosMensuales'));
-  document.getElementById('s-obl').textContent     = fmt(val('obligacionesFinancieras'));
-  document.getElementById('s-monto').textContent   = fmt(val('montoSolicitado'));
-  document.getElementById('s-plazo').textContent   = val('plazo')||'—';
-  document.getElementById('s-destino').textContent = val('destinoCredito')||'—';
-  const ing = Number(val('ingresosMensuales')||0)+Number(val('ingresosAdicionales')||0);
-  const egr = Number(val('egresosMensuales')||0)+Number(val('obligacionesFinancieras')||0);
-  const disp = ing - egr;
-  const capEl = document.getElementById('s-cap');
-  if(ing>0){
-    capEl.textContent = fmt(disp);
-    capEl.style.color = disp<=0 ? '#dc2626' : disp < ing*0.3 ? '#b45309' : '#1B5E20';
-  } else { capEl.textContent='—'; }
-}
-
-/* ── DOCUMENTOS ── */
-const archivosSeleccionados={};
-function clickUpload(id){ document.getElementById(id).click(); }
-function markUp(input){
-  const zone=input.closest('.upload-zone');
-  if(input.files&&input.files.length>0){
-    zone.classList.add('uploaded');
-    zone.querySelector('.uz-label').textContent='✓ '+input.files[0].name.substring(0,30);
-    archivosSeleccionados[input.id]=input.files[0];
+  if(tipoPersona==='natural'){
+    const n1=val('primerNombre'),ap=val('primerApellido');
+    document.getElementById('s-nombre').textContent=n1&&ap?n1+' '+ap:'—';
+    document.getElementById('s-doc').textContent=[val('tipoDocumento'),val('numDocumento')].filter(Boolean).join(' ')||'—';
+    document.getElementById('s-cel').textContent=val('celular')||'—';
+    document.getElementById('s-ing').textContent=fmt(val('ingresosMensuales'));
+    document.getElementById('s-obl').textContent=fmt(val('obligacionesFinancieras'));
+    document.getElementById('s-monto').textContent=fmt(val('montoSolicitado'));
+    document.getElementById('s-plazo').textContent=val('plazo')||'—';
+    document.getElementById('s-destino').textContent=val('destinoCredito')||'—';
+    const ing=Number(val('ingresosMensuales')||0)+Number(val('ingresosAdicionales')||0);
+    const egr=Number(val('egresosMensuales')||0)+Number(val('obligacionesFinancieras')||0);
+    const capEl=document.getElementById('s-cap');
+    if(ing>0){capEl.textContent=fmt(ing-egr);capEl.style.color=(ing-egr)<=0?'#dc2626':(ing-egr)<ing*0.3?'#b45309':'#1B5E20';}else capEl.textContent='—';
+  } else {
+    document.getElementById('js-nombre').textContent=val('j-razonSocial')||'—';
+    document.getElementById('js-nit').textContent=val('j-nit')||'—';
+    const rn=val('j-repNombre'),ra=val('j-repApellido');
+    document.getElementById('js-rep').textContent=rn&&ra?rn+' '+ra:'—';
+    document.getElementById('js-ing').textContent=fmt(val('j-ingresosMensuales'));
+    document.getElementById('js-activos').textContent=fmt(val('j-totalActivos'));
+    document.getElementById('js-monto').textContent=fmt(val('j-montoSolicitado'));
+    document.getElementById('js-plazo').textContent=val('j-plazo')||'—';
+    document.getElementById('js-destino').textContent=val('j-destinoCredito')||'—';
   }
 }
-function fileToBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsDataURL(file); }); }
-const DOC_KEYS={u0:'cedula_frontal',u1:'cedula_reverso',u2:'colillas',u3:'certificado_laboral',u4:'rut',u5:'declaracion_renta',u6:'extracto_1',u7:'extracto_2',u8:'extracto_3',u9:'extracto_alt',u10:'servicios',u11:'camara',u12:'garantia',u13:'selfie'};
 
-/* ── SELECCIONAR TODO ── */
-function seleccionarTodo(){
-  const checks=['ch1','ch2','ch3','ch4','ch5','ch6'];
-  const todos=checks.every(id=>document.getElementById(id).checked);
-  checks.forEach(id=>{ document.getElementById(id).checked=!todos; });
-  const btn=document.getElementById('btnSelAll');
-  btn.textContent=todos?'✓ Seleccionar todo':'✕ Deseleccionar todo';
+const archivosSeleccionados={};
+function clickUpload(id){document.getElementById(id).click();}
+function markUp(input){const zone=input.closest('.upload-zone');if(input.files&&input.files.length>0){zone.classList.add('uploaded');zone.querySelector('.uz-label').textContent='✓ '+input.files[0].name.substring(0,30);archivosSeleccionados[input.id]=input.files[0];}}
+function fileToBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file);});}
+
+function seleccionarTodo(tipo){
+  const checks=CONFIG[tipo].checks;
+  const todos=checks.every(id=>document.getElementById(id)?.checked);
+  checks.forEach(id=>{const el=document.getElementById(id);if(el)el.checked=!todos;});
+  const btnId=tipo==='natural'?'btnSelAll':'btnSelAllJ';
+  const btn=document.getElementById(btnId);
+  if(btn)btn.textContent=todos?'✓ Seleccionar todo':'✕ Deseleccionar todo';
 }
 
-/* ── TOAST ── */
-function showToast(msg,tipo='ok'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+tipo+' show'; setTimeout(()=>t.classList.remove('show'),4500); }
+function showToast(msg,tipo='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+tipo+' show';setTimeout(()=>t.classList.remove('show'),4500);}
 
-/* ── SUCCESS ── */
 function showSuccess(){
-  document.querySelectorAll('.step').forEach(s=>s.style.display='none');
+  const cfg=CONFIG[tipoPersona];
+  for(let i=0;i<cfg.totalSteps;i++){const el=document.getElementById(cfg.prefix+'step'+i);if(el)el.style.display='none';}
   document.getElementById('stepSuccess').style.display='block';
   document.getElementById('navBar').style.display='none';
   document.getElementById('progress').style.display='none';
@@ -644,42 +890,32 @@ function showSuccess(){
   localStorage.removeItem(DRAFT_KEY);
 }
 
-/* ── ENVÍO ── */
 async function submitForm(){
-  const checks=['ch1','ch2','ch3','ch4','ch5','ch6'];
-  if(checks.some(id=>!document.getElementById(id).checked)){ showToast('Acepte todas las declaraciones antes de enviar','err'); return; }
-  if(!val('firmaElectronica')){ showToast('Escriba su nombre como firma electrónica','err'); return; }
+  const cfg=CONFIG[tipoPersona];
+  if(cfg.checks.some(id=>!document.getElementById(id)?.checked)){showToast('Acepte todas las declaraciones antes de enviar','err');return;}
+  const firmaVal=val(cfg.firmaId);
+  if(!firmaVal){showToast('Escriba su nombre como firma electrónica','err');return;}
   const btn=document.getElementById('btnSubmit');
-  btn.disabled=true; btn.textContent='Enviando...';
-  const campos=['tipoDocumento','numDocumento','primerNombre','segundoNombre','primerApellido','segundoApellido','fechaNacimiento','paisNacimiento','ciudadNacimiento','genero','celular','telefonoAlt','email','emailAlt','departamento','ciudad','barrio','direccion','tipoVivienda','tiempoVivienda','ingresosMensuales','fuenteIngresos','ingresosAdicionales','conceptoIngresosAd','egresosMensuales','obligacionesFinancieras','banco','tipoCuenta','numeroCuenta','otrasCuentas','montoSolicitado','plazo','garantia','destinoCredito','situacionLaboral','sectorEconomico','empresa','nitEmpresa','cargo','antiguedad','tipoContrato','telefonoTrabajo','direccionTrabajo','estadoCivil','nivelEducativo','numeroDependientes','refNombre','refParentesco','refCelular','refAdicional','firmaElectronica'];
-  const data={};
-  campos.forEach(c=>{ data[c]=val(c)||null; });
-  data.declaracionVeracidad=document.getElementById('ch1').checked;
-  data.autorizacionCentrales=document.getElementById('ch2').checked;
-  data.autorizacionDatos=document.getElementById('ch3').checked;
-  data.declaracionSarlaft=document.getElementById('ch4').checked;
-  data.declaracionPep=document.getElementById('ch5').checked;
-  data.autorizacionDebito=document.getElementById('ch6').checked;
+  btn.disabled=true;btn.textContent='Enviando...';
+  const data={tipoPersona};
+  [...cfg.camposTexto,...cfg.camposMiles].forEach(id=>{data[id]=val(id)||null;});
+  cfg.checks.forEach((id,i)=>{data['decl_'+(i+1)]=document.getElementById(id)?.checked||false;});
+  data.firmaElectronica=firmaVal;
   const documentos={};
-  for(const[inputId,docKey] of Object.entries(DOC_KEYS)){
-    const file=archivosSeleccionados[inputId];
-    if(file){ try{ const b64=await fileToBase64(file); documentos[docKey]={base64:b64,nombre:file.name,tipo:file.type}; }catch(e){} }
+  for(const[inputId,file] of Object.entries(archivosSeleccionados)){
+    try{const b64=await fileToBase64(file);documentos[inputId]={base64:b64,nombre:file.name,tipo:file.type};}catch(e){}
   }
   data.documentos=documentos;
   try{
     const resp=await fetch(API_URL+'/api/solicitudes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const json=await resp.json();
-    if(resp.ok&&json.radicado){ document.getElementById('radicado-display').textContent=json.radicado; showStep(TOTAL); }
-    else{ showToast(json.error||'Error enviando. Intenta de nuevo.','err'); btn.disabled=false; btn.textContent='Enviar solicitud ↗'; }
-  }catch(e){ showToast('Error de conexión. Verifica tu internet.','err'); btn.disabled=false; btn.textContent='Enviar solicitud ↗'; }
+    if(resp.ok&&json.radicado){document.getElementById('radicado-display').textContent=json.radicado;showStep(cfg.totalSteps);}
+    else{showToast(json.error||'Error enviando. Intenta de nuevo.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
+  }catch(e){showToast('Error de conexión. Verifica tu internet.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
 }
 
-/* ── INIT ── */
-window.onload = () => {
-  try{
-    const raw = localStorage.getItem(DRAFT_KEY);
-    if(raw && JSON.parse(raw)._step >= 0) document.getElementById('draftBanner').style.display='flex';
-  }catch(e){}
+window.onload=()=>{
+  try{const raw=localStorage.getItem(DRAFT_KEY);if(raw&&JSON.parse(raw)._tipo)document.getElementById('draftBanner').style.display='flex';}catch(e){}
 };
 </script>
 </body>
