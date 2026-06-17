@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solicitud de Crédito — Financial Services</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Sora:wght@600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:#F4F6F2;min-height:100vh;color:#111}
@@ -102,6 +102,19 @@ textarea{resize:vertical;min-height:80px}
 .tipo-intro h2{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
 .tipo-intro p{font-size:14px;color:var(--text-soft)}
 @media(max-width:600px){.grid-2,.grid-3,.cap-grid{grid-template-columns:1fr}.doc-grid{grid-template-columns:1fr}.tabs .tab{font-size:9px;padding:8px 2px}.header{flex-direction:column;align-items:flex-start;gap:8px}.tipo-selector{grid-template-columns:1fr}}
+
+.firma-wrap{border:2px solid #c8dac8;border-radius:9px;background:#fff;overflow:hidden;position:relative}
+.firma-wrap canvas{display:block;touch-action:none;cursor:crosshair;width:100%;height:160px}
+.firma-tabs{display:flex;border-bottom:1.5px solid #e5e7eb}
+.firma-tab{flex:1;padding:8px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;color:var(--text-soft);background:#f9fdf9;border:none;transition:all .2s}
+.firma-tab.active{background:#fff;color:var(--navy);border-bottom:2px solid var(--lime-d)}
+.firma-tab-content{display:none;padding:12px}
+.firma-tab-content.active{display:block}
+.firma-actions{display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;border-top:1px solid #f3f4f6;background:#fafafa}
+.firma-clear{font-size:11px;font-weight:600;color:#6b7280;background:transparent;border:1px solid #d1d5db;border-radius:5px;padding:4px 10px;cursor:pointer}
+.firma-clear:hover{border-color:#9ca3af;color:#374151}
+.firma-preview{max-height:60px;border:1px solid #e5e7eb;border-radius:5px;display:none;margin-top:8px}
+.firma-font{font-family:'Caveat',cursive;font-size:32px;color:#1B5E20;padding:8px 0;min-height:60px;display:flex;align-items:center}
 </style>
 </head>
 <body>
@@ -253,9 +266,22 @@ textarea{resize:vertical;min-height:80px}
           <div class="field"><label>Número de cuenta<span class="req">*</span></label>
             <input type="text" id="numeroCuenta" placeholder="0000000000" oninput="guardarBorrador()"></div>
         </div>
-        <div class="field" style="margin-bottom:12px">
-          <label>Otras cuentas bancarias</label>
-          <input type="text" id="otrasCuentas" placeholder="Banco — Tipo — Número" oninput="guardarBorrador()">
+        <div style="margin-bottom:12px">
+          <label style="display:block;margin-bottom:6px">Otra cuenta bancaria</label>
+          <div class="grid-3" style="margin-bottom:0">
+            <div class="field">
+              <label>Banco</label>
+              <select id="otroBanco" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Bancolombia</option><option>Davivienda</option><option>Banco de Bogotá</option><option>BBVA</option><option>Banco Popular</option><option>Nequi</option><option>Daviplata</option><option>Otro</option></select>
+            </div>
+            <div class="field">
+              <label>Tipo de cuenta</label>
+              <select id="otroTipoCuenta" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Ahorros</option><option>Corriente</option></select>
+            </div>
+            <div class="field">
+              <label>Número de cuenta</label>
+              <input type="text" id="otroNumeroCuenta" placeholder="0000000000" oninput="guardarBorrador()">
+            </div>
+          </div>
         </div>
         <div class="grid-2">
           <div class="field"><label>Monto solicitado<span class="req">*</span></label>
@@ -385,11 +411,28 @@ textarea{resize:vertical;min-height:80px}
         <div class="check-row"><input type="checkbox" id="ch5"><label for="ch5">Declaro que no soy Persona Políticamente Expuesta (PEP). En caso contrario me comprometo a declararlo por escrito.</label></div>
         <div class="check-row"><input type="checkbox" id="ch6"><label for="ch6">Autorizo el débito automático de las cuotas desde la cuenta registrada en caso de aprobación.</label></div>
         <div class="divider"></div>
-        <div class="field">
-          <label>Firma electrónica — Escriba su nombre completo como firma</label>
-          <input type="text" id="firmaElectronica" placeholder="Juan Carlos Pérez Gómez">
+        <div style="margin-bottom:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--text-soft)">Firma electrónica <span class="req">*</span></label>
         </div>
-        <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar, acepta que la digitación de su nombre tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999.</p>
+        <div class="firma-wrap">
+          <div class="firma-tabs">
+            <button type="button" class="firma-tab active" onclick="firmaTab('n','draw')">✍️ Dibujar firma</button>
+            <button type="button" class="firma-tab" onclick="firmaTab('n','text')">🔤 Texto estilizado</button>
+          </div>
+          <div id="n-firma-draw" class="firma-tab-content active">
+            <canvas id="n-firmaCanvas" width="660" height="160" style="height:160px"></canvas>
+            <div class="firma-actions">
+              <button type="button" class="firma-clear" onclick="firmaClear('n')">🗑 Limpiar</button>
+            </div>
+          </div>
+          <div id="n-firma-text" class="firma-tab-content">
+            <div class="field">
+              <input type="text" id="firmaElectronica" placeholder="Escriba su nombre completo" oninput="firmaTextoPreview('n')" style="margin-bottom:8px">
+              <div id="n-firma-preview" class="firma-font"></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar, acepta que esta firma tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999. Se registran: IP, fecha y hora.</p>
       </div>
     </div>
 
@@ -618,11 +661,28 @@ textarea{resize:vertical;min-height:80px}
         <div class="check-row"><input type="checkbox" id="jch7"><label for="jch7">Declaro que la empresa no se encuentra en proceso de liquidación, concordato, insolvencia ni cesación de pagos.</label></div>
         <div class="check-row"><input type="checkbox" id="jch8"><label for="jch8">Autorizo en nombre de la empresa la verificación de la información tributaria ante la DIAN y demás entidades competentes.</label></div>
         <div class="divider"></div>
-        <div class="field">
-          <label>Firma electrónica del representante legal — Escriba su nombre completo</label>
-          <input type="text" id="j-firmaElectronica" placeholder="Nombre completo del representante legal">
+        <div style="margin-bottom:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--text-soft)">Firma electrónica del representante legal <span class="req">*</span></label>
         </div>
-        <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar, el representante legal acepta que la digitación de su nombre tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999.</p>
+        <div class="firma-wrap">
+          <div class="firma-tabs">
+            <button type="button" class="firma-tab active" onclick="firmaTab('j','draw')">✍️ Dibujar firma</button>
+            <button type="button" class="firma-tab" onclick="firmaTab('j','text')">🔤 Texto estilizado</button>
+          </div>
+          <div id="j-firma-draw" class="firma-tab-content active">
+            <canvas id="j-firmaCanvas" width="660" height="160" style="height:160px"></canvas>
+            <div class="firma-actions">
+              <button type="button" class="firma-clear" onclick="firmaClear('j')">🗑 Limpiar</button>
+            </div>
+          </div>
+          <div id="j-firma-text" class="firma-tab-content">
+            <div class="field">
+              <input type="text" id="j-firmaElectronica" placeholder="Nombre completo del representante legal" oninput="firmaTextoPreview('j')" style="margin-bottom:8px">
+              <div id="j-firma-preview" class="firma-font"></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:#9ca3af;margin-top:6px">Al enviar, el representante legal acepta que esta firma tiene valor de firma electrónica simple conforme al art. 7 de la Ley 527 de 1999. Se registran: IP, fecha y hora.</p>
       </div>
     </div>
 
@@ -665,7 +725,7 @@ const CONFIG = {
     timer: '⏱ Aprox. 8 minutos',
     sub: 'Financial Services · Persona Natural · Complete todos los campos',
     camposMiles: ['ingresosMensuales','ingresosAdicionales','egresosMensuales','obligacionesFinancieras','montoSolicitado'],
-    camposTexto: ['tipoDocumento','numDocumento','primerNombre','segundoNombre','primerApellido','segundoApellido','fechaNacimiento','paisNacimiento','ciudadNacimiento','genero','celular','telefonoAlt','email','emailAlt','departamento','ciudad','barrio','direccion','tipoVivienda','tiempoVivienda','fuenteIngresos','conceptoIngresosAd','banco','tipoCuenta','numeroCuenta','otrasCuentas','plazo','garantia','destinoCredito','situacionLaboral','sectorEconomico','empresa','nitEmpresa','cargo','antiguedad','tipoContrato','telefonoTrabajo','direccionTrabajo','estadoCivil','nivelEducativo','numeroDependientes','refNombre','refParentesco','refCelular','refAdicional'],
+    camposTexto: ['tipoDocumento','numDocumento','primerNombre','segundoNombre','primerApellido','segundoApellido','fechaNacimiento','paisNacimiento','ciudadNacimiento','genero','celular','telefonoAlt','email','emailAlt','departamento','ciudad','barrio','direccion','tipoVivienda','tiempoVivienda','fuenteIngresos','conceptoIngresosAd','banco','tipoCuenta','numeroCuenta','otroBanco','otroTipoCuenta','otroNumeroCuenta','plazo','garantia','destinoCredito','situacionLaboral','sectorEconomico','empresa','nitEmpresa','cargo','antiguedad','tipoContrato','telefonoTrabajo','direccionTrabajo','estadoCivil','nivelEducativo','numeroDependientes','refNombre','refParentesco','refCelular','refAdicional'],
     required: {
       0:[{id:'tipoDocumento',label:'Tipo de documento'},{id:'numDocumento',label:'Número de documento'},{id:'primerNombre',label:'Primer nombre'},{id:'primerApellido',label:'Primer apellido'},{id:'fechaNacimiento',label:'Fecha de nacimiento'},{id:'celular',label:'Celular principal'},{id:'email',label:'Correo electrónico'},{id:'departamento',label:'Departamento'},{id:'ciudad',label:'Ciudad'},{id:'direccion',label:'Dirección de residencia'},{id:'tipoVivienda',label:'Tipo de vivienda'}],
       1:[{id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},{id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Obligaciones financieras'},{id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},{id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},{id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'}],
@@ -809,7 +869,7 @@ function showStep(n){
   if(n>=cfg.totalSteps){showSuccess();return;}
   const stepEl=document.getElementById(cfg.prefix+'step'+n);if(stepEl)stepEl.style.display='block';
   currentStep=n;updateNav();updateProgress();
-  if(n===cfg.totalSteps-1)updateSummary();
+  if(n===cfg.totalSteps-1){updateSummary();setTimeout(()=>initCanvas(tipoPersona==='natural'?'n':'j'),100);}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -893,14 +953,22 @@ function showSuccess(){
 async function submitForm(){
   const cfg=CONFIG[tipoPersona];
   if(cfg.checks.some(id=>!document.getElementById(id)?.checked)){showToast('Acepte todas las declaraciones antes de enviar','err');return;}
-  const firmaVal=val(cfg.firmaId);
-  if(!firmaVal){showToast('Escriba su nombre como firma electrónica','err');return;}
+  const firmaPrefix = tipoPersona==='natural' ? 'n' : 'j';
+  const firmaImg = getFirmaBase64(firmaPrefix);
+  if(!firmaImg){
+    showToast(firmaState[firmaPrefix].mode==='draw' ? 'Dibuje su firma antes de enviar' : 'Escriba su nombre como firma','err');
+    return;
+  }
+  const firmaTexto = getFirmaTexto(firmaPrefix) || '';
   const btn=document.getElementById('btnSubmit');
   btn.disabled=true;btn.textContent='Enviando...';
   const data={tipoPersona};
   [...cfg.camposTexto,...cfg.camposMiles].forEach(id=>{data[id]=val(id)||null;});
   cfg.checks.forEach((id,i)=>{data['decl_'+(i+1)]=document.getElementById(id)?.checked||false;});
-  data.firmaElectronica=firmaVal;
+  data.firmaElectronica = firmaTexto;
+  data.firmaImagen = firmaImg;
+  data.firmaTimestamp = new Date().toISOString();
+  data.firmaModo = firmaState[firmaPrefix].mode;
   const documentos={};
   for(const[inputId,file] of Object.entries(archivosSeleccionados)){
     try{const b64=await fileToBase64(file);documentos[inputId]={base64:b64,nombre:file.name,tipo:file.type};}catch(e){}
@@ -912,6 +980,99 @@ async function submitForm(){
     if(resp.ok&&json.radicado){document.getElementById('radicado-display').textContent=json.radicado;showStep(cfg.totalSteps);}
     else{showToast(json.error||'Error enviando. Intenta de nuevo.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
   }catch(e){showToast('Error de conexión. Verifica tu internet.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
+}
+
+
+/* ══ FIRMA ELECTRÓNICA PAD ══ */
+const firmaState = {
+  n: { mode:'draw', drawing:false, hasDrawing:false },
+  j: { mode:'draw', drawing:false, hasDrawing:false }
+};
+
+function firmaTab(prefix, mode){
+  firmaState[prefix].mode = mode;
+  ['draw','text'].forEach(m=>{
+    document.getElementById(prefix+'-firma-'+m)?.classList.toggle('active', m===mode);
+  });
+  const stepEl = document.getElementById((prefix==='n'?'n':'j')+'-step4');
+  if(stepEl) stepEl.querySelectorAll('.firma-tab').forEach((t,i)=>{
+    t.classList.toggle('active',(i===0&&mode==='draw')||(i===1&&mode==='text'));
+  });
+  if(mode==='draw') setTimeout(()=>initCanvas(prefix),50);
+}
+
+function initCanvas(prefix){
+  const canvas = document.getElementById(prefix+'-firmaCanvas');
+  if(!canvas) return;
+  if(canvas._init) return;
+  canvas._init = true;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth || canvas.parentElement?.offsetWidth || 640;
+  canvas.width = w * dpr;
+  canvas.height = 160 * dpr;
+  canvas.style.width = w+'px';
+  canvas.style.height = '160px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.strokeStyle = '#1B5E20';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  function getPos(e){
+    const r=canvas.getBoundingClientRect();
+    const src=e.touches?e.touches[0]:e;
+    return{x:src.clientX-r.left,y:src.clientY-r.top};
+  }
+  function start(e){e.preventDefault();firmaState[prefix].drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);}
+  function move(e){e.preventDefault();if(!firmaState[prefix].drawing)return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();firmaState[prefix].hasDrawing=true;}
+  function stop(){firmaState[prefix].drawing=false;}
+  canvas.addEventListener('mousedown',start);
+  canvas.addEventListener('mousemove',move);
+  canvas.addEventListener('mouseup',stop);
+  canvas.addEventListener('mouseleave',stop);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',stop);
+}
+
+function firmaClear(prefix){
+  const canvas=document.getElementById(prefix+'-firmaCanvas');
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  firmaState[prefix].hasDrawing=false;
+}
+
+function firmaTextoPreview(prefix){
+  const inputId=prefix==='n'?'firmaElectronica':'j-firmaElectronica';
+  const v=document.getElementById(inputId)?.value||'';
+  document.getElementById(prefix+'-firma-preview').textContent=v;
+}
+
+function getFirmaBase64(prefix){
+  const state=firmaState[prefix];
+  if(state.mode==='draw'){
+    if(!state.hasDrawing)return null;
+    return document.getElementById(prefix+'-firmaCanvas')?.toDataURL('image/png')||null;
+  } else {
+    const inputId=prefix==='n'?'firmaElectronica':'j-firmaElectronica';
+    const nombre=(document.getElementById(inputId)?.value||'').trim();
+    if(!nombre)return null;
+    const c=document.createElement('canvas');c.width=500;c.height=100;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,500,100);
+    ctx.fillStyle='#1B5E20';ctx.font='bold 42px Caveat, cursive';
+    ctx.fillText(nombre,20,68);
+    return c.toDataURL('image/png');
+  }
+}
+
+function getFirmaTexto(prefix){
+  if(firmaState[prefix].mode==='text'){
+    const inputId=prefix==='n'?'firmaElectronica':'j-firmaElectronica';
+    return(document.getElementById(inputId)?.value||'').trim();
+  }
+  return '';
 }
 
 window.onload=()=>{
