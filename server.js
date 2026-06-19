@@ -254,7 +254,9 @@ function rowToSolicitud(r) {
 }
 
 // ── Cloudinary ────────────────────────────────────────────────────────────────
-async function uploadImageToCloudinary(base64Data, fileName, folder) {
+// resourceType: 'auto' deja que Cloudinary detecte si es imagen, PDF, etc.
+// Esto reemplaza el guardado local de PDFs (Railway borra el disco en cada deploy).
+async function uploadImageToCloudinary(base64Data, fileName, folder, resourceType = 'auto') {
   const mimeMatch = base64Data.match(/data:([^;]+);/);
   const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
   const base64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
@@ -274,7 +276,7 @@ async function uploadImageToCloudinary(base64Data, fileName, folder) {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'api.cloudinary.com',
-      path: `/v1_1/${CLOUD_NAME}/image/upload`,
+      path: `/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
       method: 'POST',
       headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': requestBody.length }
     };
@@ -343,13 +345,9 @@ app.post('/api/solicitudes', async (req, res) => {
         if (fileData && fileData.base64) {
           try {
             const mimeType = fileData.tipo || '';
-            const isPdf = mimeType.includes('pdf') || (fileData.nombre||'').toLowerCase().endsWith('.pdf');
-            let url;
-            if (isPdf) {
-              url = saveDocumentLocally(fileData.base64, fileData.nombre||key+'.pdf', radicado);
-            } else {
-              url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado);
-            }
+            // Todo sube a Cloudinary (resource_type=auto detecta imagen/PDF/etc).
+            // Railway borra el disco local en cada deploy, por eso ya no se usa saveDocumentLocally.
+            const url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado, 'auto');
             documentosUrls[key] = { url, nombre: nombresDoc[key]||key, nombreArchivo: fileData.nombre, tipo: mimeType };
           } catch(e) {
             console.error(`✗ ${key}:`, e.message);
