@@ -176,9 +176,13 @@ td{padding:10px 14px;color:#374151}
 
       <!-- SOLICITUDES -->
       <div class="section" id="sec-solicitudes">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn-sm" id="tab-tipo-natural" onclick="cambiarTipoLista('natural')" style="background:var(--navy);color:#fff;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">👤 Persona Natural</button>
+          <button class="btn-sm" id="tab-tipo-juridica" onclick="cambiarTipoLista('juridica')" style="background:#f3f4f6;color:#6b7280;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">🏢 Persona Jurídica</button>
+        </div>
         <div class="search-bar">
           <input type="text" id="buscar" placeholder="Buscar por nombre, documento, email..." oninput="debSearch()">
-          <select id="filtroEstado" onchange="loadSolicitudes()">
+          <select id="filtroEstado" onchange="loadSolicitudesActivas()">
             <option value="TODAS">Todos los estados</option>
             <option value="RADICADA">Radicada</option>
             <option value="EN_ANALISIS">En análisis</option>
@@ -187,9 +191,13 @@ td{padding:10px 14px;color:#374151}
             <option value="DESEMBOLSADA">Desembolsada</option>
           </select>
         </div>
-        <div class="card">
+        <div class="card" id="card-natural">
           <table><thead><tr><th>Radicado</th><th>Nombre</th><th>Documento</th><th>Celular</th><th>Monto</th><th>Score</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
           <tbody id="sol-table"></tbody></table>
+        </div>
+        <div class="card" id="card-juridica" style="display:none">
+          <table><thead><tr><th>Radicado</th><th>Razón social</th><th>NIT</th><th>Representante</th><th>Monto</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody id="solj-table"></tbody></table>
         </div>
       </div>
 
@@ -356,7 +364,7 @@ function showSection(name,btn){
   if(btn)btn.classList.add('active');
   const titles={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría'};
   document.getElementById('topbarTitle').textContent=titles[name];
-  if(name==='solicitudes')loadSolicitudes();
+  if(name==='solicitudes')loadSolicitudesActivas();
   if(name==='auditoria')loadAuditoria();
   if(name==='dashboard')loadDashboard();
 }
@@ -384,6 +392,24 @@ async function loadDashboard(){
 }
 
 /* ── SOLICITUDES ── */
+let tipoListaActiva = 'natural';
+
+function cambiarTipoLista(tipo){
+  tipoListaActiva = tipo;
+  document.getElementById('tab-tipo-natural').style.background = tipo==='natural' ? 'var(--navy)' : '#f3f4f6';
+  document.getElementById('tab-tipo-natural').style.color = tipo==='natural' ? '#fff' : '#6b7280';
+  document.getElementById('tab-tipo-juridica').style.background = tipo==='juridica' ? 'var(--navy)' : '#f3f4f6';
+  document.getElementById('tab-tipo-juridica').style.color = tipo==='juridica' ? '#fff' : '#6b7280';
+  document.getElementById('card-natural').style.display = tipo==='natural' ? '' : 'none';
+  document.getElementById('card-juridica').style.display = tipo==='juridica' ? '' : 'none';
+  loadSolicitudesActivas();
+}
+
+function loadSolicitudesActivas(){
+  if(tipoListaActiva==='juridica') loadSolicitudesJuridica();
+  else loadSolicitudes();
+}
+
 async function loadSolicitudes(){
   const buscar=document.getElementById('buscar').value;
   const estado=document.getElementById('filtroEstado').value;
@@ -404,7 +430,27 @@ async function loadSolicitudes(){
       <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
     </tr>`).join('');
 }
-function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSolicitudes,400); }
+
+async function loadSolicitudesJuridica(){
+  const buscar=document.getElementById('buscar').value;
+  const estado=document.getElementById('filtroEstado').value;
+  const d=await req(`/api/admin/solicitudes-juridica?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
+  if(!d)return;
+  const tbody=document.getElementById('solj-table');
+  if(!d.solicitudes.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';return;}
+  tbody.innerHTML=d.solicitudes.map(s=>`
+    <tr>
+      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
+      <td style="font-weight:500">${v(s.razonSocial)}</td>
+      <td style="color:#6b7280">${v(s.nit)}</td>
+      <td>${v(s.repNombre)} ${v(s.repApellido)}</td>
+      <td>${fmt(s.montoSolicitado)}</td>
+      <td>${badge(s.estado)}</td>
+      <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
+      <td><button class="btn-sm btn-navy" onclick="verSolicitudJuridica('${s.id}')">Ver →</button></td>
+    </tr>`).join('');
+}
+function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSolicitudesActivas,400); }
 
 /* ── MODAL DETALLE ── */
 async function verSolicitud(id){
@@ -565,6 +611,149 @@ async function cambiarEstado(id,estado){
   else showToast('Error cambiando estado','err');
 }
 function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('modalBg').classList.remove('open'); }
+
+/* ── MODAL DETALLE — PERSONA JURÍDICA ── */
+async function verSolicitudJuridica(id){
+  const s=await req('/api/admin/solicitudes-juridica/'+id); if(!s)return;
+  document.getElementById('modal-title').innerHTML=`${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)} &nbsp;·&nbsp; 🏢 Jurídica`;
+
+  /* Empresa */
+  const secEmpresa=`
+    <div class="section-title"><span>🏢</span> Paso 1 — Datos de la Empresa</div>
+    <div class="info-grid">
+      ${ib('Razón social',s.razonSocial)}${ib('NIT',s.nit)}
+      ${ib('Tipo de sociedad',s.tipoSociedad)}${ib('Fecha constitución',s.fechaConstitucion)}
+    </div>
+    <div class="info-grid">
+      ${ib('Actividad económica',s.actividadEconomica)}${ib('Sector económico',s.sectorEconomico)}
+      ${ib('N° empleados',s.numEmpleados)}${ib('Antigüedad empresa',s.antiguedadEmpresa)}
+    </div>
+    <div class="info-grid-3">
+      ${ib('Departamento',s.departamento)}${ib('Ciudad',s.ciudad)}${ib('Dirección comercial',s.direccionComercial)}
+    </div>
+    <div class="section-title" style="margin-top:4px"><span>👤</span> Representante legal</div>
+    <div class="info-grid">
+      ${ib('Nombre',`${v(s.repNombre)} ${v(s.repSegundoNombre)} ${v(s.repApellido)}`)}${ib('Cargo',s.repCargo)}
+      ${ib('Tipo / N° documento',`${v(s.repTipoDoc)} ${v(s.repNumDoc)}`)}${ib('Fecha nacimiento',s.repFechaNac)}
+      ${ib('Celular',s.repCelular)}${ib('Email',s.repEmail)}
+    </div>`;
+
+  /* Financiero */
+  const secFin=`
+    <div class="section-title"><span>💰</span> Paso 2 — Perfil Financiero</div>
+    <div class="info-grid">
+      ${ib('Ingresos mensuales',fmt(s.ingresosMensuales),'hl')}${ib('Ventas anuales',fmt(s.ventasAnuales))}
+      ${ib('Total activos',fmt(s.totalActivos))}${ib('Total pasivos',fmt(s.totalPasivos))}
+      ${ib('Egresos mensuales',fmt(s.egresosMensuales))}${ib('Obligaciones financieras',fmt(s.obligaciones))}
+    </div>
+    <div class="section-title" style="margin-top:4px"><span>🏦</span> Relación bancaria</div>
+    <div class="info-grid-3">
+      ${ib('Banco',s.banco)}${ib('Tipo de cuenta',s.tipoCuenta)}${ib('Número de cuenta',s.numeroCuenta)}
+    </div>
+    <div class="section-title" style="margin-top:4px"><span>📄</span> Crédito solicitado</div>
+    <div class="info-grid-3">
+      ${ib('Monto solicitado',fmt(s.montoSolicitado),'hl')}${ib('Plazo',s.plazo)}${ib('Garantía',s.garantia)}
+    </div>
+    <div class="info-grid">
+      <div class="ib span2"><div class="lbl">Destino del crédito</div><div class="val">${v(s.destinoCredito)}</div></div>
+    </div>`;
+
+  /* Operacional */
+  const secOp=`
+    <div class="section-title"><span>⚙️</span> Paso 3 — Información Operacional</div>
+    <div class="info-grid">
+      ${ib('Sucursales',s.sucursales)}${ib('Mercado',s.mercado)}
+      ${ib('Proveedores',s.proveedores)}${ib('Grupo económico',s.grupoEconomico)}
+    </div>
+    <div class="info-grid">
+      <div class="ib span2"><div class="lbl">Descripción de la actividad</div><div class="val">${v(s.descripcionActividad)}</div></div>
+    </div>
+    <div class="info-grid">
+      ${ib('Socio / accionista principal',s.socioPrincipal)}${ib('% Participación',s.porcentajePart)}
+      ${ib('Otros socios',s.otrosSocios)}
+    </div>
+    <div class="info-grid-3">
+      ${ib('Empresa referencia',s.refEmpresa)}${ib('Contacto referencia',s.refContacto)}${ib('Tel. referencia',s.refTelefono)}
+    </div>
+    <div class="info-grid">
+      ${ib('Relación con la referencia',s.refRelacion)}
+    </div>`;
+
+  /* Documentos */
+  let docsHtml='';
+  if(s.documentos&&Object.keys(s.documentos).length>0){
+    const items=Object.entries(s.documentos).map(([k,d])=>{
+      if(d&&d.url){
+        const nombre=d.nombre||k;
+        const isPdf=d.url.includes('.pdf')||d.url.includes('/docs/');
+        if(isPdf)return `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 ${nombre}</div>`;
+        return `<a href="${d.url}" target="_blank" class="doc-link">🖼 ${nombre}</a>`;
+      }
+      return `<div class="doc-error">⚠ ${d?.nombre||k} — no disponible</div>`;
+    }).join('');
+    docsHtml=`<div class="docs-grid">${items}</div>`;
+  }else{
+    docsHtml=`<div style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:7px">Sin documentos adjuntos</div>`;
+  }
+  const secDocs=`
+    <div class="section-title"><span>📎</span> Paso 4 — Documentos (${s.documentos?Object.keys(s.documentos).length:0})</div>
+    ${docsHtml}`;
+
+  /* Declaraciones */
+  const secDecl=`
+    <div class="section-title"><span>✍️</span> Paso 5 — Declaraciones y Firma</div>
+    <div class="check-grid">
+      ${boolItem('Declaración 1',s.decl1)}${boolItem('Declaración 2',s.decl2)}
+      ${boolItem('Declaración 3',s.decl3)}${boolItem('Declaración 4',s.decl4)}
+      ${boolItem('Declaración 5',s.decl5)}${boolItem('Declaración 6',s.decl6)}
+      ${boolItem('Declaración 7',s.decl7)}${boolItem('Declaración 8',s.decl8)}
+    </div>
+    <div class="info-grid">
+      ${ib('Firma electrónica',s.firmaElectronica)}
+    </div>`;
+
+  /* Gestión */
+  const secGestion=`
+    <div class="section-title"><span>🗂</span> Gestión</div>
+    <div class="info-grid" style="margin-bottom:10px">
+      ${ib('Nota analista',s.notaAnalista||'Sin nota')}${ib('Fecha solicitud',fdate(s.createdAt))}
+    </div>
+    <div>
+      <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
+      <textarea id="notaDecisionJ" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${s.notaAnalista||''}</textarea>
+    </div>`;
+
+  /* Historial */
+  const histHtml=s.auditoria?.length?`
+    <div class="section-title"><span>🕓</span> Historial</div>
+    <div style="max-height:110px;overflow-y:auto">
+      ${s.auditoria.map(a=>`
+        <div class="hist-item">
+          <span style="color:#9ca3af;flex-shrink:0">${fdate(a.createdAt)}</span>
+          <strong>· ${a.accion}</strong>
+          <span>${a.detalle?'· '+a.detalle:''}</span>
+        </div>`).join('')}
+    </div>`:'' ;
+
+  document.getElementById('modal-body').innerHTML=
+    secEmpresa+secFin+secOp+secDocs+secDecl+secGestion+histHtml;
+
+  const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
+  document.getElementById('modal-foot').innerHTML=`
+    ${pendiente?`
+      <button class="btn-sm btn-ghost" onclick="cambiarEstadoJuridica('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
+      <button class="btn-sm btn-red"   onclick="cambiarEstadoJuridica('${s.id}','RECHAZADA')">✕ Rechazar</button>
+      <button class="btn-sm btn-lime"  onclick="cambiarEstadoJuridica('${s.id}','APROBADA')">✓ Aprobar</button>`:''}`;
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+async function cambiarEstadoJuridica(id,estado){
+  const nota=document.getElementById('notaDecisionJ')?.value||'';
+  const r=await req('/api/admin/solicitudes-juridica/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
+  if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudesJuridica();loadDashboard();}
+  else showToast('Error cambiando estado','err');
+}
 
 /* ── AUDITORÍA ── */
 async function loadAuditoria(){
