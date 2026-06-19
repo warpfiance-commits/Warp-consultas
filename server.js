@@ -81,9 +81,40 @@ async function initDB() {
     );
   `);
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS solicitudes_juridica (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      radicado TEXT UNIQUE NOT NULL,
+      estado TEXT NOT NULL DEFAULT 'RADICADA',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      razon_social TEXT, nit TEXT, tipo_sociedad TEXT,
+      fecha_constitucion TEXT, actividad_economica TEXT, sector_economico TEXT,
+      num_empleados TEXT, departamento TEXT, ciudad TEXT, direccion_comercial TEXT,
+      rep_nombre TEXT, rep_segundo_nombre TEXT, rep_apellido TEXT,
+      rep_tipo_doc TEXT, rep_num_doc TEXT, rep_cargo TEXT,
+      rep_celular TEXT, rep_email TEXT, rep_fecha_nac TEXT,
+      ventas_anuales NUMERIC, ingresos_mensuales NUMERIC,
+      total_activos NUMERIC, total_pasivos NUMERIC,
+      egresos_mensuales NUMERIC, obligaciones NUMERIC,
+      banco TEXT, tipo_cuenta TEXT, numero_cuenta TEXT,
+      monto_solicitado NUMERIC, plazo TEXT, garantia TEXT, destino_credito TEXT,
+      antiguedad_empresa TEXT, sucursales TEXT, mercado TEXT, proveedores TEXT,
+      descripcion_actividad TEXT,
+      socio_principal TEXT, porcentaje_part TEXT, otros_socios TEXT, grupo_economico TEXT,
+      ref_empresa TEXT, ref_contacto TEXT, ref_telefono TEXT, ref_relacion TEXT,
+      decl_1 BOOLEAN DEFAULT FALSE, decl_2 BOOLEAN DEFAULT FALSE,
+      decl_3 BOOLEAN DEFAULT FALSE, decl_4 BOOLEAN DEFAULT FALSE,
+      decl_5 BOOLEAN DEFAULT FALSE, decl_6 BOOLEAN DEFAULT FALSE,
+      decl_7 BOOLEAN DEFAULT FALSE, decl_8 BOOLEAN DEFAULT FALSE,
+      firma_electronica TEXT,
+      documentos JSONB DEFAULT '{}',
+      nota_analista TEXT, analista TEXT
+    );
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS auditoria (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      solicitud_id UUID REFERENCES solicitudes(id) ON DELETE CASCADE,
+      solicitud_id UUID,
       accion TEXT NOT NULL,
       usuario TEXT NOT NULL DEFAULT 'sistema',
       detalle TEXT DEFAULT '',
@@ -92,6 +123,8 @@ async function initDB() {
   `);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_sol_estado ON solicitudes(estado);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_sol_created ON solicitudes(created_at DESC);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_estado ON solicitudes_juridica(estado);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_created ON solicitudes_juridica(created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_sol ON auditoria(solicitud_id);`);
   console.log('✅ PostgreSQL tablas listas');
 }
@@ -253,6 +286,42 @@ function rowToSolicitud(r) {
   };
 }
 
+function rowToSolicitudJuridica(r) {
+  return {
+    id: r.id, radicado: r.radicado, estado: r.estado,
+    createdAt: r.created_at, updatedAt: r.updated_at,
+    tipoPersona: 'juridica',
+    razonSocial: r.razon_social, nit: r.nit, tipoSociedad: r.tipo_sociedad,
+    fechaConstitucion: r.fecha_constitucion, actividadEconomica: r.actividad_economica,
+    sectorEconomico: r.sector_economico, numEmpleados: r.num_empleados,
+    departamento: r.departamento, ciudad: r.ciudad, direccionComercial: r.direccion_comercial,
+    repNombre: r.rep_nombre, repSegundoNombre: r.rep_segundo_nombre, repApellido: r.rep_apellido,
+    repTipoDoc: r.rep_tipo_doc, repNumDoc: r.rep_num_doc, repCargo: r.rep_cargo,
+    repCelular: r.rep_celular, repEmail: r.rep_email, repFechaNac: r.rep_fecha_nac,
+    ventasAnuales: r.ventas_anuales ? Number(r.ventas_anuales) : null,
+    ingresosMensuales: r.ingresos_mensuales ? Number(r.ingresos_mensuales) : null,
+    totalActivos: r.total_activos ? Number(r.total_activos) : null,
+    totalPasivos: r.total_pasivos ? Number(r.total_pasivos) : null,
+    egresosMensuales: r.egresos_mensuales ? Number(r.egresos_mensuales) : null,
+    obligaciones: r.obligaciones ? Number(r.obligaciones) : null,
+    banco: r.banco, tipoCuenta: r.tipo_cuenta, numeroCuenta: r.numero_cuenta,
+    montoSolicitado: r.monto_solicitado ? Number(r.monto_solicitado) : null,
+    plazo: r.plazo, garantia: r.garantia, destinoCredito: r.destino_credito,
+    antiguedadEmpresa: r.antiguedad_empresa, sucursales: r.sucursales,
+    mercado: r.mercado, proveedores: r.proveedores,
+    descripcionActividad: r.descripcion_actividad,
+    socioPrincipal: r.socio_principal, porcentajePart: r.porcentaje_part,
+    otrosSocios: r.otros_socios, grupoEconomico: r.grupo_economico,
+    refEmpresa: r.ref_empresa, refContacto: r.ref_contacto,
+    refTelefono: r.ref_telefono, refRelacion: r.ref_relacion,
+    decl1: r.decl_1, decl2: r.decl_2, decl3: r.decl_3, decl4: r.decl_4,
+    decl5: r.decl_5, decl6: r.decl_6, decl7: r.decl_7, decl8: r.decl_8,
+    firmaElectronica: r.firma_electronica,
+    documentos: r.documentos || {},
+    notaAnalista: r.nota_analista, analista: r.analista
+  };
+}
+
 // ── Cloudinary ────────────────────────────────────────────────────────────────
 // resourceType: 'auto' deja que Cloudinary detecte si es imagen, PDF, etc.
 // Esto reemplaza el guardado local de PDFs (Railway borra el disco en cada deploy).
@@ -329,6 +398,8 @@ app.post('/api/solicitudes', async (req, res) => {
   try {
     const radicado = generarRadicado();
     const data = req.body;
+    const esJuridica = data.tipoPersona === 'juridica';
+
     const nombresDoc = {
       cedula_frontal:'Cédula Frontal', cedula_reverso:'Cédula Reverso',
       colillas:'Colillas de pago', certificado_laboral:'Certificado laboral',
@@ -357,6 +428,69 @@ app.post('/api/solicitudes', async (req, res) => {
       }
     }
 
+    // ══ PERSONA JURÍDICA ══════════════════════════════════════════════════════
+    if (esJuridica) {
+      const qj = `INSERT INTO solicitudes_juridica (
+        radicado, razon_social, nit, tipo_sociedad, fecha_constitucion,
+        actividad_economica, sector_economico, num_empleados, departamento, ciudad,
+        direccion_comercial, rep_nombre, rep_segundo_nombre, rep_apellido, rep_tipo_doc,
+        rep_num_doc, rep_cargo, rep_celular, rep_email, rep_fecha_nac,
+        ventas_anuales, ingresos_mensuales, total_activos, total_pasivos,
+        egresos_mensuales, obligaciones, banco, tipo_cuenta, numero_cuenta,
+        monto_solicitado, plazo, garantia, destino_credito,
+        antiguedad_empresa, sucursales, mercado, proveedores, descripcion_actividad,
+        socio_principal, porcentaje_part, otros_socios, grupo_economico,
+        ref_empresa, ref_contacto, ref_telefono, ref_relacion,
+        decl_1, decl_2, decl_3, decl_4, decl_5, decl_6, decl_7, decl_8,
+        firma_electronica, documentos
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
+        $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,
+        $38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54
+      ) RETURNING id, radicado`;
+
+      const valuesJ = [
+        radicado,
+        data['j-razonSocial']||null, data['j-nit']||null, data['j-tipoSociedad']||null, data['j-fechaConstitucion']||null,
+        data['j-actividadEconomica']||null, data['j-sectorEconomico']||null, data['j-numEmpleados']||null,
+        data['j-departamento']||null, data['j-ciudad']||null,
+        data['j-direccionComercial']||null, data['j-repNombre']||null, data['j-repSegundoNombre']||null,
+        data['j-repApellido']||null, data['j-repTipoDoc']||null,
+        data['j-repNumDoc']||null, data['j-repCargo']||null, data['j-repCelular']||null,
+        data['j-repEmail']||null, data['j-repFechaNac']||null,
+        data['j-ventasAnuales'] ? Number(data['j-ventasAnuales']) : null,
+        data['j-ingresosMensuales'] ? Number(data['j-ingresosMensuales']) : null,
+        data['j-totalActivos'] ? Number(data['j-totalActivos']) : null,
+        data['j-totalPasivos'] ? Number(data['j-totalPasivos']) : null,
+        data['j-egresosMensuales'] ? Number(data['j-egresosMensuales']) : null,
+        data['j-obligaciones'] ? Number(data['j-obligaciones']) : null,
+        data['j-banco']||null, data['j-tipoCuenta']||null, data['j-numeroCuenta']||null,
+        data['j-montoSolicitado'] ? Number(data['j-montoSolicitado']) : null,
+        data['j-plazo']||null, data['j-garantia']||null, data['j-destinoCredito']||null,
+        data['j-antiguedadEmpresa']||null, data['j-sucursales']||null, data['j-mercado']||null,
+        data['j-proveedores']||null, data['j-descripcionActividad']||null,
+        data['j-socioPrincipal']||null, data['j-porcentajePart']||null,
+        data['j-otrosSocios']||null, data['j-grupoEconomico']||null,
+        data['j-refEmpresa']||null, data['j-refContacto']||null,
+        data['j-refTelefono']||null, data['j-refRelacion']||null,
+        !!data.decl_1, !!data.decl_2, !!data.decl_3, !!data.decl_4,
+        !!data.decl_5, !!data.decl_6, !!data.decl_7, !!data.decl_8,
+        data.firmaElectronica||null,
+        JSON.stringify(documentosUrls)
+      ];
+
+      const resultJ = await pool.query(qj, valuesJ);
+      const { id: idJ } = resultJ.rows[0];
+      await auditLog(idJ, 'SOLICITUD_CREADA', 'solicitante', `[Jurídica] Radicado: ${radicado} | Docs: ${Object.keys(documentosUrls).length}`);
+
+      const solJ = { ...rowToSolicitudJuridica({ id: idJ, radicado }), ...data, radicado, documentos: documentosUrls };
+      enviarEmailAdmin(solJ);
+      enviarEmailCliente(solJ);
+
+      return res.status(201).json({ ok: true, radicado, mensaje: '¡Solicitud enviada exitosamente!' });
+    }
+
+    // ══ PERSONA NATURAL ═══════════════════════════════════════════════════════
     const q = `INSERT INTO solicitudes (
       radicado, tipo_documento, num_documento, primer_nombre, segundo_nombre,
       primer_apellido, segundo_apellido, fecha_nacimiento, pais_nacimiento,
@@ -482,6 +616,55 @@ app.patch('/api/admin/solicitudes/:id/estado', authAdmin, async (req, res) => {
     );
     if (!r.rows.length) return res.status(404).json({ error: 'No encontrada' });
     const sol = rowToSolicitud(r.rows[0]);
+    await auditLog(sol.id, `CAMBIO_ESTADO_${estado}`, analista||'admin', nota||'');
+    res.json({ ok: true, solicitud: sol });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── GET solicitudes JURÍDICA ───────────────────────────────────────────────────
+app.get('/api/admin/solicitudes-juridica', authAdmin, async (req, res) => {
+  try {
+    let { estado, buscar, limit=100, offset=0 } = req.query;
+    limit = Math.min(Number(limit), 200); offset = Number(offset);
+    let where = [], params = [], i = 1;
+    if (estado && estado !== 'TODAS') { where.push(`estado=$${i++}`); params.push(estado); }
+    if (buscar) {
+      const q = `%${buscar.toLowerCase()}%`;
+      where.push(`(LOWER(razon_social) LIKE $${i} OR LOWER(nit) LIKE $${i} OR LOWER(radicado) LIKE $${i} OR LOWER(rep_email) LIKE $${i} OR LOWER(rep_celular) LIKE $${i} OR LOWER(rep_nombre) LIKE $${i})`);
+      params.push(q); i++;
+    }
+    const wc = where.length ? 'WHERE '+where.join(' AND ') : '';
+    const countRes = await pool.query(`SELECT COUNT(*) FROM solicitudes_juridica ${wc}`, params);
+    params.push(limit, offset);
+    const rows = await pool.query(`SELECT * FROM solicitudes_juridica ${wc} ORDER BY created_at DESC LIMIT $${i} OFFSET $${i+1}`, params);
+    res.json({ solicitudes: rows.rows.map(rowToSolicitudJuridica), total: Number(countRes.rows[0].count) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── GET solicitud JURÍDICA :id ─────────────────────────────────────────────────
+app.get('/api/admin/solicitudes-juridica/:id', authAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`SELECT * FROM solicitudes_juridica WHERE id::text=$1 OR radicado=$1`, [req.params.id]);
+    if (!r.rows.length) return res.status(404).json({ error: 'No encontrada' });
+    const sol = rowToSolicitudJuridica(r.rows[0]);
+    const audit = await pool.query(`SELECT * FROM auditoria WHERE solicitud_id=$1 ORDER BY created_at DESC`, [sol.id]);
+    sol.auditoria = audit.rows.map(a => ({ id:a.id, solicitudId:a.solicitud_id, accion:a.accion, usuario:a.usuario, detalle:a.detalle, createdAt:a.created_at }));
+    res.json(sol);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── PATCH estado JURÍDICA ──────────────────────────────────────────────────────
+app.patch('/api/admin/solicitudes-juridica/:id/estado', authAdmin, async (req, res) => {
+  try {
+    const { estado, nota, analista } = req.body;
+    const estados = ['RADICADA','EN_ANALISIS','APROBADA','RECHAZADA','DESEMBOLSADA'];
+    if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
+    const r = await pool.query(
+      `UPDATE solicitudes_juridica SET estado=$1, nota_analista=COALESCE($2,nota_analista), analista=COALESCE($3,analista), updated_at=NOW() WHERE id::text=$4 OR radicado=$4 RETURNING *`,
+      [estado, nota||null, analista||null, req.params.id]
+    );
+    if (!r.rows.length) return res.status(404).json({ error: 'No encontrada' });
+    const sol = rowToSolicitudJuridica(r.rows[0]);
     await auditLog(sol.id, `CAMBIO_ESTADO_${estado}`, analista||'admin', nota||'');
     res.json({ ok: true, solicitud: sol });
   } catch(e) { res.status(500).json({ error: e.message }); }
