@@ -177,8 +177,8 @@ td{padding:10px 14px;color:#374151}
       <!-- SOLICITUDES -->
       <div class="section" id="sec-solicitudes">
         <div style="display:flex;gap:8px;margin-bottom:12px">
-          <button class="btn-sm" id="tab-tipo-natural" onclick="cambiarTipoLista('natural')" style="background:var(--navy);color:#fff;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">👤 Persona Natural</button>
-          <button class="btn-sm" id="tab-tipo-juridica" onclick="cambiarTipoLista('juridica')" style="background:#f3f4f6;color:#6b7280;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">🏢 Persona Jurídica</button>
+          <button class="btn-sm" id="tab-tipo-natural" onclick="cambiarTipoLista('natural')" style="background:var(--navy);color:#fff;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">👤 Persona Natural <span id="badge-natural" style="background:rgba(255,255,255,.25);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">—</span></button>
+          <button class="btn-sm" id="tab-tipo-juridica" onclick="cambiarTipoLista('juridica')" style="background:#f3f4f6;color:#6b7280;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">🏢 Persona Jurídica <span id="badge-juridica" style="background:rgba(0,0,0,.08);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">—</span></button>
         </div>
         <div class="search-bar">
           <input type="text" id="buscar" placeholder="Buscar por nombre, documento, email..." oninput="debSearch()">
@@ -349,6 +349,7 @@ async function doLogin(){
       document.getElementById('loginWrap').style.display='none';
       document.getElementById('appWrap').style.display='flex';
       loadDashboard();
+      loadContadores();
     }else{ document.getElementById('loginErr').style.display='block'; btn.textContent='Ingresar →'; btn.disabled=false; }
   }catch(e){ document.getElementById('loginErr').style.display='block'; btn.textContent='Ingresar →'; btn.disabled=false; }
 }
@@ -405,7 +406,14 @@ function cambiarTipoLista(tipo){
   loadSolicitudesActivas();
 }
 
+async function loadContadores(){
+  const d=await req('/api/admin/contadores'); if(!d)return;
+  document.getElementById('badge-natural').textContent=d.pendientesNatural;
+  document.getElementById('badge-juridica').textContent=d.pendientesJuridica;
+}
+
 function loadSolicitudesActivas(){
+  loadContadores();
   if(tipoListaActiva==='juridica') loadSolicitudesJuridica();
   else loadSolicitudes();
 }
@@ -607,7 +615,7 @@ async function verSolicitud(id){
 async function cambiarEstado(id,estado){
   const nota=document.getElementById('notaDecision')?.value||'';
   const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
-  if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudes();loadDashboard();}
+  if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudes();loadDashboard();loadContadores();}
   else showToast('Error cambiando estado','err');
 }
 function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('modalBg').classList.remove('open'); }
@@ -751,7 +759,7 @@ async function verSolicitudJuridica(id){
 async function cambiarEstadoJuridica(id,estado){
   const nota=document.getElementById('notaDecisionJ')?.value||'';
   const r=await req('/api/admin/solicitudes-juridica/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
-  if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudesJuridica();loadDashboard();}
+  if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudesJuridica();loadDashboard();loadContadores();}
   else showToast('Error cambiando estado','err');
 }
 
@@ -775,7 +783,7 @@ function closePdf(e){ if(!e||e.target.id==='pdfBg'){document.getElementById('pdf
 
 /* ── INIT ── */
 window.onload=()=>{
-  if(TOKEN){ document.getElementById('loginWrap').style.display='none'; document.getElementById('appWrap').style.display='flex'; loadDashboard(); }
+  if(TOKEN){ document.getElementById('loginWrap').style.display='none'; document.getElementById('appWrap').style.display='flex'; loadDashboard(); loadContadores(); }
 };
 </script>
 </body>
