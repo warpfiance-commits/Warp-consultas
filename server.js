@@ -671,6 +671,20 @@ app.patch('/api/admin/solicitudes-juridica/:id/estado', authAdmin, async (req, r
 });
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
+// ── Contadores pendientes (Natural / Jurídica) ─────────────────────────────────
+app.get('/api/admin/contadores', authAdmin, async (req, res) => {
+  try {
+    const [pendN, pendJ] = await Promise.all([
+      pool.query(`SELECT COUNT(*) FROM solicitudes WHERE estado IN ('RADICADA','EN_ANALISIS')`),
+      pool.query(`SELECT COUNT(*) FROM solicitudes_juridica WHERE estado IN ('RADICADA','EN_ANALISIS')`)
+    ]);
+    res.json({
+      pendientesNatural: Number(pendN.rows[0].count),
+      pendientesJuridica: Number(pendJ.rows[0].count)
+    });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 app.get('/api/admin/dashboard', authAdmin, async (req, res) => {
   try {
     const hoy = new Date().toISOString().slice(0,10);
