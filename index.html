@@ -896,6 +896,38 @@ function validateStep(n){
   if(firstErr){showToast('Campo requerido: '+firstErr,'err');const e=fields.find(f=>!(document.getElementById(f.id)?.value||'').trim());if(e)document.getElementById(e.id)?.scrollIntoView({behavior:'smooth',block:'center'});return false;}
   if(n===0&&tipoPersona==='natural'&&!/^[^@]+@[^@]+\.[^@]+$/.test(val('email'))){markError('email',true);showToast('Correo electrónico inválido','err');return false;}
   if(n===0&&tipoPersona==='juridica'&&!/^[^@]+@[^@]+\.[^@]+$/.test(val('j-repEmail'))){markError('j-repEmail',true);showToast('Correo del representante inválido','err');return false;}
+  if(n===0&&tipoPersona==='natural'){
+    const chk=validarFechaNacimiento('fechaNacimiento');
+    if(chk!==true){markError('fechaNacimiento',true);showToast(chk,'err');return false;}
+  }
+  if(n===0&&tipoPersona==='juridica'){
+    const chkRep=validarFechaNacimiento('j-repFechaNac');
+    if(chkRep!==true){markError('j-repFechaNac',true);showToast(chkRep,'err');return false;}
+    const chkConst=validarFechaNoFutura('j-fechaConstitucion');
+    if(chkConst!==true){markError('j-fechaConstitucion',true);showToast(chkConst,'err');return false;}
+  }
+  return true;
+}
+
+function validarFechaNoFutura(id){
+  const v=document.getElementById(id)?.value;
+  if(!v)return true; // el required ya cubre el caso vacío
+  const fecha=new Date(v+'T00:00:00');
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  if(isNaN(fecha.getTime()))return 'Fecha inválida';
+  if(fecha>hoy)return 'La fecha no puede ser futura';
+  return true;
+}
+
+function validarFechaNacimiento(id){
+  const base=validarFechaNoFutura(id);
+  if(base!==true)return base;
+  const v=document.getElementById(id)?.value;
+  if(!v)return true;
+  const fecha=new Date(v+'T00:00:00');
+  const hoy=new Date();
+  const hace18=new Date(hoy.getFullYear()-18,hoy.getMonth(),hoy.getDate());
+  if(fecha>hace18)return 'Debe ser mayor de edad (18 años) para continuar';
   return true;
 }
 
@@ -1173,7 +1205,16 @@ function getFirmaTexto(prefix){
   return '';
 }
 
+function configurarLimitesFecha(){
+  const hoy=new Date();
+  const isoHoy=hoy.toISOString().slice(0,10);
+  const hace18=new Date(hoy.getFullYear()-18,hoy.getMonth(),hoy.getDate()).toISOString().slice(0,10);
+  ['fechaNacimiento','j-repFechaNac'].forEach(id=>{const el=document.getElementById(id);if(el)el.max=hace18;});
+  const fc=document.getElementById('j-fechaConstitucion');if(fc)fc.max=isoHoy;
+}
+
 window.onload=()=>{
+  configurarLimitesFecha();
   try{const raw=localStorage.getItem(DRAFT_KEY);if(raw&&JSON.parse(raw)._tipo)document.getElementById('draftBanner').style.display='flex';}catch(e){}
 };
 </script>
