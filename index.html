@@ -113,6 +113,17 @@ textarea{resize:vertical;min-height:80px}
 .firma-actions{display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;border-top:1px solid #f3f4f6;background:#fafafa}
 .firma-clear{font-size:11px;font-weight:600;color:#6b7280;background:transparent;border:1px solid #d1d5db;border-radius:5px;padding:4px 10px;cursor:pointer}
 .firma-clear:hover{border-color:#9ca3af;color:#374151}
+.cam-wrap{border:2px solid #c8dac8;border-radius:9px;background:#fff;overflow:hidden}
+.cam-stage{position:relative;background:#0f172a;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cam-stage video,.cam-stage img{width:100%;height:100%;object-fit:cover;display:block}
+.cam-stage video{transform:scaleX(-1)}
+.cam-placeholder{color:#94a3b8;font-size:13px;text-align:center;padding:20px}
+.cam-actions{display:flex;justify-content:center;gap:10px;padding:12px;background:#fafafa;border-top:1px solid #f3f4f6}
+.cam-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border-radius:8px;padding:9px 18px;cursor:pointer;border:none}
+.cam-btn-primary{background:var(--lime-d);color:#fff}
+.cam-btn-ghost{background:transparent;border:1.5px solid #d1d5db;color:#374151}
+.cam-ok-badge{display:none;align-items:center;gap:6px;color:var(--lime-d);font-size:12px;font-weight:700;padding:8px 12px}
+.cam-ok-badge.show{display:flex}
 .firma-preview{max-height:60px;border:1px solid #e5e7eb;border-radius:5px;display:none;margin-top:8px}
 .firma-font{font-family:'Caveat',cursive;font-size:32px;color:#1B5E20;padding:8px 0;min-height:60px;display:flex;align-items:center}
 </style>
@@ -412,6 +423,18 @@ textarea{resize:vertical;min-height:80px}
         <div class="check-row"><input type="checkbox" id="ch6"><label for="ch6">Autorizo el débito automático de las cuotas desde la cuenta registrada en caso de aprobación.</label></div>
         <div class="divider"></div>
         <div style="margin-bottom:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--text-soft)">Selfie en vivo <span class="req">*</span></label>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px">Debe tomarse con la cámara en este momento. No se permite subir desde galería.</div>
+        </div>
+        <div class="cam-wrap">
+          <div class="cam-stage" id="n-camStage"><div class="cam-placeholder">📷 Active la cámara para continuar</div></div>
+          <div class="cam-actions" id="n-camActions">
+            <button type="button" class="cam-btn cam-btn-primary" onclick="camActivar('n')" id="n-camBtnActivar">Activar cámara</button>
+          </div>
+          <div class="cam-ok-badge" id="n-camOk">✓ Selfie capturada correctamente</div>
+        </div>
+        <div class="divider"></div>
+        <div style="margin-bottom:6px">
           <label style="font-size:12px;font-weight:600;color:var(--text-soft)">Firma electrónica <span class="req">*</span></label>
         </div>
         <div class="firma-wrap">
@@ -662,6 +685,18 @@ textarea{resize:vertical;min-height:80px}
         <div class="check-row"><input type="checkbox" id="jch8"><label for="jch8">Autorizo en nombre de la empresa la verificación de la información tributaria ante la DIAN y demás entidades competentes.</label></div>
         <div class="divider"></div>
         <div style="margin-bottom:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--text-soft)">Selfie en vivo del representante legal <span class="req">*</span></label>
+          <div style="font-size:11px;color:#9ca3af;margin-top:2px">Debe tomarse con la cámara en este momento. No se permite subir desde galería.</div>
+        </div>
+        <div class="cam-wrap">
+          <div class="cam-stage" id="j-camStage"><div class="cam-placeholder">📷 Active la cámara para continuar</div></div>
+          <div class="cam-actions" id="j-camActions">
+            <button type="button" class="cam-btn cam-btn-primary" onclick="camActivar('j')" id="j-camBtnActivar">Activar cámara</button>
+          </div>
+          <div class="cam-ok-badge" id="j-camOk">✓ Selfie capturada correctamente</div>
+        </div>
+        <div class="divider"></div>
+        <div style="margin-bottom:6px">
           <label style="font-size:12px;font-weight:600;color:var(--text-soft)">Firma electrónica del representante legal <span class="req">*</span></label>
         </div>
         <div class="firma-wrap">
@@ -852,6 +887,10 @@ function validateStep(n){
     if(missing.length){showToast('Falta subir: '+missing[0].label,'err');cfg.requiredDocs.forEach(d=>{const z=document.getElementById(d.id)?.closest('.upload-zone');if(z)z.style.borderColor=archivosSeleccionados[d.id]?'':'#dc2626';});return false;}
     return true;
   }
+  if(n===4){
+    const selfieKey=tipoPersona==='natural' ? 'selfieLive' : 'j-selfieLive';
+    if(!archivosSeleccionados[selfieKey]){showToast('Debe tomarse la selfie en vivo antes de continuar','err');return false;}
+  }
   const fields=cfg.required[n]||[];let firstErr=null;
   fields.forEach(f=>{const empty=!(document.getElementById(f.id)?.value||'').trim();markError(f.id,empty);if(empty&&!firstErr)firstErr=f.label;});
   if(firstErr){showToast('Campo requerido: '+firstErr,'err');const e=fields.find(f=>!(document.getElementById(f.id)?.value||'').trim());if(e)document.getElementById(e.id)?.scrollIntoView({behavior:'smooth',block:'center'});return false;}
@@ -953,6 +992,8 @@ function showSuccess(){
 async function submitForm(){
   const cfg=CONFIG[tipoPersona];
   if(cfg.checks.some(id=>!document.getElementById(id)?.checked)){showToast('Acepte todas las declaraciones antes de enviar','err');return;}
+  const selfieKey=tipoPersona==='natural' ? 'selfieLive' : 'j-selfieLive';
+  if(!archivosSeleccionados[selfieKey]){showToast('Debe tomarse la selfie en vivo antes de enviar','err');return;}
   const firmaPrefix = tipoPersona==='natural' ? 'n' : 'j';
   const firmaImg = getFirmaBase64(firmaPrefix);
   if(!firmaImg){
@@ -982,6 +1023,63 @@ async function submitForm(){
   }catch(e){showToast('Error de conexión. Verifica tu internet.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
 }
 
+
+/* ══ SELFIE EN VIVO (cámara, sin galería) ══ */
+const camState = { n: { stream:null, captured:false }, j: { stream:null, captured:false } };
+
+async function camActivar(prefix){
+  const stage=document.getElementById(prefix+'-camStage');
+  const actions=document.getElementById(prefix+'-camActions');
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    camState[prefix].stream=stream;
+    stage.innerHTML='<video id="'+prefix+'-camVideo" autoplay playsinline></video>';
+    const video=document.getElementById(prefix+'-camVideo');
+    video.srcObject=stream;
+    actions.innerHTML='<button type="button" class="cam-btn cam-btn-primary" onclick="camCapturar(\''+prefix+'\')">📸 Capturar foto</button>';
+  }catch(e){
+    showToast('No se pudo acceder a la cámara. Revise los permisos del navegador.','err');
+  }
+}
+
+function camCapturar(prefix){
+  const video=document.getElementById(prefix+'-camVideo');
+  const stage=document.getElementById(prefix+'-camStage');
+  const actions=document.getElementById(prefix+'-camActions');
+  const canvas=document.createElement('canvas');
+  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+  const ctx=canvas.getContext('2d');
+  ctx.translate(canvas.width,0); ctx.scale(-1,1); // corrige el espejo del preview
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  canvas.toBlob(blob=>{
+    const file=new File([blob],'selfie_live_'+prefix+'.jpg',{type:'image/jpeg'});
+    const key=prefix==='n' ? 'selfieLive' : 'j-selfieLive';
+    archivosSeleccionados[key]=file;
+    camState[prefix].captured=true;
+    document.getElementById(prefix+'-camOk').classList.add('show');
+    guardarBorrador();
+  },'image/jpeg',0.9);
+
+  const dataUrl=canvas.toDataURL('image/jpeg',0.9);
+  stage.innerHTML='<img src="'+dataUrl+'" alt="Selfie capturada">';
+  actions.innerHTML='<button type="button" class="cam-btn cam-btn-ghost" onclick="camRepetir(\''+prefix+'\')">↺ Repetir foto</button>';
+  camDetener(prefix);
+}
+
+function camRepetir(prefix){
+  const key=prefix==='n' ? 'selfieLive' : 'j-selfieLive';
+  delete archivosSeleccionados[key];
+  camState[prefix].captured=false;
+  document.getElementById(prefix+'-camOk').classList.remove('show');
+  camActivar(prefix);
+}
+
+function camDetener(prefix){
+  if(camState[prefix].stream){
+    camState[prefix].stream.getTracks().forEach(t=>t.stop());
+    camState[prefix].stream=null;
+  }
+}
 
 /* ══ FIRMA ELECTRÓNICA PAD ══ */
 const firmaState = {
