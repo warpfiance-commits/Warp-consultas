@@ -391,6 +391,7 @@ textarea{resize:vertical;min-height:80px}
           <div class="upload-zone" onclick="clickUpload('u10')"><input type="file" id="u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏠</span><div class="uz-label">Recibo de servicios públicos</div><div class="uz-hint">Confirma dirección</div></div>
           <div class="upload-zone" onclick="clickUpload('u12')"><input type="file" id="u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. de garantía / colateral</div><div class="uz-hint">Escritura, tarjeta propiedad...</div></div>
           <div class="upload-zone" onclick="clickUpload('u13')"><input type="file" id="u13" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🤳</span><div class="uz-label">Selfie sosteniendo cédula <span style="color:#dc2626">*</span></div><div class="uz-hint">Validación biométrica básica</div></div>
+          <div class="upload-zone" onclick="clickUpload('u14')"><input type="file" id="u14" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📊</span><div class="uz-label">Reporte DataCrédito Experian <span style="color:#dc2626">*</span></div><div class="uz-hint">Descárguelo en <a href="https://usuario.midatacredito.com/login?product=midc&utm_source=MIDC&utm_medium=BOXMIDC&utm_campaign=HOME" target="_blank" onclick="event.stopPropagation()" style="color:var(--lime-d);font-weight:600">midatacredito.com</a></div></div>
         </div>
       </div>
     </div>
@@ -652,6 +653,7 @@ textarea{resize:vertical;min-height:80px}
           <div class="upload-zone" onclick="clickUpload('j-u12')"><input type="file" id="j-u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto empresa — Mes 2 <span style="color:#dc2626">*</span></div></div>
           <div class="upload-zone" onclick="clickUpload('j-u13')"><input type="file" id="j-u13" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto empresa — Mes 3 <span style="color:#dc2626">*</span></div></div>
           <div class="upload-zone" onclick="clickUpload('j-u14')"><input type="file" id="j-u14" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. garantía / colateral</div><div class="uz-hint">Escritura, avalúo...</div></div>
+          <div class="upload-zone" onclick="clickUpload('j-u15')"><input type="file" id="j-u15" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📊</span><div class="uz-label">Reporte DataCrédito Experian <span style="color:#dc2626">*</span></div><div class="uz-hint">Descárguelo en <a href="https://usuario.midatacredito.com/login?product=midc&utm_source=MIDC&utm_medium=BOXMIDC&utm_campaign=HOME" target="_blank" onclick="event.stopPropagation()" style="color:var(--lime-d);font-weight:600">midatacredito.com</a></div></div>
         </div>
       </div>
     </div>
@@ -766,7 +768,7 @@ const CONFIG = {
       1:[{id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},{id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Deudas totales'},{id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},{id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},{id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'}],
       2:[{id:'situacionLaboral',label:'Situación laboral'},{id:'tipoContrato',label:'Tipo de contrato'},{id:'estadoCivil',label:'Estado civil'},{id:'refNombre',label:'Nombre de referencia'},{id:'refParentesco',label:'Parentesco'},{id:'refCelular',label:'Celular de referencia'}],
     },
-    requiredDocs:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extracto Mes 1'},{id:'u7',label:'Extracto Mes 2'},{id:'u8',label:'Extracto Mes 3'},{id:'u13',label:'Selfie con cédula'}],
+    requiredDocs:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extracto Mes 1'},{id:'u7',label:'Extracto Mes 2'},{id:'u8',label:'Extracto Mes 3'},{id:'u13',label:'Selfie con cédula'},{id:'u14',label:'Reporte DataCrédito Experian'}],
     checks:['ch1','ch2','ch3','ch4','ch5','ch6'],
     firmaId:'firmaElectronica',
   },
@@ -783,7 +785,7 @@ const CONFIG = {
       1:[{id:'j-ingresosMensuales',label:'Ingresos mensuales'},{id:'j-ventasAnuales',label:'Ventas anuales'},{id:'j-totalActivos',label:'Total activos'},{id:'j-totalPasivos',label:'Total pasivos'},{id:'j-egresosMensuales',label:'Egresos mensuales'},{id:'j-obligaciones',label:'Deudas totales'},{id:'j-banco',label:'Banco principal'},{id:'j-tipoCuenta',label:'Tipo de cuenta'},{id:'j-numeroCuenta',label:'Número de cuenta'},{id:'j-montoSolicitado',label:'Monto solicitado'},{id:'j-plazo',label:'Plazo deseado'},{id:'j-destinoCredito',label:'Destino del crédito'}],
       2:[{id:'j-antiguedadEmpresa',label:'Antigüedad de la empresa'},{id:'j-socioPrincipal',label:'Socio / accionista principal'},{id:'j-porcentajePart',label:'Porcentaje de participación'},{id:'j-refEmpresa',label:'Empresa de referencia'},{id:'j-refContacto',label:'Contacto de referencia'},{id:'j-refTelefono',label:'Teléfono de referencia'}],
     },
-    requiredDocs:[{id:'j-u0',label:'Cámara de comercio'},{id:'j-u1',label:'RUT empresa'},{id:'j-u2',label:'Acta nombramiento rep. legal'},{id:'j-u3',label:'Composición accionaria'},{id:'j-u4',label:'Cédula rep. legal Frontal'},{id:'j-u5',label:'Cédula rep. legal Reverso'},{id:'j-u6',label:'Selfie rep. legal'},{id:'j-u7',label:'Balance general'},{id:'j-u8',label:'Estado de resultados'},{id:'j-u9',label:'Declaración de renta'},{id:'j-u11',label:'Extracto empresa Mes 1'},{id:'j-u12',label:'Extracto empresa Mes 2'},{id:'j-u13',label:'Extracto empresa Mes 3'}],
+    requiredDocs:[{id:'j-u0',label:'Cámara de comercio'},{id:'j-u1',label:'RUT empresa'},{id:'j-u2',label:'Acta nombramiento rep. legal'},{id:'j-u3',label:'Composición accionaria'},{id:'j-u4',label:'Cédula rep. legal Frontal'},{id:'j-u5',label:'Cédula rep. legal Reverso'},{id:'j-u6',label:'Selfie rep. legal'},{id:'j-u7',label:'Balance general'},{id:'j-u8',label:'Estado de resultados'},{id:'j-u9',label:'Declaración de renta'},{id:'j-u11',label:'Extracto empresa Mes 1'},{id:'j-u12',label:'Extracto empresa Mes 2'},{id:'j-u13',label:'Extracto empresa Mes 3'},{id:'j-u15',label:'Reporte DataCrédito Experian'}],
     checks:['jch1','jch2','jch3','jch4','jch5','jch6','jch7','jch8'],
     firmaId:'j-firmaElectronica',
   }
