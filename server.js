@@ -408,7 +408,8 @@ app.post('/api/solicitudes', async (req, res) => {
       rut:'RUT', declaracion_renta:'Declaración de renta',
       servicios:'Recibo servicios', camara:'Cámara de comercio',
       garantia:'Documento garantía', selfie:'Selfie con cédula',
-      selfieLive:'Selfie en vivo', 'j-selfieLive':'Selfie en vivo (rep. legal)'
+      selfieLive:'Selfie en vivo', 'j-selfieLive':'Selfie en vivo (rep. legal)',
+      u14:'Reporte DataCrédito Experian', 'j-u15':'Reporte DataCrédito Experian'
     };
 
     const documentosUrls = {};
