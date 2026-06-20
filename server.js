@@ -407,7 +407,8 @@ app.post('/api/solicitudes', async (req, res) => {
       extracto_3:'Extracto mes 3', extracto_alt:'Extracto alternativo',
       rut:'RUT', declaracion_renta:'Declaración de renta',
       servicios:'Recibo servicios', camara:'Cámara de comercio',
-      garantia:'Documento garantía', selfie:'Selfie con cédula'
+      garantia:'Documento garantía', selfie:'Selfie con cédula',
+      selfieLive:'Selfie en vivo', 'j-selfieLive':'Selfie en vivo (rep. legal)'
     };
 
     const documentosUrls = {};
