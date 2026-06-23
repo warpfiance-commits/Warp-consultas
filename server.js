@@ -401,15 +401,33 @@ app.post('/api/solicitudes', async (req, res) => {
     const esJuridica = data.tipoPersona === 'juridica';
 
     const nombresDoc = {
+      // Persona Natural
+      u0:'Cédula Frontal', u1:'Cédula Reverso',
+      u2:'Últimas 3 colillas de pago', u3:'Certificado laboral',
+      u4:'RUT actualizado', u5:'Declaración de renta',
+      u6:'Extracto bancario — Mes 1', u7:'Extracto bancario — Mes 2',
+      u8:'Extracto bancario — Mes 3', u9:'Extracto banco alternativo',
+      u10:'Recibo de servicios públicos', u12:'Documento de garantía / colateral',
+      u13:'Selfie sosteniendo cédula', u14:'Reporte DataCrédito Experian',
+      selfieLive:'Selfie en vivo',
+      // Persona Jurídica
+      'j-u0':'Cámara de comercio', 'j-u1':'RUT empresa',
+      'j-u2':'Acta nombramiento rep. legal', 'j-u3':'Composición accionaria',
+      'j-u4':'Cédula rep. legal — Frontal', 'j-u5':'Cédula rep. legal — Reverso',
+      'j-u6':'Selfie rep. legal con cédula', 'j-u7':'Balance general',
+      'j-u8':'Estado de resultados (P&G)', 'j-u9':'Declaración de renta empresa',
+      'j-u10':'Estados financieros intermedios', 'j-u11':'Extracto empresa — Mes 1',
+      'j-u12':'Extracto empresa — Mes 2', 'j-u13':'Extracto empresa — Mes 3',
+      'j-u14':'Documento de garantía / colateral', 'j-u15':'Reporte DataCrédito Experian',
+      'j-selfieLive':'Selfie en vivo del representante legal',
+      // Compatibilidad con registros antiguos (claves descriptivas legacy)
       cedula_frontal:'Cédula Frontal', cedula_reverso:'Cédula Reverso',
       colillas:'Colillas de pago', certificado_laboral:'Certificado laboral',
       extracto_1:'Extracto mes 1', extracto_2:'Extracto mes 2',
       extracto_3:'Extracto mes 3', extracto_alt:'Extracto alternativo',
       rut:'RUT', declaracion_renta:'Declaración de renta',
       servicios:'Recibo servicios', camara:'Cámara de comercio',
-      garantia:'Documento garantía', selfie:'Selfie con cédula',
-      selfieLive:'Selfie en vivo', 'j-selfieLive':'Selfie en vivo (rep. legal)',
-      u14:'Reporte DataCrédito Experian', 'j-u15':'Reporte DataCrédito Experian'
+      garantia:'Documento garantía', selfie:'Selfie con cédula'
     };
 
     const documentosUrls = {};
