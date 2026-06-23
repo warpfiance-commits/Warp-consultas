@@ -316,23 +316,23 @@ textarea{resize:vertical;min-height:80px}
         <div class="sec-title">💼 Información laboral</div>
         <div class="grid-2">
           <div class="field"><label>Situación laboral<span class="req">*</span></label>
-            <select id="situacionLaboral" onchange="guardarBorrador();actualizarDocsLaborales()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option><option>Desempleado</option></select></div>
-          <div class="field"><label>Sector económico</label>
+            <select id="situacionLaboral" onchange="guardarBorrador();actualizarDocsLaborales();actualizarCamposLaborales()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option><option>Desempleado</option></select></div>
+          <div class="field" id="campoSectorEconomico"><label>Sector económico</label>
             <select id="sectorEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Salud</option><option>Educación</option><option>Comercio</option><option>Construcción</option><option>Tecnología</option><option>Transporte</option><option>Financiero</option><option>Agropecuario</option><option>Otro</option></select></div>
         </div>
-        <div class="grid-2">
-          <div class="field"><label>Empresa / razón social</label><input type="text" id="empresa" placeholder="Nombre de la empresa" oninput="guardarBorrador()"></div>
-          <div class="field"><label>NIT del empleador</label><input type="text" id="nitEmpresa" placeholder="900.123.456-7" oninput="guardarBorrador()"></div>
+        <div class="grid-2" id="filaEmpresaNit">
+          <div class="field" id="campoEmpresa"><label id="lblEmpresa">Empresa / razón social</label><input type="text" id="empresa" placeholder="Nombre de la empresa" oninput="guardarBorrador()"></div>
+          <div class="field" id="campoNit"><label id="lblNit">NIT del empleador</label><input type="text" id="nitEmpresa" placeholder="900.123.456-7" oninput="guardarBorrador()"></div>
         </div>
-        <div class="grid-3">
-          <div class="field"><label>Cargo / ocupación</label><input type="text" id="cargo" placeholder="Gerente comercial" oninput="guardarBorrador()"></div>
-          <div class="field"><label>Antigüedad laboral</label>
+        <div class="grid-3" id="filaCargoAntiguedadContrato">
+          <div class="field" id="campoCargo"><label id="lblCargo">Cargo / ocupación</label><input type="text" id="cargo" placeholder="Gerente comercial" oninput="guardarBorrador()"></div>
+          <div class="field" id="campoAntiguedad"><label id="lblAntiguedad">Antigüedad laboral</label>
             <select id="antiguedad" onchange="verificarAntiguedad();guardarBorrador()"><option value="">Seleccionar...</option><option>Menos de 6 meses</option><option>6 meses - 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select>
             <div id="ant-warn" style="display:none;font-size:11px;margin-top:3px;color:#b45309;background:#fffbeb;padding:4px 8px;border-radius:5px">⚠ Antigüedad menor a 6 meses puede afectar la aprobación.</div></div>
-          <div class="field"><label>Tipo de contrato<span class="req">*</span></label>
+          <div class="field" id="campoTipoContrato"><label>Tipo de contrato<span class="req">*</span></label>
             <select id="tipoContrato" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Término indefinido</option><option>Término fijo</option><option>Obra o labor</option><option>Prestación de servicios</option><option>Aprendizaje (SENA)</option><option>Temporal / agencia</option><option>No aplica</option></select></div>
         </div>
-        <div class="grid-2" style="margin-bottom:0">
+        <div class="grid-2" id="filaTelefonoDireccionTrabajo" style="margin-bottom:0">
           <div class="field"><label>Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
           <div class="field"><label>Dirección trabajo</label><input type="text" id="direccionTrabajo" placeholder="Calle 10 # 43-123, Medellín" oninput="guardarBorrador()"></div>
         </div>
@@ -900,7 +900,7 @@ function cargarBorrador(){
     const data=JSON.parse(raw);
     if(data._tipo){tipoPersona=data._tipo;elegirTipo(data._tipo);iniciarFormulario();}
     Object.entries(data).forEach(([id,v])=>{if(id.startsWith('_'))return;const el=document.getElementById(id);if(el)el.value=v;});
-    if(tipoPersona==='natural')actualizarDocsLaborales();
+    if(tipoPersona==='natural'){actualizarDocsLaborales();actualizarCamposLaborales();}
     document.getElementById('draftBanner').style.display='none';
     showStep(data._step||0);
     showToast('Borrador cargado ✓','ok');
@@ -937,7 +937,14 @@ function validateStep(n){
     const selfieKey=tipoPersona==='natural' ? 'selfieLive' : 'j-selfieLive';
     if(!archivosSeleccionados[selfieKey]){showToast('Debe tomarse la selfie en vivo antes de continuar','err');return false;}
   }
-  const fields=cfg.required[n]||[];let firstErr=null;
+  const fields=(cfg.required[n]||[]).filter(f=>{
+    const el=document.getElementById(f.id);
+    if(!el)return false;
+    const campoWrap=el.closest('.field');
+    if(campoWrap&&campoWrap.offsetParent===null)return false; // oculto por condicional (display:none en sí o en un ancestro)
+    return true;
+  });
+  let firstErr=null;
   fields.forEach(f=>{const empty=!(document.getElementById(f.id)?.value||'').trim();markError(f.id,empty);if(empty&&!firstErr)firstErr=f.label;});
   if(firstErr){showToast('Campo requerido: '+firstErr,'err');const e=fields.find(f=>!(document.getElementById(f.id)?.value||'').trim());if(e)document.getElementById(e.id)?.scrollIntoView({behavior:'smooth',block:'center'});return false;}
   if(n===0&&tipoPersona==='natural'&&!/^[^@]+@[^@]+\.[^@]+$/.test(val('email'))){markError('email',true);showToast('Correo electrónico inválido','err');return false;}
@@ -1002,6 +1009,7 @@ function showStep(n){
   if(n>=cfg.totalSteps){showSuccess();return;}
   const stepEl=document.getElementById(cfg.prefix+'step'+n);if(stepEl)stepEl.style.display='block';
   currentStep=n;updateNav();updateProgress();
+  if(n===2&&tipoPersona==='natural')actualizarCamposLaborales();
   if(n===3&&tipoPersona==='natural')actualizarDocsLaborales();
   if(n===cfg.totalSteps-1){updateSummary();setTimeout(()=>initCanvas(tipoPersona==='natural'?'n':'j'),100);}
   window.scrollTo({top:0,behavior:'smooth'});
@@ -1060,6 +1068,55 @@ function updateSummary(){
 
 const archivosSeleccionados={};
 function clickUpload(id){document.getElementById(id).click();}
+
+function actualizarCamposLaborales(){
+  const sit=document.getElementById('situacionLaboral')?.value||'';
+  const filaEmpresaNit=document.getElementById('filaEmpresaNit');
+  const filaCargoAntiguedadContrato=document.getElementById('filaCargoAntiguedadContrato');
+  const filaTelefonoDireccion=document.getElementById('filaTelefonoDireccionTrabajo');
+  const campoTipoContrato=document.getElementById('campoTipoContrato');
+  const lblEmpresa=document.getElementById('lblEmpresa');
+  const lblNit=document.getElementById('lblNit');
+  const lblCargo=document.getElementById('lblCargo');
+  const lblAntiguedad=document.getElementById('lblAntiguedad');
+  const inEmpresa=document.getElementById('empresa');
+  const inCargo=document.getElementById('cargo');
+  if(!filaEmpresaNit)return;
+
+  if(sit===''||sit==='Desempleado'){
+    filaEmpresaNit.style.display='none';
+    filaCargoAntiguedadContrato.style.display='none';
+    filaTelefonoDireccion.style.display='none';
+    return;
+  }
+  filaEmpresaNit.style.display='';
+  filaCargoAntiguedadContrato.style.display='';
+  filaTelefonoDireccion.style.display=(sit==='Pensionado')?'none':'';
+  campoTipoContrato.style.display=(sit==='Empleado dependiente')?'':'none';
+
+  if(sit==='Empleado dependiente'){
+    lblEmpresa.textContent='Empresa / razón social';
+    lblNit.textContent='NIT del empleador';
+    lblCargo.textContent='Cargo / ocupación';
+    lblAntiguedad.textContent='Antigüedad laboral';
+    inEmpresa.placeholder='Nombre de la empresa';
+    inCargo.placeholder='Gerente comercial';
+  }else if(sit==='Independiente / freelance'||sit==='Empresario / socio'){
+    lblEmpresa.textContent='Negocio / actividad';
+    lblNit.textContent='NIT propio (si tiene)';
+    lblCargo.textContent='Cargo / ocupación';
+    lblAntiguedad.textContent='Antigüedad de la actividad';
+    inEmpresa.placeholder='Nombre del negocio o actividad';
+    inCargo.placeholder='Ej. Comerciante, consultor...';
+  }else if(sit==='Pensionado'){
+    lblEmpresa.textContent='Fondo / entidad pensional';
+    lblNit.textContent='NIT (si aplica)';
+    lblCargo.textContent='Tipo de pensión';
+    lblAntiguedad.textContent='Antigüedad de la pensión';
+    inEmpresa.placeholder='Ej. Colpensiones, Protección...';
+    inCargo.placeholder='Ej. Vejez, invalidez, sobrevivientes';
+  }
+}
 
 function actualizarDocsLaborales(){
   const sit=document.getElementById('situacionLaboral')?.value||'';
