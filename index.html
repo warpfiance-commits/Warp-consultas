@@ -316,7 +316,7 @@ textarea{resize:vertical;min-height:80px}
         <div class="sec-title">💼 Información laboral</div>
         <div class="grid-2">
           <div class="field"><label>Situación laboral<span class="req">*</span></label>
-            <select id="situacionLaboral" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option><option>Desempleado</option></select></div>
+            <select id="situacionLaboral" onchange="guardarBorrador();actualizarDocsLaborales()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option><option>Desempleado</option></select></div>
           <div class="field"><label>Sector económico</label>
             <select id="sectorEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Salud</option><option>Educación</option><option>Comercio</option><option>Construcción</option><option>Tecnología</option><option>Transporte</option><option>Financiero</option><option>Agropecuario</option><option>Otro</option></select></div>
         </div>
@@ -373,12 +373,16 @@ textarea{resize:vertical;min-height:80px}
           <div class="upload-zone" onclick="clickUpload('u1')"><input type="file" id="u1" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Reverso <span style="color:#dc2626">*</span></div><div class="uz-hint">Con huella y firma</div></div>
         </div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Soporte de ingresos</p>
-        <div class="doc-grid">
+        <div id="docsAlertaDesempleado" class="alert" style="display:none;background:#fef2f2;border-color:#fca5a5;color:#dc2626">⚠ Actualmente no se otorgan créditos a personas sin ingresos verificables. Seleccione otra situación laboral para continuar.</div>
+        <div id="docsEmpleado" class="doc-grid" style="display:none">
           <div class="upload-zone" onclick="clickUpload('u2')"><input type="file" id="u2" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📋</span><div class="uz-label">Últimas 3 colillas de pago <span style="color:#dc2626">*</span></div><div class="uz-hint">Empleado dependiente</div></div>
           <div class="upload-zone" onclick="clickUpload('u3')"><input type="file" id="u3" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏢</span><div class="uz-label">Certificado laboral <span style="color:#dc2626">*</span></div><div class="uz-hint">Con salario y antigüedad</div></div>
-          <div class="upload-zone" onclick="clickUpload('u4')"><input type="file" id="u4" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📑</span><div class="uz-label">RUT actualizado</div><div class="uz-hint">Independiente / empresario</div></div>
-          <div class="upload-zone" onclick="clickUpload('u5')"><input type="file" id="u5" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🧾</span><div class="uz-label">Declaración de renta</div><div class="uz-hint">Último año — si aplica</div></div>
         </div>
+        <div id="docsIndependiente" class="doc-grid" style="display:none">
+          <div class="upload-zone" onclick="clickUpload('u4')"><input type="file" id="u4" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📑</span><div class="uz-label">RUT actualizado <span style="color:#dc2626">*</span></div><div class="uz-hint">Independiente / empresario / pensionado</div></div>
+          <div class="upload-zone" onclick="clickUpload('u5')"><input type="file" id="u5" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🧾</span><div class="uz-label">Declaración de renta <span style="color:#dc2626">*</span></div><div class="uz-hint">Último año declarado</div></div>
+        </div>
+        <div id="docsSinSeleccion" style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:7px;margin-bottom:8px">Seleccione su situación laboral en el Paso 3 para ver los documentos requeridos.</div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Extractos bancarios</p>
         <div class="doc-grid">
           <div class="upload-zone" onclick="clickUpload('u6')"><input type="file" id="u6" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extracto bancario — Mes 1 <span style="color:#dc2626">*</span></div></div>
@@ -768,7 +772,7 @@ const CONFIG = {
       1:[{id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},{id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Deudas totales'},{id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},{id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},{id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'}],
       2:[{id:'situacionLaboral',label:'Situación laboral'},{id:'tipoContrato',label:'Tipo de contrato'},{id:'estadoCivil',label:'Estado civil'},{id:'refNombre',label:'Nombre de referencia'},{id:'refParentesco',label:'Parentesco'},{id:'refCelular',label:'Celular de referencia'}],
     },
-    requiredDocs:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extracto Mes 1'},{id:'u7',label:'Extracto Mes 2'},{id:'u8',label:'Extracto Mes 3'},{id:'u13',label:'Selfie con cédula'},{id:'u14',label:'Reporte DataCrédito Experian'}],
+    requiredDocsBase:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extracto Mes 1'},{id:'u7',label:'Extracto Mes 2'},{id:'u8',label:'Extracto Mes 3'},{id:'u13',label:'Selfie con cédula'},{id:'u14',label:'Reporte DataCrédito Experian'}],
     checks:['ch1','ch2','ch3','ch4','ch5','ch6'],
     firmaId:'firmaElectronica',
   },
@@ -785,7 +789,7 @@ const CONFIG = {
       1:[{id:'j-ingresosMensuales',label:'Ingresos mensuales'},{id:'j-ventasAnuales',label:'Ventas anuales'},{id:'j-totalActivos',label:'Total activos'},{id:'j-totalPasivos',label:'Total pasivos'},{id:'j-egresosMensuales',label:'Egresos mensuales'},{id:'j-obligaciones',label:'Deudas totales'},{id:'j-banco',label:'Banco principal'},{id:'j-tipoCuenta',label:'Tipo de cuenta'},{id:'j-numeroCuenta',label:'Número de cuenta'},{id:'j-montoSolicitado',label:'Monto solicitado'},{id:'j-plazo',label:'Plazo deseado'},{id:'j-destinoCredito',label:'Destino del crédito'}],
       2:[{id:'j-antiguedadEmpresa',label:'Antigüedad de la empresa'},{id:'j-socioPrincipal',label:'Socio / accionista principal'},{id:'j-porcentajePart',label:'Porcentaje de participación'},{id:'j-refEmpresa',label:'Empresa de referencia'},{id:'j-refContacto',label:'Contacto de referencia'},{id:'j-refTelefono',label:'Teléfono de referencia'}],
     },
-    requiredDocs:[{id:'j-u0',label:'Cámara de comercio'},{id:'j-u1',label:'RUT empresa'},{id:'j-u2',label:'Acta nombramiento rep. legal'},{id:'j-u3',label:'Composición accionaria'},{id:'j-u4',label:'Cédula rep. legal Frontal'},{id:'j-u5',label:'Cédula rep. legal Reverso'},{id:'j-u6',label:'Selfie rep. legal'},{id:'j-u7',label:'Balance general'},{id:'j-u8',label:'Estado de resultados'},{id:'j-u9',label:'Declaración de renta'},{id:'j-u11',label:'Extracto empresa Mes 1'},{id:'j-u12',label:'Extracto empresa Mes 2'},{id:'j-u13',label:'Extracto empresa Mes 3'},{id:'j-u15',label:'Reporte DataCrédito Experian'}],
+    requiredDocsBase:[{id:'j-u0',label:'Cámara de comercio'},{id:'j-u1',label:'RUT empresa'},{id:'j-u2',label:'Acta nombramiento rep. legal'},{id:'j-u3',label:'Composición accionaria'},{id:'j-u4',label:'Cédula rep. legal Frontal'},{id:'j-u5',label:'Cédula rep. legal Reverso'},{id:'j-u6',label:'Selfie rep. legal'},{id:'j-u7',label:'Balance general'},{id:'j-u8',label:'Estado de resultados'},{id:'j-u9',label:'Declaración de renta'},{id:'j-u11',label:'Extracto empresa Mes 1'},{id:'j-u12',label:'Extracto empresa Mes 2'},{id:'j-u13',label:'Extracto empresa Mes 3'},{id:'j-u15',label:'Reporte DataCrédito Experian'}],
     checks:['jch1','jch2','jch3','jch4','jch5','jch6','jch7','jch8'],
     firmaId:'j-firmaElectronica',
   }
@@ -896,6 +900,7 @@ function cargarBorrador(){
     const data=JSON.parse(raw);
     if(data._tipo){tipoPersona=data._tipo;elegirTipo(data._tipo);iniciarFormulario();}
     Object.entries(data).forEach(([id,v])=>{if(id.startsWith('_'))return;const el=document.getElementById(id);if(el)el.value=v;});
+    if(tipoPersona==='natural')actualizarDocsLaborales();
     document.getElementById('draftBanner').style.display='none';
     showStep(data._step||0);
     showToast('Borrador cargado ✓','ok');
@@ -904,11 +909,28 @@ function cargarBorrador(){
 
 function descartarBorrador(){localStorage.removeItem(DRAFT_KEY);document.getElementById('draftBanner').style.display='none';}
 
+function getRequiredDocs(tipo){
+  const base=[...CONFIG[tipo].requiredDocsBase];
+  if(tipo!=='natural')return base;
+  const sit=document.getElementById('situacionLaboral')?.value||'';
+  if(sit==='Empleado dependiente'){
+    base.push({id:'u2',label:'Últimas 3 colillas de pago'},{id:'u3',label:'Certificado laboral'});
+  }else if(sit==='Independiente / freelance'||sit==='Empresario / socio'||sit==='Pensionado'){
+    base.push({id:'u4',label:'RUT actualizado'},{id:'u5',label:'Declaración de renta'});
+  }
+  return base;
+}
+
 function validateStep(n){
   const cfg=CONFIG[tipoPersona];
+  if(n===2&&tipoPersona==='natural'&&document.getElementById('situacionLaboral')?.value==='Desempleado'){
+    showToast('No es posible continuar: actualmente no se otorgan créditos a personas sin ingresos verificables','err');
+    return false;
+  }
   if(n===3){
-    const missing=cfg.requiredDocs.filter(d=>!archivosSeleccionados[d.id]);
-    if(missing.length){showToast('Falta subir: '+missing[0].label,'err');cfg.requiredDocs.forEach(d=>{const z=document.getElementById(d.id)?.closest('.upload-zone');if(z)z.style.borderColor=archivosSeleccionados[d.id]?'':'#dc2626';});return false;}
+    const requiredDocs=getRequiredDocs(tipoPersona);
+    const missing=requiredDocs.filter(d=>!archivosSeleccionados[d.id]);
+    if(missing.length){showToast('Falta subir: '+missing[0].label,'err');requiredDocs.forEach(d=>{const z=document.getElementById(d.id)?.closest('.upload-zone');if(z)z.style.borderColor=archivosSeleccionados[d.id]?'':'#dc2626';});return false;}
     return true;
   }
   if(n===4){
@@ -980,6 +1002,7 @@ function showStep(n){
   if(n>=cfg.totalSteps){showSuccess();return;}
   const stepEl=document.getElementById(cfg.prefix+'step'+n);if(stepEl)stepEl.style.display='block';
   currentStep=n;updateNav();updateProgress();
+  if(n===3&&tipoPersona==='natural')actualizarDocsLaborales();
   if(n===cfg.totalSteps-1){updateSummary();setTimeout(()=>initCanvas(tipoPersona==='natural'?'n':'j'),100);}
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -1037,6 +1060,29 @@ function updateSummary(){
 
 const archivosSeleccionados={};
 function clickUpload(id){document.getElementById(id).click();}
+
+function actualizarDocsLaborales(){
+  const sit=document.getElementById('situacionLaboral')?.value||'';
+  const empleado=document.getElementById('docsEmpleado');
+  const independiente=document.getElementById('docsIndependiente');
+  const sinSeleccion=document.getElementById('docsSinSeleccion');
+  const alertaDesempleado=document.getElementById('docsAlertaDesempleado');
+  if(!empleado||!independiente)return;
+  empleado.style.display='none';
+  independiente.style.display='none';
+  sinSeleccion.style.display='none';
+  alertaDesempleado.style.display='none';
+  if(sit==='Empleado dependiente'){
+    empleado.style.display='';
+  }else if(sit==='Independiente / freelance'||sit==='Empresario / socio'||sit==='Pensionado'){
+    independiente.style.display='';
+  }else if(sit==='Desempleado'){
+    alertaDesempleado.style.display='';
+  }else{
+    sinSeleccion.style.display='';
+  }
+}
+
 function markUp(input){const zone=input.closest('.upload-zone');if(input.files&&input.files.length>0){zone.classList.add('uploaded');zone.querySelector('.uz-label').textContent='✓ '+input.files[0].name.substring(0,30);archivosSeleccionados[input.id]=input.files[0];}}
 function fileToBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file);});}
 
