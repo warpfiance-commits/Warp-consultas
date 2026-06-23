@@ -100,6 +100,8 @@ td{padding:10px 14px;color:#374151}
 .doc-link{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;text-decoration:none;font-size:12px;color:#15803d;font-weight:500;cursor:pointer}
 .doc-link:hover{background:#dcfce7}
 .doc-error{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;font-size:12px;color:#dc2626}
+.doc-item{display:flex;flex-direction:column;gap:3px}
+.doc-item-label{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#6b7280;padding-left:1px}
 .datacredito-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#0D2340;color:#A8C400;border-radius:7px;text-decoration:none;font-size:12px;font-weight:700;margin-bottom:12px;font-family:'Sora',sans-serif}
 .datacredito-btn:hover{background:#1a3a5c}
 .hist-item{font-size:12px;padding:5px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;display:flex;gap:8px;align-items:flex-start}
@@ -545,13 +547,15 @@ async function verSolicitud(id){
   let docsHtml='';
   if(s.documentos&&Object.keys(s.documentos).length>0){
     const items=Object.entries(s.documentos).map(([k,d])=>{
+      const nombre=d?.nombre||k;
       if(d&&d.url){
-        const nombre=d.nombre||k;
         const isPdf=d.url.includes('.pdf')||d.url.includes('/docs/');
-        if(isPdf)return `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 ${nombre}</div>`;
-        return `<a href="${d.url}" target="_blank" class="doc-link">🖼 ${nombre}</a>`;
+        const boton=isPdf
+          ? `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 Ver documento</div>`
+          : `<a href="${d.url}" target="_blank" class="doc-link">🖼 Ver imagen</a>`;
+        return `<div class="doc-item"><div class="doc-item-label">${nombre}</div>${boton}</div>`;
       }
-      return `<div class="doc-error">⚠ ${d?.nombre||k} — no disponible</div>`;
+      return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
     }).join('');
     docsHtml=`<div class="docs-grid">${items}</div>`;
   }else{
@@ -691,13 +695,15 @@ async function verSolicitudJuridica(id){
   let docsHtml='';
   if(s.documentos&&Object.keys(s.documentos).length>0){
     const items=Object.entries(s.documentos).map(([k,d])=>{
+      const nombre=d?.nombre||k;
       if(d&&d.url){
-        const nombre=d.nombre||k;
         const isPdf=d.url.includes('.pdf')||d.url.includes('/docs/');
-        if(isPdf)return `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 ${nombre}</div>`;
-        return `<a href="${d.url}" target="_blank" class="doc-link">🖼 ${nombre}</a>`;
+        const boton=isPdf
+          ? `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 Ver documento</div>`
+          : `<a href="${d.url}" target="_blank" class="doc-link">🖼 Ver imagen</a>`;
+        return `<div class="doc-item"><div class="doc-item-label">${nombre}</div>${boton}</div>`;
       }
-      return `<div class="doc-error">⚠ ${d?.nombre||k} — no disponible</div>`;
+      return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
     }).join('');
     docsHtml=`<div class="docs-grid">${items}</div>`;
   }else{
