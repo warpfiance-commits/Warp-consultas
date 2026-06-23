@@ -207,8 +207,8 @@ textarea{resize:vertical;min-height:80px}
       <div class="card">
         <div class="sec-title">📍 Contacto y residencia</div>
         <div class="grid-2">
-          <div class="field"><label>Celular principal<span class="req">*</span></label><input type="tel" id="celular" placeholder="+57 300 0000000" oninput="guardarBorrador()"></div>
-          <div class="field"><label>Teléfono alternativo</label><input type="tel" id="telefonoAlt" placeholder="+57 604 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Celular principal<span class="req">*</span></label><input type="tel" id="celular" placeholder="+57 300 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
+          <div class="field"><label>Teléfono alternativo</label><input type="tel" id="telefonoAlt" placeholder="+57 604 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
         </div>
         <div class="grid-2">
           <div class="field"><label>Correo electrónico<span class="req">*</span></label><input type="email" id="email" placeholder="nombre@correo.com" oninput="guardarBorrador()"></div>
@@ -333,7 +333,7 @@ textarea{resize:vertical;min-height:80px}
             <select id="tipoContrato" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Término indefinido</option><option>Término fijo</option><option>Obra o labor</option><option>Prestación de servicios</option><option>Aprendizaje (SENA)</option><option>Temporal / agencia</option><option>No aplica</option></select></div>
         </div>
         <div class="grid-2" style="margin-bottom:0">
-          <div class="field"><label>Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
           <div class="field"><label>Dirección trabajo</label><input type="text" id="direccionTrabajo" placeholder="Calle 10 # 43-123, Medellín" oninput="guardarBorrador()"></div>
         </div>
       </div>
@@ -356,7 +356,7 @@ textarea{resize:vertical;min-height:80px}
             <select id="refParentesco" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Cónyuge / compañero(a)</option><option>Padre / Madre</option><option>Hijo(a)</option><option>Hermano(a)</option><option>Otro familiar</option><option>Amigo</option></select></div>
         </div>
         <div class="grid-2" style="margin-bottom:0">
-          <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="refCelular" placeholder="+57 312 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="refCelular" placeholder="+57 312 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
           <div class="field"><label>Referencias adicionales</label><input type="text" id="refAdicional" placeholder="Nombre — Teléfono" oninput="guardarBorrador()"></div>
         </div>
       </div>
@@ -504,7 +504,7 @@ textarea{resize:vertical;min-height:80px}
         </div>
         <div class="grid-2">
           <div class="field"><label>Cargo<span class="req">*</span></label><input type="text" id="j-repCargo" placeholder="Gerente General / Representante Legal" oninput="guardarBorrador()"></div>
-          <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="j-repCelular" placeholder="+57 300 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Celular<span class="req">*</span></label><input type="tel" id="j-repCelular" placeholder="+57 300 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
         </div>
         <div class="grid-2" style="margin-bottom:0">
           <div class="field"><label>Correo electrónico<span class="req">*</span></label><input type="email" id="j-repEmail" placeholder="rep@empresa.com" oninput="guardarBorrador()"></div>
@@ -615,7 +615,7 @@ textarea{resize:vertical;min-height:80px}
           <div class="field"><label>Contacto<span class="req">*</span></label><input type="text" id="j-refContacto" placeholder="Nombre del contacto" oninput="guardarBorrador()"></div>
         </div>
         <div class="grid-2" style="margin-bottom:0">
-          <div class="field"><label>Teléfono<span class="req">*</span></label><input type="tel" id="j-refTelefono" placeholder="+57 300 0000000" oninput="guardarBorrador()"></div>
+          <div class="field"><label>Teléfono<span class="req">*</span></label><input type="tel" id="j-refTelefono" placeholder="+57 300 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
           <div class="field"><label>Relación comercial</label>
             <select id="j-refRelacion" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Proveedor</option><option>Cliente</option><option>Aliado estratégico</option><option>Otro</option></select></div>
         </div>
@@ -816,6 +816,28 @@ function iniciarFormulario(){
 
 function formatMiles(el){let raw=el.value.replace(/\./g,'').replace(/[^0-9]/g,'');if(raw===''){el.value='';return;}el.value=Number(raw).toLocaleString('es-CO');}
 function val(id){const el=document.getElementById(id);if(!el)return'';const v=(el.value||'').trim();if(CAMPOS_MILES_ALL.includes(id))return v.replace(/\./g,'');return v;}
+
+function limpiarTelInput(el){
+  // Permite solo dígitos, espacios, +, - y paréntesis mientras escribe.
+  el.value=el.value.replace(/[^0-9+\-\s()]/g,'');
+}
+
+function soloDigitos(str){return (str||'').replace(/\D/g,'');}
+
+// tipo: 'celular' -> exactamente 10 dígitos, debe iniciar en 3.
+// tipo: 'fijo'    -> 7 o 10 dígitos.
+function validarTelefono(id,tipo,opcional){
+  const raw=document.getElementById(id)?.value||'';
+  let digitos=soloDigitos(raw);
+  if(digitos.startsWith('57')&&digitos.length>10)digitos=digitos.slice(2); // quita indicativo país si lo incluyó
+  if(!digitos){return opcional?true:'Este campo es obligatorio';}
+  if(tipo==='celular'){
+    if(digitos.length!==10||digitos[0]!=='3')return 'Ingrese un celular válido de 10 dígitos (ej. 300 0000000)';
+    return true;
+  }
+  if(digitos.length!==7&&digitos.length!==10)return 'Ingrese un teléfono válido de 7 u 10 dígitos';
+  return true;
+}
 function fmt(n){return(n&&n!=='0')?'$'+Number(n).toLocaleString('es-CO'):'—';}
 function markError(id,e){const el=document.getElementById(id);if(!el)return;el.style.borderColor=e?'#dc2626':'';el.style.background=e?'#fff5f5':'';}
 
@@ -901,12 +923,28 @@ function validateStep(n){
   if(n===0&&tipoPersona==='natural'){
     const chk=validarFechaNacimiento('fechaNacimiento');
     if(chk!==true){markError('fechaNacimiento',true);showToast(chk,'err');return false;}
+    const chkCel=validarTelefono('celular','celular',false);
+    if(chkCel!==true){markError('celular',true);showToast(chkCel,'err');return false;}
+    const chkAlt=validarTelefono('telefonoAlt','fijo',true);
+    if(chkAlt!==true){markError('telefonoAlt',true);showToast(chkAlt,'err');return false;}
+  }
+  if(n===2&&tipoPersona==='natural'){
+    const chkRefCel=validarTelefono('refCelular','celular',false);
+    if(chkRefCel!==true){markError('refCelular',true);showToast(chkRefCel,'err');return false;}
+    const chkTrab=validarTelefono('telefonoTrabajo','fijo',true);
+    if(chkTrab!==true){markError('telefonoTrabajo',true);showToast(chkTrab,'err');return false;}
   }
   if(n===0&&tipoPersona==='juridica'){
     const chkRep=validarFechaNacimiento('j-repFechaNac');
     if(chkRep!==true){markError('j-repFechaNac',true);showToast(chkRep,'err');return false;}
     const chkConst=validarFechaNoFutura('j-fechaConstitucion');
     if(chkConst!==true){markError('j-fechaConstitucion',true);showToast(chkConst,'err');return false;}
+    const chkRepCel=validarTelefono('j-repCelular','celular',false);
+    if(chkRepCel!==true){markError('j-repCelular',true);showToast(chkRepCel,'err');return false;}
+  }
+  if(n===2&&tipoPersona==='juridica'){
+    const chkRefTel=validarTelefono('j-refTelefono','celular',false);
+    if(chkRefTel!==true){markError('j-refTelefono',true);showToast(chkRefTel,'err');return false;}
   }
   return true;
 }
