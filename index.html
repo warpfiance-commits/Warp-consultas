@@ -391,7 +391,7 @@ textarea{resize:vertical;min-height:80px}
         </div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos adicionales</p>
         <div class="doc-grid" style="margin-bottom:0">
-          <div class="upload-zone" onclick="clickUpload('u10')"><input type="file" id="u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏠</span><div class="uz-label">Recibo de servicios públicos</div><div class="uz-hint">Confirma dirección</div></div>
+          <div class="upload-zone" onclick="clickUpload('u10')"><input type="file" id="u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏠</span><div class="uz-label">Recibo de servicios públicos <span style="color:#dc2626">*</span></div><div class="uz-hint">Confirma dirección</div></div>
           <div class="upload-zone" onclick="clickUpload('u12')"><input type="file" id="u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. de garantía / colateral</div><div class="uz-hint">Escritura, tarjeta propiedad...</div></div>
           <div class="upload-zone" onclick="clickUpload('u13')"><input type="file" id="u13" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🤳</span><div class="uz-label">Selfie sosteniendo cédula <span style="color:#dc2626">*</span></div><div class="uz-hint">Validación biométrica básica</div></div>
           <div class="upload-zone" onclick="clickUpload('u14')"><input type="file" id="u14" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📊</span><div class="uz-label">Reporte DataCrédito Experian <span style="color:#dc2626">*</span></div><div class="uz-hint">Descárguelo en <a href="https://usuario.midatacredito.com/login?product=midc&utm_source=MIDC&utm_medium=BOXMIDC&utm_campaign=HOME" target="_blank" onclick="event.stopPropagation()" style="color:var(--lime-d);font-weight:600">midatacredito.com</a></div></div>
@@ -772,7 +772,7 @@ const CONFIG = {
       1:[{id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},{id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Deudas totales'},{id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},{id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},{id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'}],
       2:[{id:'situacionLaboral',label:'Situación laboral'},{id:'tipoContrato',label:'Tipo de contrato'},{id:'estadoCivil',label:'Estado civil'},{id:'refNombre',label:'Nombre de referencia'},{id:'refParentesco',label:'Parentesco'},{id:'refCelular',label:'Celular de referencia'}],
     },
-    requiredDocsBase:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extracto Mes 1'},{id:'u7',label:'Extracto Mes 2'},{id:'u8',label:'Extracto Mes 3'},{id:'u13',label:'Selfie con cédula'},{id:'u14',label:'Reporte DataCrédito Experian'}],
+    requiredDocsBase:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extracto Mes 1'},{id:'u7',label:'Extracto Mes 2'},{id:'u8',label:'Extracto Mes 3'},{id:'u10',label:'Recibo de servicios públicos'},{id:'u13',label:'Selfie con cédula'},{id:'u14',label:'Reporte DataCrédito Experian'}],
     checks:['ch1','ch2','ch3','ch4','ch5','ch6'],
     firmaId:'firmaElectronica',
   },
