@@ -216,8 +216,8 @@ textarea{resize:vertical;min-height:80px}
         </div>
         <div class="grid-3">
           <div class="field"><label>Departamento<span class="req">*</span></label>
-            <select id="departamento" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Amazonas</option><option>Antioquia</option><option>Arauca</option><option>Atlántico</option><option>Bogotá D.C.</option><option>Bolívar</option><option>Boyacá</option><option>Caldas</option><option>Caquetá</option><option>Casanare</option><option>Cauca</option><option>Cesar</option><option>Chocó</option><option>Córdoba</option><option>Cundinamarca</option><option>Guainía</option><option>Guaviare</option><option>Huila</option><option>La Guajira</option><option>Magdalena</option><option>Meta</option><option>Nariño</option><option>Norte de Santander</option><option>Putumayo</option><option>Quindío</option><option>Risaralda</option><option>San Andrés y Providencia</option><option>Santander</option><option>Sucre</option><option>Tolima</option><option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option></select></div>
-          <div class="field"><label>Ciudad / Municipio<span class="req">*</span></label><input type="text" id="ciudad" placeholder="Medellín" oninput="guardarBorrador()"></div>
+            <select id="departamento" onchange="guardarBorrador();actualizarCiudades('departamento','ciudad')"><option value="">Seleccionar...</option><option>Amazonas</option><option>Antioquia</option><option>Arauca</option><option>Atlántico</option><option>Bogotá D.C.</option><option>Bolívar</option><option>Boyacá</option><option>Caldas</option><option>Caquetá</option><option>Casanare</option><option>Cauca</option><option>Cesar</option><option>Chocó</option><option>Córdoba</option><option>Cundinamarca</option><option>Guainía</option><option>Guaviare</option><option>Huila</option><option>La Guajira</option><option>Magdalena</option><option>Meta</option><option>Nariño</option><option>Norte de Santander</option><option>Putumayo</option><option>Quindío</option><option>Risaralda</option><option>San Andrés y Providencia</option><option>Santander</option><option>Sucre</option><option>Tolima</option><option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option></select></div>
+          <div class="field"><label>Ciudad / Municipio<span class="req">*</span></label><select id="ciudad" onchange="guardarBorrador()"><option value="">Seleccione primero el departamento...</option></select></div>
           <div class="field"><label>Barrio</label><input type="text" id="barrio" placeholder="El Poblado" oninput="guardarBorrador()"></div>
         </div>
         <div class="field" style="margin-bottom:12px">
@@ -316,7 +316,7 @@ textarea{resize:vertical;min-height:80px}
         <div class="sec-title">💼 Información laboral</div>
         <div class="grid-2">
           <div class="field"><label>Situación laboral<span class="req">*</span></label>
-            <select id="situacionLaboral" onchange="guardarBorrador();actualizarDocsLaborales();actualizarCamposLaborales()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option><option>Desempleado</option></select></div>
+            <select id="situacionLaboral" onchange="guardarBorrador();actualizarDocsLaborales();actualizarCamposLaborales()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option></select></div>
           <div class="field" id="campoSectorEconomico"><label>Sector económico</label>
             <select id="sectorEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Salud</option><option>Educación</option><option>Comercio</option><option>Construcción</option><option>Tecnología</option><option>Transporte</option><option>Financiero</option><option>Agropecuario</option><option>Otro</option></select></div>
         </div>
@@ -373,7 +373,6 @@ textarea{resize:vertical;min-height:80px}
           <div class="upload-zone" onclick="clickUpload('u1')"><input type="file" id="u1" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Reverso <span style="color:#dc2626">*</span></div><div class="uz-hint">Con huella y firma</div></div>
         </div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Soporte de ingresos</p>
-        <div id="docsAlertaDesempleado" class="alert" style="display:none;background:#fef2f2;border-color:#fca5a5;color:#dc2626">⚠ Actualmente no se otorgan créditos a personas sin ingresos verificables. Seleccione otra situación laboral para continuar.</div>
         <div id="docsEmpleado" class="doc-grid" style="display:none">
           <div class="upload-zone" onclick="clickUpload('u2')"><input type="file" id="u2" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📋</span><div class="uz-label">Últimas 3 colillas de pago <span style="color:#dc2626">*</span></div><div class="uz-hint">Empleado dependiente</div></div>
           <div class="upload-zone" onclick="clickUpload('u3')"><input type="file" id="u3" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏢</span><div class="uz-label">Certificado laboral <span style="color:#dc2626">*</span></div><div class="uz-hint">Con salario y antigüedad</div></div>
@@ -486,8 +485,8 @@ textarea{resize:vertical;min-height:80px}
           <div class="field"><label>Número de empleados</label>
             <select id="j-numEmpleados" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>1 - 5</option><option>6 - 10</option><option>11 - 50</option><option>51 - 200</option><option>Más de 200</option></select></div>
           <div class="field"><label>Departamento<span class="req">*</span></label>
-            <select id="j-departamento" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Amazonas</option><option>Antioquia</option><option>Arauca</option><option>Atlántico</option><option>Bogotá D.C.</option><option>Bolívar</option><option>Boyacá</option><option>Caldas</option><option>Caquetá</option><option>Casanare</option><option>Cauca</option><option>Cesar</option><option>Chocó</option><option>Córdoba</option><option>Cundinamarca</option><option>Guainía</option><option>Guaviare</option><option>Huila</option><option>La Guajira</option><option>Magdalena</option><option>Meta</option><option>Nariño</option><option>Norte de Santander</option><option>Putumayo</option><option>Quindío</option><option>Risaralda</option><option>San Andrés y Providencia</option><option>Santander</option><option>Sucre</option><option>Tolima</option><option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option></select></div>
-          <div class="field"><label>Ciudad<span class="req">*</span></label><input type="text" id="j-ciudad" placeholder="Medellín" oninput="guardarBorrador()"></div>
+            <select id="j-departamento" onchange="guardarBorrador();actualizarCiudades('j-departamento','j-ciudad')"><option value="">Seleccionar...</option><option>Amazonas</option><option>Antioquia</option><option>Arauca</option><option>Atlántico</option><option>Bogotá D.C.</option><option>Bolívar</option><option>Boyacá</option><option>Caldas</option><option>Caquetá</option><option>Casanare</option><option>Cauca</option><option>Cesar</option><option>Chocó</option><option>Córdoba</option><option>Cundinamarca</option><option>Guainía</option><option>Guaviare</option><option>Huila</option><option>La Guajira</option><option>Magdalena</option><option>Meta</option><option>Nariño</option><option>Norte de Santander</option><option>Putumayo</option><option>Quindío</option><option>Risaralda</option><option>San Andrés y Providencia</option><option>Santander</option><option>Sucre</option><option>Tolima</option><option>Valle del Cauca</option><option>Vaupés</option><option>Vichada</option></select></div>
+          <div class="field"><label>Ciudad<span class="req">*</span></label><select id="j-ciudad" onchange="guardarBorrador()"><option value="">Seleccione primero el departamento...</option></select></div>
         </div>
         <div class="field" style="margin-bottom:0">
           <label>Dirección comercial<span class="req">*</span></label>
@@ -753,6 +752,7 @@ textarea{resize:vertical;min-height:80px}
 <div class="toast" id="toast"></div>
 
 <script>
+const MUNICIPIOS_POR_DEPTO={'Amazonas':['Leticia','Puerto Nariño'],'Antioquia':['Medellín','Envigado','Itagüí','Bello','Rionegro','Apartadó','Turbo','Sabaneta'],'Arauca':['Arauca','Saravena','Tame','Arauquita'],'Atlántico':['Barranquilla','Soledad','Malambo','Sabanalarga','Puerto Colombia'],'Bogotá D.C.':['Bogotá'],'Bolívar':['Cartagena','Magangué','Turbaco','El Carmen de Bolívar','Arjona'],'Boyacá':['Tunja','Duitama','Sogamoso','Chiquinquirá','Paipa'],'Caldas':['Manizales','La Dorada','Chinchiná','Villamaría','Riosucio'],'Caquetá':['Florencia','San Vicente del Caguán','Puerto Rico'],'Casanare':['Yopal','Aguazul','Villanueva','Tauramena'],'Cauca':['Popayán','Santander de Quilichao','Patía','Puerto Tejada'],'Cesar':['Valledupar','Aguachica','Bosconia','Codazzi','La Jagua de Ibirico'],'Chocó':['Quibdó','Istmina','Tadó'],'Córdoba':['Montería','Cereté','Lorica','Sahagún','Tierralta'],'Cundinamarca':['Soacha','Chía','Zipaquirá','Facatativá','Fusagasugá','Girardot','Mosquera'],'Guainía':['Inírida'],'Guaviare':['San José del Guaviare'],'Huila':['Neiva','Pitalito','Garzón','La Plata'],'La Guajira':['Riohacha','Maicao','Uribia','Fonseca'],'Magdalena':['Santa Marta','Ciénaga','Fundación','El Banco'],'Meta':['Villavicencio','Acacías','Granada','Puerto López'],'Nariño':['Pasto','Tumaco','Ipiales','Túquerres'],'Norte de Santander':['Cúcuta','Ocaña','Pamplona','Villa del Rosario'],'Putumayo':['Mocoa','Puerto Asís','Orito','Sibundoy'],'Quindío':['Armenia','Calarcá','Montenegro','La Tebaida'],'Risaralda':['Pereira','Dosquebradas','Santa Rosa de Cabal','La Virginia'],'San Andrés y Providencia':['San Andrés','Providencia'],'Santander':['Bucaramanga','Floridablanca','Girón','Piedecuesta','Barrancabermeja','San Gil'],'Sucre':['Sincelejo','Corozal','San Marcos','Sampués'],'Tolima':['Ibagué','Espinal','Melgar','Honda','Líbano'],'Valle del Cauca':['Cali','Palmira','Buenaventura','Tuluá','Buga','Cartago','Yumbo'],'Vaupés':['Mitú'],'Vichada':['Puerto Carreño']};
 const API_URL = window.location.origin;
 const DRAFT_KEY = 'warp_credito_draft';
 let tipoPersona = null;
@@ -819,6 +819,23 @@ function iniciarFormulario(){
 }
 
 function formatMiles(el){let raw=el.value.replace(/\./g,'').replace(/[^0-9]/g,'');if(raw===''){el.value='';return;}el.value=Number(raw).toLocaleString('es-CO');}
+function actualizarCiudades(idDepto,idCiudad){
+  const depto=document.getElementById(idDepto)?.value||'';
+  const selCiudad=document.getElementById(idCiudad);
+  if(!selCiudad)return;
+  const valorPrevio=selCiudad.value;
+  if(!depto){
+    selCiudad.innerHTML='<option value="">Seleccione primero el departamento...</option>';
+    return;
+  }
+  const municipios=MUNICIPIOS_POR_DEPTO[depto]||[];
+  let html='<option value="">Seleccionar...</option>';
+  municipios.forEach(m=>{html+=`<option>${m}</option>`;});
+  html+='<option>Otro municipio del departamento</option>';
+  selCiudad.innerHTML=html;
+  if(municipios.includes(valorPrevio)||valorPrevio==='Otro municipio del departamento')selCiudad.value=valorPrevio;
+}
+
 function val(id){const el=document.getElementById(id);if(!el)return'';const v=(el.value||'').trim();if(CAMPOS_MILES_ALL.includes(id))return v.replace(/\./g,'');return v;}
 
 function limpiarTelInput(el){
@@ -900,6 +917,10 @@ function cargarBorrador(){
     const data=JSON.parse(raw);
     if(data._tipo){tipoPersona=data._tipo;elegirTipo(data._tipo);iniciarFormulario();}
     Object.entries(data).forEach(([id,v])=>{if(id.startsWith('_'))return;const el=document.getElementById(id);if(el)el.value=v;});
+    actualizarCiudades('departamento','ciudad');
+    actualizarCiudades('j-departamento','j-ciudad');
+    if(data.ciudad)document.getElementById('ciudad').value=data.ciudad;
+    if(data['j-ciudad'])document.getElementById('j-ciudad').value=data['j-ciudad'];
     if(tipoPersona==='natural'){actualizarDocsLaborales();actualizarCamposLaborales();}
     document.getElementById('draftBanner').style.display='none';
     showStep(data._step||0);
@@ -923,10 +944,6 @@ function getRequiredDocs(tipo){
 
 function validateStep(n){
   const cfg=CONFIG[tipoPersona];
-  if(n===2&&tipoPersona==='natural'&&document.getElementById('situacionLaboral')?.value==='Desempleado'){
-    showToast('No es posible continuar: actualmente no se otorgan créditos a personas sin ingresos verificables','err');
-    return false;
-  }
   if(n===3){
     const requiredDocs=getRequiredDocs(tipoPersona);
     const missing=requiredDocs.filter(d=>!archivosSeleccionados[d.id]);
@@ -1083,7 +1100,7 @@ function actualizarCamposLaborales(){
   const inCargo=document.getElementById('cargo');
   if(!filaEmpresaNit)return;
 
-  if(sit===''||sit==='Desempleado'){
+  if(sit===''){
     filaEmpresaNit.style.display='none';
     filaCargoAntiguedadContrato.style.display='none';
     filaTelefonoDireccion.style.display='none';
@@ -1123,18 +1140,14 @@ function actualizarDocsLaborales(){
   const empleado=document.getElementById('docsEmpleado');
   const independiente=document.getElementById('docsIndependiente');
   const sinSeleccion=document.getElementById('docsSinSeleccion');
-  const alertaDesempleado=document.getElementById('docsAlertaDesempleado');
   if(!empleado||!independiente)return;
   empleado.style.display='none';
   independiente.style.display='none';
   sinSeleccion.style.display='none';
-  alertaDesempleado.style.display='none';
   if(sit==='Empleado dependiente'){
     empleado.style.display='';
   }else if(sit==='Independiente / freelance'||sit==='Empresario / socio'||sit==='Pensionado'){
     independiente.style.display='';
-  }else if(sit==='Desempleado'){
-    alertaDesempleado.style.display='';
   }else{
     sinSeleccion.style.display='';
   }
