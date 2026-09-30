@@ -84,11 +84,33 @@ textarea{resize:vertical;min-height:80px}
 .toast.show{display:block}
 .wa-btn{position:fixed;bottom:24px;right:24px;z-index:999;background:#25D366;color:#fff;border-radius:50%;width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 16px rgba(37,211,102,.4);text-decoration:none;transition:transform .2s}
 .wa-btn:hover{transform:scale(1.1)}
-.success-wrap{text-align:center;padding:3rem 1rem}
-.success-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--lime),var(--lime-d));display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:36px}
-.success-title{font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:var(--navy);margin-bottom:8px}
-.success-sub{font-size:15px;color:#6b7280;margin-bottom:8px}
-.success-rad{display:inline-block;background:var(--navy);color:var(--lime);font-family:'Sora',sans-serif;font-size:16px;font-weight:700;padding:10px 24px;border-radius:8px;margin:12px 0}
+.success-wrap{text-align:center;padding:2.6rem 1.6rem 2rem}
+.success-wrap .ico{width:128px;height:128px;padding:12px;margin-bottom:1.2rem;animation:pop .6s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.success-wrap .ico{animation:none}}
+.success-title{font-family:'Sora',sans-serif;font-size:28px;font-weight:700;color:var(--navy);letter-spacing:-.02em;margin-bottom:8px}
+.success-sub{font-size:15px;color:var(--text-soft);line-height:1.55;max-width:460px;margin:0 auto}
+.rad-box{display:inline-flex;align-items:center;gap:14px;margin:1.6rem 0 .4rem;padding:12px 12px 12px 20px;background:#f3f8f3;border:1px solid #d7e8d8;border-radius:16px}
+.rad-lbl{font-size:11px;font-weight:600;color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase;text-align:left}
+.success-rad{font-family:'Sora',sans-serif;font-size:21px;font-weight:700;color:var(--navy);letter-spacing:.02em}
+.rad-copy{border:none;background:var(--navy);color:#fff;border-radius:11px;padding:10px 14px;font:600 13px 'DM Sans',sans-serif;cursor:pointer;transition:background .2s}
+.rad-copy:hover{background:#14491a}
+.rad-help{font-size:12.5px;color:#9ca3af}
+.next-title{font-family:'Sora',sans-serif;font-size:12px;font-weight:600;color:var(--text-soft);letter-spacing:.1em;text-transform:uppercase;margin:2rem 0 1rem}
+.next-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:left}
+.next-step{position:relative;padding:14px 14px 14px 16px;border-radius:16px;background:#f8faf7}
+.next-step b{display:block;font-size:13.5px;color:#1f2937;margin:8px 0 3px}
+.next-step span{font-size:12.5px;color:var(--text-soft);line-height:1.45}
+.next-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px 'Sora',sans-serif;background:#e4efe5;color:var(--lime-d)}
+.next-step.done .next-dot{background:var(--lime-d);color:#fff}
+.success-cta{display:inline-flex;align-items:center;gap:8px;margin-top:1.8rem;padding:12px 20px;border-radius:12px;border:1px solid #d7e8d8;color:var(--navy);font-weight:600;font-size:14px;text-decoration:none;transition:background .2s}
+.success-cta:hover{background:#f3f8f3}
+.success-cta svg{width:18px;height:18px;fill:#25D366}
+@media(max-width:600px){
+  .success-title{font-size:24px}
+  .rad-box{flex-wrap:wrap;justify-content:center;padding:12px 16px}
+  .next-steps{grid-template-columns:1fr}
+}
 .tipo-intro{text-align:center;margin:.5rem 0 1.4rem}
 .tipo-intro h2{font-family:'Sora',sans-serif;font-size:26px;font-weight:700;color:var(--navy);letter-spacing:-.015em;margin-bottom:6px}
 .tipo-intro p{font-size:14.5px;color:var(--text-soft)}
@@ -162,6 +184,7 @@ textarea{resize:vertical;min-height:80px}
 <symbol id="i-reloj" viewBox="0 0 120 120"><ellipse cx="60" cy="104" rx="34" ry="6" fill="#0d3d12" opacity=".12"/><circle cx="60" cy="56" r="37" fill="url(#g2)"/><circle cx="60" cy="56" r="30" fill="url(#gm)"/><circle cx="60" cy="56" r="33.5" fill="none" stroke="url(#gy)" stroke-width="4" stroke-linecap="round" stroke-dasharray="120 300" transform="rotate(-90 60 56)"/><path d="M60 38v19l13 8" stroke="#1b5e20" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="60" cy="57" r="4.5" fill="url(#gy)"/><ellipse cx="46" cy="36" rx="9" ry="4.5" fill="#fff" opacity=".55" transform="rotate(-35 46 36)"/></symbol>
 <symbol id="i-borrador" viewBox="0 0 120 120"><ellipse cx="60" cy="104" rx="34" ry="6" fill="#0d3d12" opacity=".12"/><g transform="rotate(-8 56 58)"><rect x="28" y="18" width="52" height="70" rx="8" fill="url(#gm)" stroke="#bfe0c3" stroke-width="1.6"/><g fill="#9ed3a4"><rect x="38" y="32" width="32" height="5" rx="2.5"/><rect x="38" y="44" width="32" height="5" rx="2.5"/><rect x="38" y="56" width="22" height="5" rx="2.5"/></g><rect x="38" y="68" width="27" height="5" rx="2.5" fill="url(#g1)"/></g><g transform="rotate(32 88 66)"><rect x="82" y="34" width="12" height="46" rx="3.5" fill="url(#gy)"/><rect x="82" y="34" width="12" height="9" rx="3.5" fill="url(#g1)"/><path d="M82 80h12l-6 14z" fill="#f8deb0"/><path d="M85.2 88h5.6l-2.8 6z" fill="#1b5e20"/></g></symbol>
 <symbol id="i-escudo" viewBox="0 0 120 120"><ellipse cx="60" cy="104" rx="34" ry="6" fill="#0d3d12" opacity=".12"/><path d="M60 14 98 27v29c0 23-16 39-38 47C38 95 22 79 22 56V27z" fill="url(#g2)"/><path d="M60 22 90 32v24c0 19-13 32-30 39-17-7-30-20-30-39V32z" fill="url(#g1)"/><path d="M60 22 90 32v10c-9 6-19 9-30 9s-21-3-30-9V32z" fill="#fff" opacity=".22"/><path d="M45 58l11 11 20-23" stroke="#fff" stroke-width="7.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M96 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fff" opacity=".9"/></symbol>
+<symbol id="i-exito" viewBox="0 0 120 120"><ellipse cx="60" cy="106" rx="30" ry="5.5" fill="#0d3d12" opacity=".12"/><path d="M60 10l9 7 11-2 5 10 10 5-2 11 7 9-7 9 2 11-10 5-5 10-11-2-9 7-9-7-11 2-5-10-10-5 2-11-7-9 7-9-2-11 10-5 5-10 11 2z" fill="url(#g2)"/><circle cx="60" cy="56" r="31" fill="url(#g1)"/><ellipse cx="48" cy="38" rx="11" ry="5" fill="#fff" opacity=".4" transform="rotate(-30 48 38)"/><path d="M45 57l10 10 20-22" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="101" cy="22" r="4" fill="url(#gy)"/><circle cx="16" cy="36" r="3" fill="url(#gy)"/><path d="M20 90l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#8fdc95"/><path d="M99 84l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="url(#gy)"/></symbol>
 <symbol id="i-chat" viewBox="0 0 120 120"><ellipse cx="60" cy="104" rx="34" ry="6" fill="#0d3d12" opacity=".12"/><path d="M38 70v22l22-18z" fill="url(#g1)"/><rect x="20" y="22" width="68" height="52" rx="15" fill="url(#g1)"/><g fill="#fff"><circle cx="41" cy="48" r="5"/><circle cx="56" cy="48" r="5"/><circle cx="71" cy="48" r="5"/></g><ellipse cx="34" cy="30" rx="9" ry="4.5" fill="#fff" opacity=".55" transform="rotate(-15 34 30)"/><path d="M86 70v16l-14-10z" fill="url(#gy)"/><rect x="66" y="56" width="38" height="28" rx="11" fill="url(#gy)"/><path d="M78 70l6 6 11-12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </defs></svg>
 <div class="wrap">
@@ -769,11 +792,21 @@ textarea{resize:vertical;min-height:80px}
     <!-- SUCCESS -->
     <div id="stepSuccess" style="display:none">
       <div class="card success-wrap">
-        <div class="success-icon">✓</div>
+        <svg class="ico"><use href="#i-exito"/></svg>
         <div class="success-title">¡Solicitud enviada!</div>
-        <p class="success-sub">Recibimos tu información. Un asesor de <strong>Financial Services</strong> se pondrá en contacto en las próximas 24 horas hábiles.</p>
-        <div class="success-rad" id="radicado-display">WRP-XXXXXX</div>
-        <p class="success-sub" style="margin-top:8px;font-size:13px">Guarda este número de radicado para dar seguimiento a tu solicitud.</p>
+        <p class="success-sub">Recibimos tu información. Un asesor de <strong>Financial Services</strong> se pondrá en contacto contigo en las próximas 24 horas hábiles.</p>
+        <div class="rad-box">
+          <div><div class="rad-lbl">Tu radicado</div><div class="success-rad" id="radicado-display">WRP-XXXXXX</div></div>
+          <button class="rad-copy" id="radCopy" onclick="copiarRadicado()">Copiar</button>
+        </div>
+        <div class="rad-help">Guárdalo para hacer seguimiento a tu solicitud.</div>
+        <div class="next-title">¿Qué sigue?</div>
+        <div class="next-steps">
+          <div class="next-step done"><div class="next-dot">✓</div><b>Recibida</b><span>Tu solicitud y documentos llegaron completos.</span></div>
+          <div class="next-step"><div class="next-dot">2</div><b>Análisis</b><span>Revisamos tu información y capacidad de pago.</span></div>
+          <div class="next-step"><div class="next-dot">3</div><b>Respuesta</b><span>Te contactamos en máximo 24 horas hábiles.</span></div>
+        </div>
+        <a class="success-cta" id="successWa" href="https://wa.me/573018558295" target="_blank" rel="noopener"><svg viewBox="0 0 32 32"><path d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.2.6 4.4 1.7 6.3L3 29l7.3-1.9c1.8 1 3.8 1.5 5.7 1.5 7 0 12.7-5.7 12.7-12.7S23 3 16 3zm0 23.2c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-4.3 1.1 1.2-4.2-.3-.4c-1-1.6-1.5-3.5-1.5-5.4C5.6 9.8 10.3 5.2 16 5.2S26.4 9.8 26.4 15.6 21.7 26.2 16 26.2zm5.7-7.8c-.3-.2-1.9-.9-2.2-1s-.5-.2-.7.2-.8 1-1 1.2-.4.2-.7.1a8.6 8.6 0 0 1-4.3-3.7c-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.1-1.2 2.7 1.2 3.2 1.4 3.4 2.4 3.6 5.7 5c2.1.9 2.9 1 4 .8.6-.1 1.9-.8 2.2-1.5s.3-1.4.2-1.5-.3-.2-.6-.3z"/></svg>Escríbenos por WhatsApp</a>
       </div>
     </div>
 
@@ -1203,6 +1236,12 @@ function markUp(input){
   zone.classList.add('uploaded');
   zone.querySelector('.uz-label').textContent='✓ '+(files.length>1?files.length+' archivos cargados':files[0].name.substring(0,30));
 }
+function copiarRadicado(){
+  const t=document.getElementById('radicado-display').textContent, b=document.getElementById('radCopy');
+  const ok=()=>{b.textContent='✓ Copiado';setTimeout(()=>b.textContent='Copiar',2000);};
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,()=>{});
+  else{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();ok();}
+}
 function fileToBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file);});}
 
 function seleccionarTodo(tipo){
@@ -1255,7 +1294,7 @@ async function submitForm(){
   try{
     const resp=await fetch(API_URL+'/api/solicitudes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const json=await resp.json();
-    if(resp.ok&&json.radicado){document.getElementById('radicado-display').textContent=json.radicado;showStep(cfg.totalSteps);}
+    if(resp.ok&&json.radicado){document.getElementById('radicado-display').textContent=json.radicado;document.getElementById('successWa').href='https://wa.me/573018558295?text='+encodeURIComponent('Hola, envié mi solicitud de crédito. Mi radicado es '+json.radicado);showStep(cfg.totalSteps);}
     else{showToast(json.error||'Error enviando. Intenta de nuevo.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
   }catch(e){showToast('Error de conexión. Verifica tu internet.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
 }
