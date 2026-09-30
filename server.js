@@ -40,9 +40,15 @@ if (SENDGRID_KEY) {
 }
 
 // ── PostgreSQL ────────────────────────────────────────────────────────────────
+// La URL interna de Render (host sin dominio, p. ej. dpg-xxxx-a) va sin SSL;
+// las externas (…render.com, Neon, etc.) lo exigen.
+function usarSSL(url) {
+  if (!url) return false;
+  try { return new URL(url).hostname.includes('.'); } catch { return true; }
+}
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+  ssl: usarSSL(process.env.DATABASE_URL) ? { rejectUnauthorized: false } : false,
   connectionTimeoutMillis: 10000,
   max: 10
 });

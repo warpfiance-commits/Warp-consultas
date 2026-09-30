@@ -306,7 +306,8 @@ td{padding:10px 14px;color:#374151}
 
 <script>
 // ⚠️ Front en Hostinger, backend en Render: reemplaza por la URL de tu servicio en Render.
-const API = 'https://warp-consultas.onrender.com';
+// Servida desde Render (…onrender.com/admin) usa su propio backend; desde Hostinger, el de Render.
+const API = location.hostname.endsWith('.onrender.com') ? location.origin : 'https://warp-consultas.onrender.com';
 let TOKEN = localStorage.getItem('warp-admin-token') || '';
 let searchTimer;
 

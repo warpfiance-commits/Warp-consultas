@@ -1,0 +1,24 @@
+# Blueprint de Render: crea el backend y su base de datos de una vez.
+# En Render: New → Blueprint → elegir este repositorio.
+services:
+  - type: web
+    name: warp-consultas
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: warp-db
+          property: connectionString
+
+databases:
+  - name: warp-db
+    plan: free
+    databaseName: warp
+    user: warp
