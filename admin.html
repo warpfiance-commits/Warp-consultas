@@ -158,6 +158,61 @@ td{padding:10px 14px;color:#374151}
   .login-wrap{padding:1rem}
   .login-box{width:100%;max-width:100%;padding:2rem 1.5rem}
 }
+
+/* ─────────── Dashboard renovado ─────────── */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#14491a 0%,#1B5E20 45%,#2E7D32 100%);border-radius:18px;color:#fff;padding:1.7rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:1.25rem;box-shadow:0 10px 30px -12px rgba(27,94,32,.55)}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.hero::before{width:320px;height:320px;right:-70px;top:-150px;background:radial-gradient(circle,rgba(168,196,0,.28),transparent 68%)}
+.hero::after{width:240px;height:240px;right:180px;bottom:-150px;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 70%)}
+.hero-txt{position:relative;z-index:1;min-width:0}
+.hero-hi{font-size:13px;opacity:.78;margin-bottom:4px}
+.hero-title{font-family:'Sora',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.01em}
+.hero-sub{font-size:13px;opacity:.82;margin-top:6px;max-width:440px;line-height:1.5}
+.hero-side{position:relative;z-index:1;display:flex;align-items:center;gap:1.6rem;flex-shrink:0}
+.hero-fig{font-family:'Sora',sans-serif;font-size:60px;font-weight:700;line-height:1;letter-spacing:-.03em;text-align:right}
+.hero-fig small{display:block;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:0;opacity:.78;margin-top:6px}
+.hero-btn{background:#fff;color:var(--navy);border:none;border-radius:10px;padding:11px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}
+.hero-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.22)}
+.stat-card{display:flex;align-items:center;gap:14px;transition:transform .15s,box-shadow .15s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px -10px rgba(27,94,32,.35)}
+.stat-ico{width:42px;height:42px;border-radius:12px;background:var(--lime-l);color:var(--lime-d);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-ico svg{width:21px;height:21px}
+.stat-card.accent .stat-ico{background:var(--navy);color:#C6E85A}
+.stat-card.accent .stat-value{color:var(--navy)}
+.pipe-card{padding:1.2rem 1.3rem 1.3rem}
+.pipe-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:1rem}
+.pipe-head small{font-size:12px;color:#9ca3af}
+.pipe-bar{display:flex;height:16px;gap:2px;margin-bottom:1.1rem}
+.pipe-seg{height:100%;min-width:6px;cursor:default;transition:filter .15s,transform .15s;transform-origin:bottom}
+.pipe-seg:first-child{border-radius:4px 0 0 4px}
+.pipe-seg:last-child{border-radius:0 4px 4px 0}
+.pipe-seg:only-child{border-radius:4px}
+.pipe-seg:hover{filter:brightness(1.12);transform:scaleY(1.25)}
+.pipe-empty{height:16px;border-radius:4px;background:repeating-linear-gradient(135deg,#eef1ec 0 6px,#f6f8f4 6px 12px);margin-bottom:1.1rem}
+.pipe-legend{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.pipe-item{padding:10px 12px;border:1px solid #edf0ea;border-radius:10px;min-width:0}
+.pipe-item .lbl{display:flex;align-items:center;gap:7px;font-size:12px;color:#6b7280;font-weight:500}
+.pipe-item .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.pipe-item .sw.rej{background:#d03b3b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;line-height:1;font-weight:700}
+.pipe-item .num{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--navy);margin-top:4px}
+.pipe-item .pct{font-size:11px;color:#9ca3af;margin-left:6px;font-family:'DM Sans',sans-serif;font-weight:500}
+.viz-tip{position:fixed;z-index:3000;pointer-events:none;background:#0f2a12;color:#fff;font-size:12px;padding:7px 11px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);opacity:0;transition:opacity .12s;white-space:nowrap}
+.viz-tip.on{opacity:1}
+.viz-tip b{font-weight:700}
+.av{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--lime-l);color:var(--lime-d);font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:10px;vertical-align:middle;flex-shrink:0}
+.tbl-name{display:flex;align-items:center}
+@media(max-width:900px){
+  .pipe-legend{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:768px){
+  .hero{flex-direction:column;align-items:flex-start;padding:1.3rem 1.2rem}
+  .hero-side{width:100%;justify-content:space-between}
+  .hero-fig{font-size:48px;text-align:left}
+  .pipe-legend{grid-template-columns:1fr 1fr}
+  .card td{white-space:nowrap}
+  .stat-card{gap:10px;padding:.85rem .9rem}
+  .stat-ico{width:36px;height:36px}
+}
 </style>
 </head>
 <body>
@@ -208,11 +263,27 @@ td{padding:10px 14px;color:#374151}
 
       <!-- DASHBOARD -->
       <div class="section visible" id="sec-dashboard">
+        <div class="hero">
+          <div class="hero-txt">
+            <div class="hero-hi" id="hero-fecha">&nbsp;</div>
+            <div class="hero-title" id="hero-saludo">Bienvenida</div>
+            <div class="hero-sub" id="hero-sub">Cargando tu resumen…</div>
+          </div>
+          <div class="hero-side">
+            <div class="hero-fig"><span id="hero-num">—</span><small id="hero-lbl">por revisar</small></div>
+            <button class="hero-btn" onclick="showSection('solicitudes',document.querySelectorAll('.nav-item')[1])">Revisar ahora →</button>
+          </div>
+        </div>
         <div class="stat-grid">
-          <div class="stat-card"><div class="stat-label">Total solicitudes</div><div class="stat-value" id="st-total">—</div></div>
-          <div class="stat-card"><div class="stat-label">Hoy</div><div class="stat-value" id="st-hoy">—</div></div>
-          <div class="stat-card"><div class="stat-label">Pendientes</div><div class="stat-value" id="st-pend">—</div></div>
-          <div class="stat-card accent"><div class="stat-label">Aprobadas</div><div class="stat-value" id="st-apr">—</div></div>
+          <div class="stat-card"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div><div><div class="stat-label">Total solicitudes</div><div class="stat-value" id="st-total">—</div></div></div>
+          <div class="stat-card"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div><div><div class="stat-label">Hoy</div><div class="stat-value" id="st-hoy">—</div></div></div>
+          <div class="stat-card"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.6 2.6L16 9.5"/></svg></div><div><div class="stat-label">Aprobadas</div><div class="stat-value" id="st-apr">—</div></div></div>
+          <div class="stat-card accent"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div><div><div class="stat-label">Monto aprobado</div><div class="stat-value" id="st-monto">—</div></div></div>
+        </div>
+        <div class="card pipe-card">
+          <div class="pipe-head"><div class="card-title">Embudo de solicitudes</div><small id="pipe-total"></small></div>
+          <div id="pipe-bar-wrap"></div>
+          <div class="pipe-legend" id="pipe-legend"></div>
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title">Solicitudes recientes</div></div>
@@ -428,7 +499,7 @@ function entrarApp(){
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('appWrap').style.display='flex';
   loadDashboard(); loadContadores(); marcarActualizado();
-  req('/api/admin/yo').then(u=>{ if(u)document.getElementById('usuarioActual').textContent=u.nombre+(u.email!==u.nombre?' · '+u.email:''); });
+  req('/api/admin/yo').then(u=>{ if(u){ USUARIO=u; document.getElementById('usuarioActual').textContent=u.nombre+(u.email!==u.nombre?' · '+u.email:''); saludoHero(); } });
 }
 function logout(){
   if(TOKEN)fetch(API+'/api/admin/logout',{method:'POST',headers:headers()}).catch(()=>{});
@@ -452,18 +523,71 @@ function showSection(name,btn){
 function recargar(){ const vi=document.querySelector('.section.visible'); if(vi){const n=vi.id.replace('sec-','');showSection(n);} }
 
 /* ── DASHBOARD ── */
+/* Colores del embudo: un verde ordenado claro→oscuro (validado) + rojo de estado para Rechazada. */
+const ETAPAS=[
+  {k:'radicadas',n:'Radicada',c:'#6fbf73'},
+  {k:'enAnalisis',n:'En análisis',c:'#43a047'},
+  {k:'aprobadas',n:'Aprobada',c:'#2e7d32'},
+  {k:'desembolsadas',n:'Desembolsada',c:'#1b5e20'}
+];
+let USUARIO=null;
+function saludoHero(){
+  const h=new Date().getHours();
+  const momento=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
+  const nombre=(USUARIO?.nombre||'').split(' ')[0];
+  document.getElementById('hero-saludo').textContent=momento+(nombre?', '+nombre:'');
+  const f=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('hero-fecha').textContent=f.charAt(0).toUpperCase()+f.slice(1);
+}
+function iniciales(a,b){ return ((a||'').trim()[0]||'')+((b||'').trim()[0]||'') || '·'; }
+function tip(ev,html){
+  let t=document.getElementById('viz-tip');
+  if(!t){ t=document.createElement('div'); t.id='viz-tip'; t.className='viz-tip'; document.body.appendChild(t); }
+  if(html===null){ t.classList.remove('on'); return; }
+  t.innerHTML=html; t.classList.add('on');
+  t.style.left=Math.min(ev.clientX+14,window.innerWidth-t.offsetWidth-8)+'px';
+  t.style.top=(ev.clientY+16)+'px';
+}
+function pintarEmbudo(d){
+  const total=d.total||0;
+  const items=ETAPAS.map(e=>({...e,v:d[e.k]||0}));
+  const rech=d.rechazadas||0;
+  document.getElementById('pipe-total').textContent=total?total+(total===1?' solicitud en total':' solicitudes en total'):'';
+  const wrap=document.getElementById('pipe-bar-wrap');
+  const activos=items.filter(i=>i.v>0);
+  wrap.innerHTML=activos.length
+    ?'<div class="pipe-bar" role="img" aria-label="Distribución de solicitudes por etapa">'+activos.map(i=>
+        `<div class="pipe-seg" style="flex:${i.v} 1 0;background:${i.c}" data-n="${i.n}" data-v="${i.v}"></div>`).join('')+'</div>'
+    :'<div class="pipe-empty" title="Aún no hay solicitudes en el embudo"></div>';
+  wrap.querySelectorAll('.pipe-seg').forEach(el=>{
+    const html=`<b>${el.dataset.n}</b> · ${el.dataset.v} (${Math.round(el.dataset.v*100/total)}%)`;
+    el.onmousemove=e=>tip(e,html); el.onmouseleave=()=>tip(null,null);
+  });
+  const pct=v=>total?Math.round(v*100/total)+'%':'0%';
+  document.getElementById('pipe-legend').innerHTML=
+    items.map(i=>`<div class="pipe-item"><div class="lbl"><span class="sw" style="background:${i.c}"></span>${i.n}</div><div class="num">${i.v}<span class="pct">${pct(i.v)}</span></div></div>`).join('')+
+    `<div class="pipe-item"><div class="lbl"><span class="sw rej">✕</span>Rechazada</div><div class="num">${rech}<span class="pct">${pct(rech)}</span></div></div>`;
+}
 async function loadDashboard(){
   const d=await req('/api/admin/dashboard'); if(!d)return;
+  const pend=(d.radicadas||0)+(d.enAnalisis||0);
   document.getElementById('st-total').textContent=d.total;
   document.getElementById('st-hoy').textContent=d.hoy;
-  document.getElementById('st-pend').textContent=(d.radicadas||0)+(d.enAnalisis||0);
   document.getElementById('st-apr').textContent=d.aprobadas;
+  document.getElementById('st-monto').textContent=fmt(d.montoTotal||0).replace('—','$0');
+  document.getElementById('hero-num').textContent=pend;
+  document.getElementById('hero-lbl').textContent=pend===1?'solicitud por revisar':'solicitudes por revisar';
+  document.getElementById('hero-sub').textContent=pend
+    ?(d.hoy?`Hoy ${d.hoy===1?'llegó 1 solicitud nueva':'llegaron '+d.hoy+' solicitudes nuevas'}. Revisa las pendientes para no dejarlas esperando.`:'Tienes solicitudes esperando decisión. Revisa las pendientes para no dejarlas esperando.')
+    :'Todo al día: no hay solicitudes pendientes por revisar.';
+  saludoHero();
+  pintarEmbudo(d);
   const tbody=document.getElementById('dash-table');
   if(!d.recientes.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes aún</td></tr>';return;}
   tbody.innerHTML=d.recientes.map(s=>`
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
-      <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
+      <td style="font-weight:500"><div class="tbl-name"><span class="av">${esc(iniciales(s.primerNombre,s.primerApellido)).toUpperCase()}</span>${v(s.primerNombre)} ${v(s.primerApellido)}</div></td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
