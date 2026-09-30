@@ -143,9 +143,49 @@ textarea{resize:vertical;min-height:80px}
 .cam-ok-badge.show{display:flex}
 .firma-preview{max-height:60px;border:1px solid #e5e7eb;border-radius:5px;display:none;margin-top:8px}
 .firma-font{font-family:'Caveat',cursive;font-size:32px;color:#1B5E20;padding:8px 0;min-height:60px;display:flex;align-items:center}
+
+/* ─────────── Estilo de la pantalla de inicio: tarjetas suaves e íconos 3D ─────────── */
+body{background:linear-gradient(180deg,#eaf4ec 0%,#f3f7f3 38%,#f7f9f6 100%);background-attachment:fixed}
+.header{border:none;border-radius:22px;padding:20px 26px;box-shadow:0 14px 34px -18px rgba(27,94,32,.28)}
+.htitle{font-size:22px;letter-spacing:-.01em}
+.card{border:1px solid rgba(27,94,32,.08);border-radius:20px;box-shadow:0 14px 34px -22px rgba(27,94,32,.3)}
+.tipo-intro h2{font-size:26px;letter-spacing:-.015em}
+.tipo-intro p{font-size:14.5px}
+.tipo-selector{gap:20px;margin:1.6rem 0 1.2rem}
+.tipo-card{border:2px solid transparent;border-radius:26px;padding:1.6rem 1.3rem 1.5rem;box-shadow:0 14px 34px -20px rgba(27,94,32,.32)}
+.tipo-card:hover{border-color:rgba(46,125,50,.35);box-shadow:0 18px 40px -18px rgba(27,94,32,.4);transform:translateY(-3px)}
+.tipo-card.selected{background:#fff;border-color:var(--lime-d);box-shadow:0 0 0 5px rgba(76,175,80,.16),0 18px 40px -20px rgba(27,94,32,.4)}
+.tipo-title{font-size:19px}
+.tipo-desc{font-size:13px;line-height:1.55}
+.ico3d{width:112px;height:112px;border-radius:50%;margin:0 auto 1.1rem;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 32% 26%,#f6f8f6,#e2e8e3)}
+.ico3d svg{width:86px;height:86px;filter:drop-shadow(0 6px 8px rgba(27,94,32,.22))}
+.info-title{text-align:center;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase;margin:2.6rem 0 1.1rem}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.info-card{background:#fff;border-radius:24px;padding:1.5rem 1.3rem 1.4rem;text-align:center;box-shadow:0 14px 34px -22px rgba(27,94,32,.3)}
+.info-card h3{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:#1f2937;margin-bottom:6px}
+.info-card p{font-size:13px;line-height:1.55;color:var(--text-soft)}
+.info-card .ico3d{width:96px;height:96px}
+.info-card .ico3d svg{width:74px;height:74px}
+@media(max-width:600px){
+  .tipo-intro h2{font-size:22px}
+  .info-grid{grid-template-columns:1fr;gap:14px}
+  .info-card{padding:1.2rem 1rem}
+  .ico3d{width:98px;height:98px}
+  .ico3d svg{width:74px;height:74px}
+}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <linearGradient id="gG1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86d98c"/><stop offset="1" stop-color="#2f9a4a"/></linearGradient>
+  <linearGradient id="gG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3fa04f"/><stop offset="1" stop-color="#1b5e20"/></linearGradient>
+  <linearGradient id="gMint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d3ecd6"/></linearGradient>
+  <linearGradient id="gLime" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e4f59a"/><stop offset="1" stop-color="#a8c400"/></linearGradient>
+  <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe58a"/><stop offset="1" stop-color="#f0a52f"/></linearGradient>
+  <linearGradient id="gPlat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcefde"/><stop offset="1" stop-color="#b3d9b8"/></linearGradient>
+  <linearGradient id="gEdge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#57b563"/><stop offset="1" stop-color="#14491a"/></linearGradient>
+  <radialGradient id="gSph" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#b9ebbd"/><stop offset=".55" stop-color="#4cae5a"/><stop offset="1" stop-color="#247a34"/></radialGradient>
+</defs></svg>
 <div class="wrap">
 
   <div class="draft-banner" id="draftBanner" style="display:none">
@@ -172,13 +212,13 @@ textarea{resize:vertical;min-height:80px}
     </div>
     <div class="tipo-selector">
       <div class="tipo-card" id="cardNatural" onclick="elegirTipo('natural')">
-        <span class="tipo-icon">👤</span>
+        <div class="ico3d"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="36" ry="7" fill="url(#gPlat)"/><path d="M26 100c0-22 15-33 34-33s34 11 34 33z" fill="url(#gG1)"/><path d="M26 100c0-22 15-33 34-33s34 11 34 33" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="2"/><circle cx="60" cy="43" r="21" fill="url(#gSph)"/><ellipse cx="52" cy="35" rx="8" ry="5" fill="#fff" opacity=".45" transform="rotate(-25 52 35)"/><circle cx="92" cy="30" r="10" fill="url(#gGold)"/><path d="M87.5 30.5l3.2 3.2 5.8-7" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="tipo-title">Persona Natural</div>
         <div class="tipo-desc">Solicitud individual a nombre propio. Empleados, independientes y pensionados.</div>
         <span class="tipo-badge">✓ Seleccionado</span>
       </div>
       <div class="tipo-card" id="cardJuridica" onclick="elegirTipo('juridica')">
-        <span class="tipo-icon">🏢</span>
+        <div class="ico3d"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="36" ry="7" fill="url(#gPlat)"/><rect x="20" y="54" width="30" height="48" rx="5" fill="url(#gG2)"/><rect x="72" y="62" width="28" height="40" rx="5" fill="url(#gG2)"/><rect x="40" y="20" width="42" height="82" rx="6" fill="url(#gG1)"/><rect x="40" y="20" width="42" height="82" rx="6" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="2"/><g fill="url(#gMint)"><rect x="48" y="30" width="10" height="9" rx="2"/><rect x="64" y="30" width="10" height="9" rx="2"/><rect x="48" y="45" width="10" height="9" rx="2"/><rect x="64" y="45" width="10" height="9" rx="2"/><rect x="48" y="60" width="10" height="9" rx="2"/><rect x="64" y="60" width="10" height="9" rx="2"/><rect x="26" y="64" width="8" height="8" rx="2"/><rect x="26" y="78" width="8" height="8" rx="2"/><rect x="78" y="72" width="8" height="8" rx="2"/><rect x="88" y="72" width="6" height="8" rx="2"/></g><rect x="54" y="80" width="14" height="22" rx="3" fill="url(#gGold)"/></svg></div>
         <div class="tipo-title">Persona Jurídica</div>
         <div class="tipo-desc">Empresas, sociedades y personas jurídicas. Requiere representante legal.</div>
         <span class="tipo-badge">✓ Seleccionado</span>
@@ -186,6 +226,13 @@ textarea{resize:vertical;min-height:80px}
     </div>
     <div style="text-align:center;margin-top:1rem">
       <button class="btn btn-next" id="btnIniciar" onclick="iniciarFormulario()" style="display:none">Iniciar solicitud →</button>
+    </div>
+    <div class="info-title">Lo que debes saber</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="ico3d"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="36" ry="7" fill="url(#gPlat)"/><circle cx="60" cy="56" r="37" fill="url(#gG2)"/><circle cx="60" cy="56" r="30" fill="url(#gMint)"/><circle cx="60" cy="56" r="33.5" fill="none" stroke="url(#gLime)" stroke-width="4" stroke-linecap="round" stroke-dasharray="120 300" transform="rotate(-90 60 56)"/><path d="M60 38v19l13 8" stroke="#1b5e20" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="60" cy="57" r="4.5" fill="url(#gGold)"/><ellipse cx="46" cy="38" rx="8" ry="4" fill="#fff" opacity=".6" transform="rotate(-35 46 38)"/></svg></div><h3>Aprox. 8 minutos</h3><p>Completa la solicitud en línea, sin filas ni desplazamientos.</p></div>
+      <div class="info-card"><div class="ico3d"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="36" ry="7" fill="url(#gPlat)"/><g transform="rotate(-8 56 58)"><rect x="28" y="18" width="52" height="70" rx="8" fill="url(#gMint)" stroke="#bfe0c3" stroke-width="1.6"/><rect x="38" y="32" width="32" height="5" rx="2.5" fill="#9ed3a4"/><rect x="38" y="44" width="32" height="5" rx="2.5" fill="#9ed3a4"/><rect x="38" y="56" width="22" height="5" rx="2.5" fill="#9ed3a4"/><rect x="38" y="68" width="27" height="5" rx="2.5" fill="url(#gG1)"/></g><g transform="rotate(32 88 66)"><rect x="82" y="34" width="12" height="46" rx="3.5" fill="url(#gGold)"/><rect x="82" y="34" width="12" height="9" rx="3.5" fill="url(#gG1)"/><path d="M82 80h12l-6 14z" fill="#f8deb0"/><path d="M85.2 88h5.6l-2.8 6z" fill="#1b5e20"/></g></svg></div><h3>Guarda tu avance</h3><p>Si necesitas pausar, tu borrador se guarda en este dispositivo.</p></div>
+      <div class="info-card"><div class="ico3d"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="36" ry="7" fill="url(#gPlat)"/><path d="M60 14 98 27v29c0 23-16 39-38 47C38 95 22 79 22 56V27z" fill="url(#gEdge)"/><path d="M60 22 90 32v24c0 19-13 32-30 39-17-7-30-20-30-39V32z" fill="url(#gG1)"/><path d="M60 22 90 32v10c-9 6-19 9-30 9s-21-3-30-9V32z" fill="#fff" opacity=".22"/><path d="M45 58l11 11 20-23" stroke="#fff" stroke-width="7.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M96 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fff" opacity=".9"/></svg></div><h3>Datos protegidos</h3><p>Tu información viaja cifrada y la revisa únicamente nuestro equipo de análisis.</p></div>
+      <div class="info-card"><div class="ico3d"><svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="36" ry="7" fill="url(#gPlat)"/><path d="M38 70v22l22-18z" fill="url(#gG1)"/><rect x="20" y="22" width="68" height="52" rx="15" fill="url(#gG1)"/><rect x="20" y="22" width="68" height="52" rx="15" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="2"/><g fill="#fff"><circle cx="41" cy="48" r="5"/><circle cx="56" cy="48" r="5"/><circle cx="71" cy="48" r="5"/></g><path d="M86 70v16l-14-10z" fill="url(#gGold)"/><rect x="66" y="56" width="38" height="28" rx="11" fill="url(#gGold)"/><path d="M78 70l6 6 11-12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Respuesta en 24 horas hábiles</h3><p>Un asesor de Financial Services se pondrá en contacto contigo.</p></div>
     </div>
   </div>
 
