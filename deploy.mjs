@@ -1,5 +1,6 @@
 // Publica el sistema completo:
 //   npm run deploy
+//   node deploy.mjs --paginas   (solo las páginas; lo usa GitHub Actions)
 //
 //   1. server.js y demás  →  GitHub  →  Render (se redespliega solo)
 //   2. index.html, admin.html  →  Hostinger por FTPS  →  form.warpfinance.co
@@ -29,6 +30,14 @@ function salirCon(mensaje) {
 
 function leerEnv() {
   const f = path.join(ROOT, '.env.deploy');
+  // En GitHub Actions no hay .env.deploy: los datos llegan como secrets.
+  if (!fs.existsSync(f) && (process.env.GITHUB_ACTIONS || process.env.FTP_HOST)) {
+    const env = {};
+    for (const k of ['FTP_HOST', 'FTP_USER', 'FTP_PASS', 'FTP_DIR']) env[k] = (process.env[k] || '').trim();
+    const faltan = Object.keys(env).filter((k) => !env[k]);
+    if (faltan.length) salirCon(`Faltan los secrets de GitHub: ${faltan.join(', ')}`);
+    return env;
+  }
   if (!fs.existsSync(f)) {
     salirCon(
       'Falta .env.deploy.\n' +
@@ -146,12 +155,13 @@ async function salud() {
   }
 }
 
+const soloPaginas = process.argv.includes('--paginas');
 const env = leerEnv();
 log(`\n${c.bold}Publicando warp-consultas${c.off}`);
-publicarBackend();
+if (!soloPaginas) publicarBackend();
 const subidas = publicarPaginas(env);
 const ok = await comprobar(subidas);
-await salud();
+if (!soloPaginas) await salud();
 
 log(
   ok

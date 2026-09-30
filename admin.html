@@ -168,7 +168,7 @@ td{padding:10px 14px;color:#374151}
     <div class="login-logo">FINANCIAL SERVICES</div>
     <div class="login-title">Panel de Solicitudes</div>
     <div class="login-sub">Administración interna · Acceso restringido</div>
-    <div class="field"><label>Usuario</label><input type="text" id="loginUser" placeholder="admin" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="field"><label>Email</label><input type="email" id="loginUser" placeholder="tu@warpfinance.co" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">Ingresar →</button>
     <div class="err-msg" id="loginErr">Credenciales incorrectas</div>
@@ -186,8 +186,10 @@ td{padding:10px 14px;color:#374151}
       <button class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-ico">◉</span><span class="nav-lbl">Dashboard</span></button>
       <button class="nav-item" onclick="showSection('solicitudes',this)"><span class="nav-ico">📋</span><span class="nav-lbl">Solicitudes</span></button>
       <button class="nav-item" onclick="showSection('auditoria',this)"><span class="nav-ico">🔒</span><span class="nav-lbl">Auditoría</span></button>
+      <button class="nav-item" onclick="showSection('usuarios',this)"><span class="nav-ico">👥</span><span class="nav-lbl">Usuarios</span></button>
     </nav>
     <div class="sidebar-footer">
+      <div id="usuarioActual" style="color:rgba(255,255,255,.45);font-size:11px;padding:0 0 8px;word-break:break-all"></div>
       <button class="nav-item" onclick="logout()" style="color:rgba(255,100,100,.7)"><span class="nav-ico">↩</span><span class="nav-lbl">Cerrar sesión</span></button>
     </div>
   </div>
@@ -196,6 +198,7 @@ td{padding:10px 14px;color:#374151}
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div style="display:flex;gap:8px">
+        <span id="ultimaAct" title="El panel se actualiza solo cada 30 segundos" style="align-self:center;font-size:11px;color:#9ca3af"></span>
         <button class="btn-sm btn-ghost" onclick="exportCSV()">📥 <span class="btn-txt">Exportar CSV</span></button>
         <button class="btn-sm btn-lime" onclick="recargar()">↺ <span class="btn-txt">Actualizar</span></button>
         <button class="btn-sm btn-ghost topbar-logout" onclick="logout()" title="Cerrar sesión">↩</button>
@@ -251,6 +254,24 @@ td{padding:10px 14px;color:#374151}
           <div class="card-header"><div class="card-title">Log de auditoría</div></div>
           <table><thead><tr><th>Fecha</th><th>Acción</th><th>Solicitud</th><th>Usuario</th><th>Detalle</th></tr></thead>
           <tbody id="audit-table"></tbody></table>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div class="section" id="sec-usuarios">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Crear administrador</div></div>
+          <div style="padding:1.2rem 1.2rem .2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 12px;align-items:end">
+            <div class="field"><label>Nombre</label><input type="text" id="nuNombre" placeholder="Nombre y apellido"></div>
+            <div class="field"><label>Email</label><input type="email" id="nuEmail" placeholder="persona@warpfinance.co" autocomplete="off"></div>
+            <div class="field"><label>Contraseña (mín. 10 caracteres)</label><input type="password" id="nuPass" autocomplete="new-password"></div>
+            <div class="field"><button class="btn btn-primary" onclick="crearUsuario()" id="nuBtn">Crear usuario</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Administradores</div></div>
+          <table><thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Último acceso</th><th>Acción</th></tr></thead>
+          <tbody id="usr-table"></tbody></table>
         </div>
       </div>
 
@@ -391,14 +412,23 @@ async function doLogin(){
     const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,password:p})});
     const j=await r.json();
     if(r.ok&&j.token){ TOKEN=j.token; localStorage.setItem('warp-admin-token',TOKEN);
-      document.getElementById('loginWrap').style.display='none';
-      document.getElementById('appWrap').style.display='flex';
-      loadDashboard();
-      loadContadores();
-    }else{ document.getElementById('loginErr').style.display='block'; btn.textContent='Ingresar →'; btn.disabled=false; }
-  }catch(e){ document.getElementById('loginErr').style.display='block'; btn.textContent='Ingresar →'; btn.disabled=false; }
+      document.getElementById('loginPass').value='';
+      document.getElementById('loginErr').style.display='none';
+      btn.textContent='Ingresar →'; btn.disabled=false;
+      entrarApp();
+    }else{ errLogin(j.error); btn.textContent='Ingresar →'; btn.disabled=false; }
+  }catch(e){ errLogin('No se pudo conectar con el servidor'); btn.textContent='Ingresar →'; btn.disabled=false; }
 }
-function logout(){ TOKEN=''; localStorage.removeItem('warp-admin-token');
+function errLogin(msg){ const e=document.getElementById('loginErr'); e.textContent=msg||'Credenciales incorrectas'; e.style.display='block'; }
+function entrarApp(){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('appWrap').style.display='flex';
+  loadDashboard(); loadContadores(); marcarActualizado();
+  req('/api/admin/yo').then(u=>{ if(u)document.getElementById('usuarioActual').textContent=u.nombre+(u.email!==u.nombre?' · '+u.email:''); });
+}
+function logout(){
+  if(TOKEN)fetch(API+'/api/admin/logout',{method:'POST',headers:headers()}).catch(()=>{});
+  TOKEN=''; localStorage.removeItem('warp-admin-token'); pendientesPrevios=null;
   document.getElementById('appWrap').style.display='none';
   document.getElementById('loginWrap').style.display='flex'; }
 
@@ -408,10 +438,11 @@ function showSection(name,btn){
   document.getElementById('sec-'+name).classList.add('visible');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  const titles={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría'};
+  const titles={dashboard:'Dashboard',solicitudes:'Solicitudes',auditoria:'Log de Auditoría',usuarios:'Usuarios administradores'};
   document.getElementById('topbarTitle').textContent=titles[name];
   if(name==='solicitudes')loadSolicitudesActivas();
   if(name==='auditoria')loadAuditoria();
+  if(name==='usuarios')loadUsuarios();
   if(name==='dashboard')loadDashboard();
 }
 function recargar(){ const vi=document.querySelector('.section.visible'); if(vi){const n=vi.id.replace('sec-','');showSection(n);} }
@@ -661,7 +692,7 @@ async function verSolicitud(id){
 
 async function cambiarEstado(id,estado){
   const nota=document.getElementById('notaDecision')?.value||'';
-  const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
+  const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota})});
   if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudes();loadDashboard();loadContadores();}
   else showToast('Error cambiando estado','err');
 }
@@ -807,7 +838,7 @@ async function verSolicitudJuridica(id){
 
 async function cambiarEstadoJuridica(id,estado){
   const nota=document.getElementById('notaDecisionJ')?.value||'';
-  const r=await req('/api/admin/solicitudes-juridica/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota,analista:'admin'})});
+  const r=await req('/api/admin/solicitudes-juridica/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota})});
   if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudesJuridica();loadDashboard();loadContadores();}
   else showToast('Error cambiando estado','err');
 }
@@ -825,6 +856,76 @@ async function loadAuditoria(){
     </tr>`).join('');
 }
 
+/* ── USUARIOS ── */
+function esc(x){ return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+let usuariosCache=[];
+async function loadUsuarios(){
+  const d=await req('/api/admin/usuarios'); if(!d)return;
+  usuariosCache=d.usuarios;
+  const tbody=document.getElementById('usr-table');
+  if(!d.usuarios.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:#9ca3af">Aún no hay usuarios creados</td></tr>';return;}
+  tbody.innerHTML=d.usuarios.map(u=>`
+    <tr>
+      <td style="font-weight:500">${esc(u.nombre)}</td>
+      <td style="color:#6b7280">${esc(u.email)}</td>
+      <td>${u.activo?'<span class="badge badge-green">Activo</span>':'<span class="badge badge-gray">Inactivo</span>'}</td>
+      <td style="color:#9ca3af">${u.ultimoAcceso?fdate(u.ultimoAcceso):'Nunca'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-sm btn-ghost" onclick="cambiarClaveUsuario('${u.id}')">🔑 Clave</button>
+        ${u.activo
+          ?`<button class="btn-sm btn-red" onclick="activarUsuario('${u.id}',false)">Desactivar</button>`
+          :`<button class="btn-sm btn-lime" onclick="activarUsuario('${u.id}',true)">Activar</button>`}
+      </td>
+    </tr>`).join('');
+}
+async function crearUsuario(){
+  const nombre=document.getElementById('nuNombre').value.trim();
+  const email=document.getElementById('nuEmail').value.trim();
+  const password=document.getElementById('nuPass').value;
+  const btn=document.getElementById('nuBtn'); btn.disabled=true;
+  const r=await req('/api/admin/usuarios',{method:'POST',body:JSON.stringify({nombre,email,password})});
+  btn.disabled=false;
+  if(r?.ok){ showToast(`Usuario ${r.usuario.email} creado`,'ok'); ['nuNombre','nuEmail','nuPass'].forEach(id=>document.getElementById(id).value=''); loadUsuarios(); }
+  else if(r) showToast(r.error||'Error creando usuario','err');
+}
+async function activarUsuario(id,activo){
+  if(!activo&&!confirm('¿Desactivar este usuario? Se cerrarán sus sesiones abiertas.'))return;
+  const r=await req('/api/admin/usuarios/'+id,{method:'PATCH',body:JSON.stringify({activo})});
+  if(r?.ok){ showToast(activo?'Usuario activado':'Usuario desactivado','ok'); loadUsuarios(); }
+  else if(r) showToast(r.error||'Error','err');
+}
+async function cambiarClaveUsuario(id){
+  const email=usuariosCache.find(u=>u.id===id)?.email||'';
+  const password=prompt(`Nueva contraseña para ${email} (mínimo 10 caracteres):`); if(password===null)return;
+  const r=await req('/api/admin/usuarios/'+id,{method:'PATCH',body:JSON.stringify({password})});
+  if(r?.ok) showToast('Contraseña actualizada','ok');
+  else if(r) showToast(r.error||'Error','err');
+}
+
+/* ── ACTUALIZACIÓN AUTOMÁTICA ──
+   Cada 30 s trae los datos nuevos de la sección abierta. No refresca con un
+   detalle abierto ni en la pestaña de Usuarios, para no pisar lo que se está haciendo. */
+const REFRESCO_MS=30000;
+let pendientesPrevios=null;
+function marcarActualizado(){ document.getElementById('ultimaAct').textContent='Actualizado '+new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}); }
+async function refrescoAutomatico(){
+  if(!TOKEN||document.hidden)return;
+  if(document.getElementById('modalBg').classList.contains('open')||document.getElementById('pdfBg').classList.contains('open'))return;
+  const d=await req('/api/admin/contadores'); if(!d)return;
+  document.getElementById('badge-natural').textContent=d.pendientesNatural;
+  document.getElementById('badge-juridica').textContent=d.pendientesJuridica;
+  const pend=d.pendientesNatural+d.pendientesJuridica;
+  if(pendientesPrevios!==null&&pend>pendientesPrevios)showToast('🔔 Llegó una solicitud nueva','ok');
+  pendientesPrevios=pend;
+  const sec=document.querySelector('.section.visible')?.id.replace('sec-','');
+  if(sec==='dashboard')await loadDashboard();
+  else if(sec==='solicitudes')await (tipoListaActiva==='juridica'?loadSolicitudesJuridica():loadSolicitudes());
+  else if(sec==='auditoria')await loadAuditoria();
+  marcarActualizado();
+}
+setInterval(refrescoAutomatico,REFRESCO_MS);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden)refrescoAutomatico(); });
+
 /* ── PDF & EXPORT ── */
 function exportCSV(){ window.open(API+'/api/admin/exportar?token='+TOKEN,'_blank'); }
 function abrirPdf(url,nombre){ document.getElementById('pdfTitle').textContent=nombre||'Documento'; document.getElementById('pdfFrame').src=url; document.getElementById('pdfBg').classList.add('open'); }
@@ -832,7 +933,7 @@ function closePdf(e){ if(!e||e.target.id==='pdfBg'){document.getElementById('pdf
 
 /* ── INIT ── */
 window.onload=()=>{
-  if(TOKEN){ document.getElementById('loginWrap').style.display='none'; document.getElementById('appWrap').style.display='flex'; loadDashboard(); loadContadores(); }
+  if(TOKEN)entrarApp();
 };
 </script>
 </body>

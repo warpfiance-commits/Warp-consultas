@@ -19,9 +19,16 @@ if (!fs.existsSync(DOCS_DIR)) fs.mkdirSync(DOCS_DIR, { recursive: true });
 const CLOUD_NAME  = process.env.CLOUDINARY_CLOUD_NAME || 'dtoq5nbz4';
 const API_KEY     = process.env.CLOUDINARY_API_KEY    || '985348958691353';
 const API_SECRET  = process.env.CLOUDINARY_API_SECRET || 'N8mnqMCA_xVtSzxL4p13YVvhnLM';
+// Acceso heredado de un solo usuario: solo funciona si ADMIN_PASS está definida
+// en Render. Los usuarios reales viven en la tabla admin_usuarios.
 const ADMIN_USER  = process.env.ADMIN_USER  || 'admin';
-const ADMIN_PASS  = process.env.ADMIN_PASS  || 'WarpAdmin2024!';
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'warp-token-secreto-2024';
+const ADMIN_PASS  = process.env.ADMIN_PASS  || '';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || crypto.randomBytes(32).toString('hex');
+// Primer administrador: se crea al arrancar si no existe ese email.
+const ADMIN_INICIAL_EMAIL  = (process.env.ADMIN_INICIAL_EMAIL || '').trim().toLowerCase();
+const ADMIN_INICIAL_NOMBRE = process.env.ADMIN_INICIAL_NOMBRE || 'Administrador';
+const ADMIN_INICIAL_PASS   = process.env.ADMIN_INICIAL_PASS || '';
+const SESION_HORAS = 12;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'warpfiance@gmail.com';
 const SENDGRID_KEY = process.env.SENDGRID_API_KEY || '';
 
@@ -126,7 +133,60 @@ async function initDB() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_estado ON solicitudes_juridica(estado);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_created ON solicitudes_juridica(created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_sol ON auditoria(solicitud_id);`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_usuarios (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      email TEXT UNIQUE NOT NULL,
+      nombre TEXT NOT NULL,
+      pass_hash TEXT NOT NULL,
+      activo BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      ultimo_acceso TIMESTAMPTZ
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_sesiones (
+      token TEXT PRIMARY KEY,
+      usuario_id UUID NOT NULL REFERENCES admin_usuarios(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expira TIMESTAMPTZ NOT NULL
+    );
+  `);
+  if (ADMIN_INICIAL_EMAIL && ADMIN_INICIAL_PASS) {
+    const r = await pool.query(
+      `INSERT INTO admin_usuarios (email, nombre, pass_hash) VALUES ($1,$2,$3) ON CONFLICT (email) DO NOTHING RETURNING id`,
+      [ADMIN_INICIAL_EMAIL, ADMIN_INICIAL_NOMBRE, await hashPassword(ADMIN_INICIAL_PASS)]
+    );
+    if (r.rows.length) console.log(`👤 Administrador inicial creado: ${ADMIN_INICIAL_EMAIL}`);
+  }
+  // Primer administrador del sistema. Solo va el hash: la contraseña no está en el repo.
+  // Si ya existe (o se le cambió la clave desde el panel) no se toca.
+  await pool.query(
+    `INSERT INTO admin_usuarios (email, nombre, pass_hash) VALUES ($1,$2,$3) ON CONFLICT (email) DO NOTHING`,
+    ['admin@warpfinance.co', 'Jenifer Zuluaga', 'scrypt$d3b1df71c72b5c11b7752a86b0993e85$dd499e4142e2af768b88206452ace250ea5ccbbc6db078412f4c64e1e84e8ac3bd66f2818bc58e6a6a5a52765702b53a1cca9c6a1e61afc49c892bdbe6eca4e3']
+  );
   console.log('✅ PostgreSQL tablas listas');
+}
+
+// ── Contraseñas (scrypt, sin dependencias) ────────────────────────────────────
+function scryptAsync(password, salt) {
+  return new Promise((resolve, reject) =>
+    crypto.scrypt(password, salt, 64, (err, key) => err ? reject(err) : resolve(key)));
+}
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  return `scrypt$${salt}$${(await scryptAsync(password, salt)).toString('hex')}`;
+}
+async function verificarPassword(password, guardado) {
+  const [alg, salt, hash] = String(guardado).split('$');
+  if (alg !== 'scrypt' || !salt || !hash) return false;
+  const esperado = Buffer.from(hash, 'hex');
+  const calculado = await scryptAsync(password, salt);
+  return esperado.length === calculado.length && crypto.timingSafeEqual(esperado, calculado);
+}
+function igualSeguro(a, b) {
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 
 // ── Emails ────────────────────────────────────────────────────────────────────
@@ -209,6 +269,7 @@ async function enviarEmailCliente(sol) {
 }
 
 // ── Middleware ────────────────────────────────────────────────────────────────
+app.set('trust proxy', 1); // Render va detrás de un proxy: req.ip es la IP real
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(__dirname));
@@ -217,10 +278,21 @@ app.use((req, res, next) => {
   next();
 });
 
-const authAdmin = (req, res, next) => {
-  const token = req.headers['x-admin-token'] || req.query.token;
-  if (token === ADMIN_TOKEN) return next();
-  return res.status(401).json({ error: 'No autorizado' });
+const authAdmin = async (req, res, next) => {
+  const token = String(req.headers['x-admin-token'] || req.query.token || '');
+  if (!token) return res.status(401).json({ error: 'No autorizado' });
+  if (ADMIN_PASS && igualSeguro(token, ADMIN_TOKEN)) {
+    req.admin = { id: null, email: ADMIN_USER, nombre: ADMIN_USER };
+    return next();
+  }
+  try {
+    const r = await pool.query(
+      `SELECT u.id, u.email, u.nombre FROM admin_sesiones s JOIN admin_usuarios u ON u.id=s.usuario_id
+       WHERE s.token=$1 AND s.expira>NOW() AND u.activo`, [token]);
+    if (!r.rows.length) return res.status(401).json({ error: 'No autorizado' });
+    req.admin = r.rows[0];
+    next();
+  } catch(e) { res.status(500).json({ error: e.message }); }
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -586,10 +658,102 @@ app.post('/api/solicitudes', async (req, res) => {
 });
 
 // ── Admin login ───────────────────────────────────────────────────────────────
-app.post('/api/admin/login', (req, res) => {
-  const { usuario, password } = req.body;
-  if (usuario === ADMIN_USER && password === ADMIN_PASS) return res.json({ ok: true, token: ADMIN_TOKEN });
-  res.status(401).json({ error: 'Credenciales incorrectas' });
+// Freno a la fuerza bruta: 10 intentos fallidos por IP cada 15 minutos.
+const intentosFallidos = new Map();
+const VENTANA_MS = 15 * 60 * 1000, MAX_INTENTOS = 10;
+function bloqueado(ip) {
+  const e = intentosFallidos.get(ip);
+  if (!e || Date.now() - e.desde > VENTANA_MS) { intentosFallidos.delete(ip); return false; }
+  return e.n >= MAX_INTENTOS;
+}
+function registrarFallo(ip) {
+  const e = intentosFallidos.get(ip);
+  if (!e || Date.now() - e.desde > VENTANA_MS) intentosFallidos.set(ip, { n: 1, desde: Date.now() });
+  else e.n++;
+}
+
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    const ip = req.ip;
+    if (bloqueado(ip)) return res.status(429).json({ error: 'Demasiados intentos. Espera 15 minutos.' });
+    const usuario = String(req.body.usuario || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
+
+    const r = await pool.query(`SELECT * FROM admin_usuarios WHERE email=$1 AND activo`, [usuario]);
+    const u = r.rows[0];
+    if (u && await verificarPassword(password, u.pass_hash)) {
+      intentosFallidos.delete(ip);
+      const token = crypto.randomBytes(32).toString('hex');
+      await pool.query(`DELETE FROM admin_sesiones WHERE expira<NOW()`);
+      await pool.query(
+        `INSERT INTO admin_sesiones (token, usuario_id, expira) VALUES ($1,$2,NOW()+($3 || ' hours')::interval)`,
+        [token, u.id, String(SESION_HORAS)]);
+      await pool.query(`UPDATE admin_usuarios SET ultimo_acceso=NOW() WHERE id=$1`, [u.id]);
+      return res.json({ ok: true, token, usuario: { email: u.email, nombre: u.nombre } });
+    }
+    if (ADMIN_PASS && igualSeguro(usuario, ADMIN_USER.toLowerCase()) && igualSeguro(password, ADMIN_PASS)) {
+      intentosFallidos.delete(ip);
+      return res.json({ ok: true, token: ADMIN_TOKEN, usuario: { email: ADMIN_USER, nombre: ADMIN_USER } });
+    }
+    registrarFallo(ip);
+    res.status(401).json({ error: 'Credenciales incorrectas' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/logout', authAdmin, async (req, res) => {
+  await pool.query(`DELETE FROM admin_sesiones WHERE token=$1`, [String(req.headers['x-admin-token'] || '')]).catch(() => {});
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/yo', authAdmin, (req, res) => res.json(req.admin));
+
+// ── Usuarios administradores ──────────────────────────────────────────────────
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const rowToUsuario = u => ({ id:u.id, email:u.email, nombre:u.nombre, activo:u.activo, createdAt:u.created_at, ultimoAcceso:u.ultimo_acceso });
+
+app.get('/api/admin/usuarios', authAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`SELECT * FROM admin_usuarios ORDER BY created_at`);
+    res.json({ usuarios: r.rows.map(rowToUsuario) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/usuarios', authAdmin, async (req, res) => {
+  try {
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const nombre = String(req.body.nombre || '').trim();
+    const password = String(req.body.password || '');
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Email inválido' });
+    if (!nombre) return res.status(400).json({ error: 'Falta el nombre' });
+    if (password.length < 10) return res.status(400).json({ error: 'La contraseña debe tener al menos 10 caracteres' });
+    const r = await pool.query(
+      `INSERT INTO admin_usuarios (email, nombre, pass_hash) VALUES ($1,$2,$3) ON CONFLICT (email) DO NOTHING RETURNING *`,
+      [email, nombre, await hashPassword(password)]);
+    if (!r.rows.length) return res.status(409).json({ error: 'Ya existe un usuario con ese email' });
+    await auditLog(null, 'USUARIO_CREADO', req.admin.email, email);
+    res.json({ ok: true, usuario: rowToUsuario(r.rows[0]) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Activar/desactivar o cambiar contraseña. Ambas cosas cierran las sesiones abiertas del usuario.
+app.patch('/api/admin/usuarios/:id', authAdmin, async (req, res) => {
+  try {
+    const { activo, password } = req.body;
+    if (activo === false && req.admin.id === req.params.id)
+      return res.status(400).json({ error: 'No puedes desactivar tu propio usuario' });
+    if (password !== undefined && String(password).length < 10)
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 10 caracteres' });
+    const r = await pool.query(
+      `UPDATE admin_usuarios SET activo=COALESCE($1,activo), pass_hash=COALESCE($2,pass_hash) WHERE id::text=$3 RETURNING *`,
+      [typeof activo === 'boolean' ? activo : null, password !== undefined ? await hashPassword(String(password)) : null, req.params.id]);
+    if (!r.rows.length) return res.status(404).json({ error: 'No encontrado' });
+    const u = r.rows[0];
+    if (activo === false || password !== undefined)
+      await pool.query(`DELETE FROM admin_sesiones WHERE usuario_id=$1 AND token<>$2`, [u.id, String(req.headers['x-admin-token'] || '')]);
+    const accion = password !== undefined ? 'USUARIO_CAMBIO_CLAVE' : (u.activo ? 'USUARIO_ACTIVADO' : 'USUARIO_DESACTIVADO');
+    await auditLog(null, accion, req.admin.email, u.email);
+    res.json({ ok: true, usuario: rowToUsuario(u) });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── GET solicitudes ───────────────────────────────────────────────────────────
@@ -627,7 +791,8 @@ app.get('/api/admin/solicitudes/:id', authAdmin, async (req, res) => {
 // ── PATCH estado ──────────────────────────────────────────────────────────────
 app.patch('/api/admin/solicitudes/:id/estado', authAdmin, async (req, res) => {
   try {
-    const { estado, nota, analista } = req.body;
+    const { estado, nota } = req.body;
+    const analista = req.admin.nombre;
     const estados = ['RADICADA','EN_ANALISIS','APROBADA','RECHAZADA','DESEMBOLSADA'];
     if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
     const r = await pool.query(
@@ -636,7 +801,7 @@ app.patch('/api/admin/solicitudes/:id/estado', authAdmin, async (req, res) => {
     );
     if (!r.rows.length) return res.status(404).json({ error: 'No encontrada' });
     const sol = rowToSolicitud(r.rows[0]);
-    await auditLog(sol.id, `CAMBIO_ESTADO_${estado}`, analista||'admin', nota||'');
+    await auditLog(sol.id, `CAMBIO_ESTADO_${estado}`, req.admin.email, nota||'');
     res.json({ ok: true, solicitud: sol });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -676,7 +841,8 @@ app.get('/api/admin/solicitudes-juridica/:id', authAdmin, async (req, res) => {
 // ── PATCH estado JURÍDICA ──────────────────────────────────────────────────────
 app.patch('/api/admin/solicitudes-juridica/:id/estado', authAdmin, async (req, res) => {
   try {
-    const { estado, nota, analista } = req.body;
+    const { estado, nota } = req.body;
+    const analista = req.admin.nombre;
     const estados = ['RADICADA','EN_ANALISIS','APROBADA','RECHAZADA','DESEMBOLSADA'];
     if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
     const r = await pool.query(
@@ -685,7 +851,7 @@ app.patch('/api/admin/solicitudes-juridica/:id/estado', authAdmin, async (req, r
     );
     if (!r.rows.length) return res.status(404).json({ error: 'No encontrada' });
     const sol = rowToSolicitudJuridica(r.rows[0]);
-    await auditLog(sol.id, `CAMBIO_ESTADO_${estado}`, analista||'admin', nota||'');
+    await auditLog(sol.id, `CAMBIO_ESTADO_${estado}`, req.admin.email, nota||'');
     res.json({ ok: true, solicitud: sol });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
