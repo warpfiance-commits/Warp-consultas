@@ -1,7 +1,18 @@
 # warp-consultas
 
-Sistema de solicitudes de crédito de Warp Finance: formulario público y panel
-de administración interno.
+Sistema de solicitudes de crédito de **Finanzas Inteligentes**: formulario
+público y panel de administración interno. Es un sistema **independiente de
+warpfinance.co** (el sitio principal, en React + Firebase). Este repositorio
+solo contiene Finanzas Inteligentes; no mezclar cambios de warpfinance aquí.
+
+## Aislamiento en Hostinger
+
+Finanzas Inteligentes vive en `form.warpfinance.co`, carpeta
+`/public_html/form` dentro del plan Premium. **`/public_html` es el sitio
+principal de warpfinance: nunca publicar ahí.** La publicación usa una cuenta
+FTP propia (`u858606443.deployform`) cuyo directorio es solo `/public_html/form`.
+Hay otras cuentas FTP (`deploy`, `pruebas01`) que apuntan a otras carpetas y
+no deben usarse para publicar.
 
 ## Cómo está desplegado (importante)
 
@@ -66,6 +77,15 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
 
 ## Pendientes conocidos
 
+- **Migrar a dominio propio** cuando se compre (hoy es un subdominio de
+  warpfinance.co). Nota: el plan Premium marca 3/3 sitios, hay que liberar un
+  cupo o subir de plan. Al migrar: nueva carpeta y cuenta FTP, actualizar
+  `FTP_*` en GitHub, la URL en `mantener-despierto.yml` si cambia el backend.
+- **Repo limpio para migración:** renombrar `Warp-consultas` a un nombre sin
+  "warp", y evaluar cuentas de servicio propias de la empresa (GitHub, Render,
+  Neon hoy están bajo warpfiance-commits / warpfiance@gmail.com).
+- **Demora de Render gratis:** hoy se mitiga con `mantener-despierto.yml`
+  (GitHub, cada 5 min); mejor cron-job.org cada 2 min, o Render Starter.
 - **Secreto de Cloudinary en el código.** `server.js` todavía trae escritos
   `CLOUDINARY_API_KEY`/`API_SECRET`. El repositorio es público: pasarlos a
   Render y rotarlos. (La clave y el token de admin ya se quitaron del código.)
