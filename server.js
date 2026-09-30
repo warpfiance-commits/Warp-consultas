@@ -516,21 +516,19 @@ app.post('/api/solicitudes', async (req, res) => {
 
     const nombreDoc = (key) => { const m = key.match(/^(.+)_(\d+)$/); return m && nombresDoc[m[1]] ? nombresDoc[m[1]] + " (archivo " + m[2] + ")" : (nombresDoc[key] || key); };
     const documentosUrls = {};
+    // En paralelo: antes se subían uno tras otro y el cliente esperaba la suma de todos.
     if (data.documentos && typeof data.documentos === 'object') {
-      for (const [key, fileData] of Object.entries(data.documentos)) {
-        if (fileData && fileData.base64) {
-          try {
-            const mimeType = fileData.tipo || '';
-            // Todo sube a Cloudinary (resource_type=auto detecta imagen/PDF/etc).
-            // Railway borra el disco local en cada deploy, por eso ya no se usa saveDocumentLocally.
-            const url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado, 'auto');
-            documentosUrls[key] = { url, nombre: nombreDoc(key), nombreArchivo: fileData.nombre, tipo: mimeType };
-          } catch(e) {
-            console.error(`✗ ${key}:`, e.message);
-            documentosUrls[key] = { url: null, nombre: nombreDoc(key), error: e.message };
-          }
+      await Promise.all(Object.entries(data.documentos).map(async ([key, fileData]) => {
+        if (!fileData || !fileData.base64) return;
+        const mimeType = fileData.tipo || '';
+        try {
+          const url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado, 'auto');
+          documentosUrls[key] = { url, nombre: nombreDoc(key), nombreArchivo: fileData.nombre, tipo: mimeType };
+        } catch(e) {
+          console.error(`✗ ${key}:`, e.message);
+          documentosUrls[key] = { url: null, nombre: nombreDoc(key), error: e.message };
         }
-      }
+      }));
     }
 
     // ══ PERSONA JURÍDICA ══════════════════════════════════════════════════════

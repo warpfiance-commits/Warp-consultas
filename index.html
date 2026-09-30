@@ -157,15 +157,55 @@ textarea{resize:vertical;min-height:80px}
 .firma-actions{display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;border-top:1px solid #f3f4f6;background:#fafafa}
 .firma-clear{font-size:11px;font-weight:600;color:#6b7280;background:transparent;border:1px solid #d1d5db;border-radius:5px;padding:4px 10px;cursor:pointer}
 .firma-clear:hover{border-color:#9ca3af;color:#374151}
-.cam-wrap{border:2px solid #c8dac8;border-radius:9px;background:#fff;overflow:hidden}
-.cam-stage{position:relative;background:#0f172a;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cam-wrap{border:1px solid #dfe9df;border-radius:18px;background:#fff;overflow:hidden}
+.cam-stage{position:relative;background:#0f1a12;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .cam-stage video,.cam-stage img{width:100%;height:100%;object-fit:cover;display:block}
 .cam-stage video{transform:scaleX(-1)}
-.cam-placeholder{color:#94a3b8;font-size:13px;text-align:center;padding:20px}
-.cam-actions{display:flex;justify-content:center;gap:10px;padding:12px;background:#fafafa;border-top:1px solid #f3f4f6}
-.cam-btn{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;border-radius:8px;padding:9px 18px;cursor:pointer;border:none}
-.cam-btn-primary{background:var(--lime-d);color:#fff}
-.cam-btn-ghost{background:transparent;border:1.5px solid #d1d5db;color:#374151}
+.cam-guide{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.cam-guide::before{content:"";width:46%;aspect-ratio:3/4;border-radius:50%;border:3px solid rgba(255,255,255,.9);box-shadow:0 0 0 9999px rgba(8,20,10,.45);transition:border-color .3s}
+.cam-guide.ok::before{border-color:#8fdc95}
+.cam-tip{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(8,20,10,.72);color:#fff;font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:20px;white-space:nowrap}
+.cam-count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 96px 'Sora',sans-serif;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.45);pointer-events:none}
+.cam-count span{animation:camTick 1s ease-out both}
+@keyframes camTick{from{transform:scale(1.5);opacity:0}30%{opacity:1}to{transform:scale(.9);opacity:.2}}
+.cam-flash{position:absolute;inset:0;background:#fff;animation:camFlash .45s ease-out forwards;pointer-events:none}
+@keyframes camFlash{from{opacity:.95}to{opacity:0}}
+.cam-placeholder{display:flex;flex-direction:column;align-items:center;gap:10px;color:#cfe3d0;font-size:13.5px;text-align:center;padding:24px}
+.cam-placeholder svg{width:54px;height:54px;opacity:.9}
+.cam-placeholder ul{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:12px;color:#9fbfa2}
+.cam-placeholder li::before{content:"✓ ";color:#8fdc95}
+.cam-actions{display:flex;justify-content:center;align-items:center;gap:10px;padding:14px;background:#fff;border-top:1px solid #eef3ee}
+.cam-btn{font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:600;border-radius:11px;padding:10px 20px;cursor:pointer;border:none;transition:background .2s,transform .15s}
+.cam-btn-primary{background:var(--navy);color:#fff}
+.cam-btn-primary:hover{background:#14491a}
+.cam-btn-ghost{background:#fff;border:1px solid #d7e2d7;color:#374151}
+.cam-btn-ghost:hover{background:#f3f7f3}
+.cam-shutter{width:62px;height:62px;border-radius:50%;border:4px solid var(--navy);background:#fff;padding:0;cursor:pointer;position:relative;transition:transform .15s}
+.cam-shutter::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--lime-d);transition:background .2s}
+.cam-shutter:hover{transform:scale(1.05)}
+.cam-shutter:disabled{opacity:.5;cursor:default;transform:none}
+.cam-warn{display:none;margin:0 14px 12px;padding:9px 12px;border-radius:10px;background:#fff8e6;color:#8a5a00;font-size:12.5px}
+.cam-warn.show{display:block}
+.send-ov{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;padding:1.2rem;background:rgba(236,244,237,.86);backdrop-filter:blur(6px)}
+.send-ov.show{display:flex}
+.send-card{width:100%;max-width:400px;background:#fff;border-radius:24px;padding:2rem 1.8rem 1.6rem;text-align:center;box-shadow:0 24px 60px -24px rgba(27,94,32,.45)}
+.send-ring{position:relative;width:120px;height:120px;margin:0 auto 1.2rem}
+.send-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.send-ring .trk{fill:none;stroke:#e6efe6;stroke-width:9}
+.send-ring .bar{fill:none;stroke:var(--lime-d);stroke-width:9;stroke-linecap:round;stroke-dasharray:314;stroke-dashoffset:314;transition:stroke-dashoffset .35s}
+.send-ring.spin svg{animation:sendSpin 1.1s linear infinite}
+.send-ring.spin .bar{stroke-dashoffset:235}
+@keyframes sendSpin{to{transform:rotate(270deg)}}
+.send-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 26px 'Sora',sans-serif;color:var(--navy)}
+.send-title{font:700 19px 'Sora',sans-serif;color:var(--navy);margin-bottom:6px}
+.send-msg{font-size:14px;color:var(--text-soft);min-height:21px}
+.send-steps{display:flex;justify-content:center;gap:6px;margin:1.2rem 0 .9rem}
+.send-steps i{width:34px;height:5px;border-radius:3px;background:#e6efe6;transition:background .3s}
+.send-steps i.on{background:var(--lime-d)}
+.send-time{font-size:12px;color:#9ca3af}
+.send-note{margin-top:10px;font-size:12px;color:#8a5a00;background:#fff8e6;border-radius:10px;padding:8px 10px;display:none}
+.send-note.show{display:block}
+@media(prefers-reduced-motion:reduce){.send-ring.spin svg,.cam-count span,.cam-flash{animation:none}}
 .cam-ok-badge{display:none;align-items:center;gap:6px;color:var(--lime-d);font-size:12px;font-weight:700;padding:8px 12px}
 .cam-ok-badge.show{display:flex}
 .firma-preview{max-height:60px;border:1px solid #e5e7eb;border-radius:5px;display:none;margin-top:8px}
@@ -494,10 +534,11 @@ textarea{resize:vertical;min-height:80px}
           <div style="font-size:11px;color:#9ca3af;margin-top:2px">Debe tomarse con la cámara en este momento. No se permite subir desde galería.</div>
         </div>
         <div class="cam-wrap">
-          <div class="cam-stage" id="n-camStage"><div class="cam-placeholder">📷 Active la cámara para continuar</div></div>
+          <div class="cam-stage" id="n-camStage"><div class="cam-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.4-2h6.6l1.4 2h1.8A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="4"/></svg><div>Activa la cámara para tomarte la selfie</div><ul><li>Buena luz</li><li>Rostro de frente</li><li>Sin gafas ni gorra</li></ul></div></div>
           <div class="cam-actions" id="n-camActions">
             <button type="button" class="cam-btn cam-btn-primary" onclick="camActivar('n')" id="n-camBtnActivar">Activar cámara</button>
           </div>
+          <div class="cam-warn" id="n-camWarn"></div>
           <div class="cam-ok-badge" id="n-camOk">✓ Selfie capturada correctamente</div>
         </div>
         <div class="divider"></div>
@@ -757,10 +798,11 @@ textarea{resize:vertical;min-height:80px}
           <div style="font-size:11px;color:#9ca3af;margin-top:2px">Debe tomarse con la cámara en este momento. No se permite subir desde galería.</div>
         </div>
         <div class="cam-wrap">
-          <div class="cam-stage" id="j-camStage"><div class="cam-placeholder">📷 Active la cámara para continuar</div></div>
+          <div class="cam-stage" id="j-camStage"><div class="cam-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.4-2h6.6l1.4 2h1.8A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="4"/></svg><div>Activa la cámara para tomarte la selfie</div><ul><li>Buena luz</li><li>Rostro de frente</li><li>Sin gafas ni gorra</li></ul></div></div>
           <div class="cam-actions" id="j-camActions">
             <button type="button" class="cam-btn cam-btn-primary" onclick="camActivar('j')" id="j-camBtnActivar">Activar cámara</button>
           </div>
+          <div class="cam-warn" id="j-camWarn"></div>
           <div class="cam-ok-badge" id="j-camOk">✓ Selfie capturada correctamente</div>
         </div>
         <div class="divider"></div>
@@ -1242,6 +1284,41 @@ function copiarRadicado(){
   if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,()=>{});
   else{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();ok();}
 }
+/* Pantalla de envío: 1 preparar · 2 subir (con %) · 3 guardar en el servidor */
+const envioUI={
+  t0:0, reloj:null,
+  abrir(){
+    this.t0=Date.now();
+    document.getElementById('sendOv').classList.add('show');
+    document.getElementById('sendNote').classList.remove('show');
+    this.reloj=setInterval(()=>{
+      const s=Math.round((Date.now()-this.t0)/1000);
+      document.getElementById('sendTime').textContent=s<60?s+' s':Math.floor(s/60)+' min '+(s%60)+' s';
+      if(s>=15)document.getElementById('sendNote').classList.add('show');
+    },500);
+  },
+  fase(n,msg,pct){
+    ['ss1','ss2','ss3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i<n));
+    document.getElementById('sendMsg').textContent=msg;
+    const ring=document.getElementById('sendRing');
+    ring.classList.toggle('spin',pct==null);
+    document.getElementById('sendPct').textContent=pct==null?'':pct+'%';
+    document.getElementById('sendBar').style.strokeDashoffset=pct==null?'':314-314*pct/100;
+  },
+  cerrar(){ clearInterval(this.reloj); document.getElementById('sendOv').classList.remove('show'); }
+};
+function enviarConProgreso(url,body){
+  return new Promise((resolve,reject)=>{
+    const x=new XMLHttpRequest();
+    x.open('POST',url); x.setRequestHeader('Content-Type','application/json');
+    x.upload.onprogress=e=>{ if(e.lengthComputable){ const p=Math.round(e.loaded*100/e.total); envioUI.fase(2,'Subiendo tu información…',p); } };
+    x.upload.onload=()=>envioUI.fase(3,'Guardando tus documentos de forma segura…');
+    x.onload=()=>{ let json={}; try{json=JSON.parse(x.responseText);}catch(e){} resolve({ok:x.status>=200&&x.status<300,json}); };
+    x.onerror=()=>reject(new Error('red')); x.ontimeout=()=>reject(new Error('tiempo'));
+    x.timeout=180000;
+    x.send(body);
+  });
+}
 function fileToBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(file);});}
 
 function seleccionarTodo(tipo){
@@ -1286,17 +1363,20 @@ async function submitForm(){
   data.firmaImagen = firmaImg;
   data.firmaTimestamp = new Date().toISOString();
   data.firmaModo = firmaState[firmaPrefix].mode;
-  const documentos={};
-  for(const[inputId,file] of Object.entries(archivosSeleccionados)){
+  envioUI.abrir();
+  const documentos={}, lista=Object.entries(archivosSeleccionados);
+  let k=0;
+  for(const[inputId,file] of lista){
+    envioUI.fase(1,'Preparando documentos ('+(++k)+' de '+lista.length+')…');
     try{const b64=await fileToBase64(file);documentos[inputId]={base64:b64,nombre:file.name,tipo:file.type};}catch(e){}
   }
   data.documentos=documentos;
   try{
-    const resp=await fetch(API_URL+'/api/solicitudes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    const json=await resp.json();
-    if(resp.ok&&json.radicado){document.getElementById('radicado-display').textContent=json.radicado;document.getElementById('successWa').href='https://wa.me/573018558295?text='+encodeURIComponent('Hola, envié mi solicitud de crédito. Mi radicado es '+json.radicado);showStep(cfg.totalSteps);}
+    const {ok,json}=await enviarConProgreso(API_URL+'/api/solicitudes',JSON.stringify(data));
+    envioUI.cerrar();
+    if(ok&&json.radicado){document.getElementById('radicado-display').textContent=json.radicado;document.getElementById('successWa').href='https://wa.me/573018558295?text='+encodeURIComponent('Hola, envié mi solicitud de crédito. Mi radicado es '+json.radicado);showStep(cfg.totalSteps);}
     else{showToast(json.error||'Error enviando. Intenta de nuevo.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
-  }catch(e){showToast('Error de conexión. Verifica tu internet.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
+  }catch(e){envioUI.cerrar();showToast('Error de conexión. Verifica tu internet e intenta de nuevo.','err');btn.disabled=false;btn.textContent='Enviar solicitud ↗';}
 }
 
 
@@ -1306,45 +1386,70 @@ const camState = { n: { stream:null, captured:false }, j: { stream:null, capture
 async function camActivar(prefix){
   const stage=document.getElementById(prefix+'-camStage');
   const actions=document.getElementById(prefix+'-camActions');
+  document.getElementById(prefix+'-camWarn').classList.remove('show');
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:960}},audio:false});
     camState[prefix].stream=stream;
-    stage.innerHTML='<video id="'+prefix+'-camVideo" autoplay playsinline></video>';
-    const video=document.getElementById(prefix+'-camVideo');
-    video.srcObject=stream;
-    actions.innerHTML='<button type="button" class="cam-btn cam-btn-primary" onclick="camCapturar(\''+prefix+'\')">📸 Capturar foto</button>';
+    stage.innerHTML='<video id="'+prefix+'-camVideo" autoplay playsinline muted></video><div class="cam-guide" id="'+prefix+'-camGuide"></div><div class="cam-tip">Ubica tu rostro dentro del óvalo</div>';
+    document.getElementById(prefix+'-camVideo').srcObject=stream;
+    actions.innerHTML='<button type="button" class="cam-shutter" id="'+prefix+'-camShutter" title="Tomar foto" aria-label="Tomar foto" onclick="camCuenta(\''+prefix+'\')"></button>';
   }catch(e){
-    showToast('No se pudo acceder a la cámara. Revise los permisos del navegador.','err');
+    showToast(e&&e.name==='NotAllowedError'?'Permite el acceso a la cámara en tu navegador para continuar.':'No se pudo acceder a la cámara. Revisa que no la esté usando otra aplicación.','err');
   }
+}
+
+// Cuenta regresiva 3-2-1: da tiempo de posar y quedar quieto
+function camCuenta(prefix){
+  const stage=document.getElementById(prefix+'-camStage');
+  const btn=document.getElementById(prefix+'-camShutter'); if(btn)btn.disabled=true;
+  const guide=document.getElementById(prefix+'-camGuide'); if(guide)guide.classList.add('ok');
+  const cnt=document.createElement('div'); cnt.className='cam-count'; stage.appendChild(cnt);
+  let n=3;
+  const tick=()=>{
+    if(n===0){cnt.remove();camCapturar(prefix);return;}
+    cnt.innerHTML='<span>'+n+'</span>'; n--; setTimeout(tick,1000);
+  };
+  tick();
 }
 
 function camCapturar(prefix){
   const video=document.getElementById(prefix+'-camVideo');
+  if(!video||!video.videoWidth)return;
   const stage=document.getElementById(prefix+'-camStage');
   const actions=document.getElementById(prefix+'-camActions');
+  // Máximo 1024 px de ancho: nítida para verificar identidad y liviana para enviar
+  const escala=Math.min(1,1024/video.videoWidth);
   const canvas=document.createElement('canvas');
-  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+  canvas.width=Math.round(video.videoWidth*escala); canvas.height=Math.round(video.videoHeight*escala);
   const ctx=canvas.getContext('2d');
   ctx.translate(canvas.width,0); ctx.scale(-1,1); // corrige el espejo del preview
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+  // Revisión de luz: promedio de brillo en una muestra reducida
+  const m=document.createElement('canvas'); m.width=40; m.height=30;
+  const mc=m.getContext('2d'); mc.drawImage(canvas,0,0,40,30);
+  const px=mc.getImageData(0,0,40,30).data; let lum=0;
+  for(let i=0;i<px.length;i+=4)lum+=0.299*px[i]+0.587*px[i+1]+0.114*px[i+2];
+  lum/=px.length/4;
+  const warn=document.getElementById(prefix+'-camWarn');
+  warn.textContent=lum<55?'💡 La foto quedó oscura. Si puedes, busca más luz y repítela.':lum>215?'💡 La foto quedó muy clara. Evita tener una ventana o luz fuerte detrás.':'';
+  warn.classList.toggle('show',!!warn.textContent);
+
   canvas.toBlob(blob=>{
     const file=new File([blob],'selfie_live_'+prefix+'.jpg',{type:'image/jpeg'});
-    const key=prefix==='n' ? 'selfieLive' : 'j-selfieLive';
-    archivosSeleccionados[key]=file;
+    archivosSeleccionados[prefix==='n'?'selfieLive':'j-selfieLive']=file;
     camState[prefix].captured=true;
     document.getElementById(prefix+'-camOk').classList.add('show');
     guardarBorrador();
-  },'image/jpeg',0.9);
+  },'image/jpeg',0.85);
 
-  const dataUrl=canvas.toDataURL('image/jpeg',0.9);
-  stage.innerHTML='<img src="'+dataUrl+'" alt="Selfie capturada">';
+  stage.innerHTML='<img src="'+canvas.toDataURL('image/jpeg',0.85)+'" alt="Selfie capturada"><div class="cam-flash"></div>';
   actions.innerHTML='<button type="button" class="cam-btn cam-btn-ghost" onclick="camRepetir(\''+prefix+'\')">↺ Repetir foto</button>';
   camDetener(prefix);
 }
 
 function camRepetir(prefix){
-  const key=prefix==='n' ? 'selfieLive' : 'j-selfieLive';
-  delete archivosSeleccionados[key];
+  delete archivosSeleccionados[prefix==='n'?'selfieLive':'j-selfieLive'];
   camState[prefix].captured=false;
   document.getElementById(prefix+'-camOk').classList.remove('show');
   camActivar(prefix);
@@ -1462,5 +1567,15 @@ window.onload=()=>{
   try{const raw=localStorage.getItem(DRAFT_KEY);if(raw&&JSON.parse(raw)._tipo)document.getElementById('draftBanner').style.display='flex';}catch(e){}
 };
 </script>
+<div class="send-ov" id="sendOv" role="status" aria-live="polite">
+      <div class="send-card">
+        <div class="send-ring spin" id="sendRing"><svg viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50"/><circle class="bar" id="sendBar" cx="60" cy="60" r="50"/></svg><div class="send-pct" id="sendPct"></div></div>
+        <div class="send-title">Enviando tu solicitud</div>
+        <div class="send-msg" id="sendMsg">Preparando documentos…</div>
+        <div class="send-steps"><i id="ss1"></i><i id="ss2"></i><i id="ss3"></i></div>
+        <div class="send-time" id="sendTime">0 s</div>
+        <div class="send-note" id="sendNote">Estamos guardando tus documentos de forma segura. Puede tardar hasta un minuto: no cierres esta ventana.</div>
+      </div>
+    </div>
 </body>
 </html>
