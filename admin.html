@@ -322,7 +322,10 @@ function badge(estado){
 }
 function fmt(n){ return (n!=null&&n!==''&&n!=='0')? '$'+Number(n).toLocaleString('es-CO'):'—'; }
 function fdate(s){ return s?new Date(s).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—'; }
-function v(x){ return (x!=null&&x!==''&&x!=='null')?x:'—'; }
+function esc(x){ return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function v(x){ return (x!=null&&x!==''&&x!=='null')?esc(x):'—'; }
+// Solo enlaces http(s): evita javascript: en las URLs de documentos.
+function urlSegura(u){ try{ const x=new URL(u,location.href); return (x.protocol==='https:'||x.protocol==='http:')?x.href:''; }catch(e){ return ''; } }
 function ib(lbl,val,cls=''){ return `<div class="ib ${cls}"><div class="lbl">${lbl}</div><div class="val">${v(val)}</div></div>`; }
 function boolItem(lbl,val){ const ok=!!val; return `<div class="check-item ${ok?'si':'no'}">${ok?'✓':'✗'} ${lbl}</div>`; }
 
@@ -459,7 +462,7 @@ async function loadDashboard(){
   if(!d.recientes.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes aún</td></tr>';return;}
   tbody.innerHTML=d.recientes.map(s=>`
     <tr>
-      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
+      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
       <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${scoreBadge(s)}</td>
@@ -504,7 +507,7 @@ async function loadSolicitudes(){
   if(!d.solicitudes.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';return;}
   tbody.innerHTML=d.solicitudes.map(s=>`
     <tr>
-      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
+      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
       <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
       <td style="color:#6b7280">${v(s.numDocumento)}</td>
       <td>${v(s.celular)}</td>
@@ -525,7 +528,7 @@ async function loadSolicitudesJuridica(){
   if(!d.solicitudes.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';return;}
   tbody.innerHTML=d.solicitudes.map(s=>`
     <tr>
-      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${s.radicado}</td>
+      <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
       <td style="font-weight:500">${v(s.razonSocial)}</td>
       <td style="color:#6b7280">${v(s.nit)}</td>
       <td>${v(s.repNombre)} ${v(s.repApellido)}</td>
@@ -540,7 +543,7 @@ function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSoli
 /* ── MODAL DETALLE ── */
 async function verSolicitud(id){
   const s=await req('/api/admin/solicitudes/'+id); if(!s)return;
-  document.getElementById('modal-title').innerHTML=`${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)}`;
+  document.getElementById('modal-title').innerHTML=`${esc(s.radicado)} &nbsp;·&nbsp; ${badge(s.estado)}`;
 
   const dcBtn=`<a href="https://www.datacredito.com.co" target="_blank" class="datacredito-btn">🔍 Consultar Datacrédito · CC: ${v(s.numDocumento)}</a>`;
 
@@ -622,12 +625,13 @@ async function verSolicitud(id){
   let docsHtml='';
   if(s.documentos&&Object.keys(s.documentos).length>0){
     const items=Object.entries(s.documentos).map(([k,d])=>{
-      const nombre=d?.nombre||k;
-      if(d&&d.url){
-        const isPdf=d.url.includes('.pdf')||d.url.includes('/docs/');
+      const nombre=esc(d?.nombre||k);
+      const url=d&&d.url?urlSegura(d.url):'';
+      if(url){
+        const isPdf=url.includes('.pdf')||url.includes('/docs/');
         const boton=isPdf
-          ? `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 Ver documento</div>`
-          : `<a href="${d.url}" target="_blank" class="doc-link">🖼 Ver imagen</a>`;
+          ? `<div data-url="${esc(url)}" data-nombre="${nombre}" onclick="abrirPdf(this.dataset.url,this.dataset.nombre)" class="doc-link">📄 Ver documento</div>`
+          : `<a href="${esc(url)}" target="_blank" rel="noopener" class="doc-link">🖼 Ver imagen</a>`;
         return `<div class="doc-item"><div class="doc-item-label">${nombre}</div>${boton}</div>`;
       }
       return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
@@ -663,7 +667,7 @@ async function verSolicitud(id){
     </div>
     <div>
       <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
-      <textarea id="notaDecision" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${s.notaAnalista||''}</textarea>
+      <textarea id="notaDecision" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${esc(s.notaAnalista||'')}</textarea>
     </div>`;
 
   /* Historial */
@@ -673,8 +677,8 @@ async function verSolicitud(id){
       ${s.auditoria.map(a=>`
         <div class="hist-item">
           <span style="color:#9ca3af;flex-shrink:0">${fdate(a.createdAt)}</span>
-          <strong>· ${a.accion}</strong>
-          <span>${a.detalle?'· '+a.detalle:''}</span>
+          <strong>· ${esc(a.accion)}</strong>
+          <span>${a.detalle?'· '+esc(a.detalle):''}</span>
         </div>`).join('')}
     </div>`:'' ;
 
@@ -702,7 +706,7 @@ function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('
 /* ── MODAL DETALLE — PERSONA JURÍDICA ── */
 async function verSolicitudJuridica(id){
   const s=await req('/api/admin/solicitudes-juridica/'+id); if(!s)return;
-  document.getElementById('modal-title').innerHTML=`${s.radicado} &nbsp;·&nbsp; ${badge(s.estado)} &nbsp;·&nbsp; 🏢 Jurídica`;
+  document.getElementById('modal-title').innerHTML=`${esc(s.radicado)} &nbsp;·&nbsp; ${badge(s.estado)} &nbsp;·&nbsp; 🏢 Jurídica`;
 
   /* Empresa */
   const secEmpresa=`
@@ -770,12 +774,13 @@ async function verSolicitudJuridica(id){
   let docsHtml='';
   if(s.documentos&&Object.keys(s.documentos).length>0){
     const items=Object.entries(s.documentos).map(([k,d])=>{
-      const nombre=d?.nombre||k;
-      if(d&&d.url){
-        const isPdf=d.url.includes('.pdf')||d.url.includes('/docs/');
+      const nombre=esc(d?.nombre||k);
+      const url=d&&d.url?urlSegura(d.url):'';
+      if(url){
+        const isPdf=url.includes('.pdf')||url.includes('/docs/');
         const boton=isPdf
-          ? `<div onclick="abrirPdf('${d.url}','${nombre}')" class="doc-link">📄 Ver documento</div>`
-          : `<a href="${d.url}" target="_blank" class="doc-link">🖼 Ver imagen</a>`;
+          ? `<div data-url="${esc(url)}" data-nombre="${nombre}" onclick="abrirPdf(this.dataset.url,this.dataset.nombre)" class="doc-link">📄 Ver documento</div>`
+          : `<a href="${esc(url)}" target="_blank" rel="noopener" class="doc-link">🖼 Ver imagen</a>`;
         return `<div class="doc-item"><div class="doc-item-label">${nombre}</div>${boton}</div>`;
       }
       return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
@@ -809,7 +814,7 @@ async function verSolicitudJuridica(id){
     </div>
     <div>
       <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
-      <textarea id="notaDecisionJ" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${s.notaAnalista||''}</textarea>
+      <textarea id="notaDecisionJ" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${esc(s.notaAnalista||'')}</textarea>
     </div>`;
 
   /* Historial */
@@ -819,8 +824,8 @@ async function verSolicitudJuridica(id){
       ${s.auditoria.map(a=>`
         <div class="hist-item">
           <span style="color:#9ca3af;flex-shrink:0">${fdate(a.createdAt)}</span>
-          <strong>· ${a.accion}</strong>
-          <span>${a.detalle?'· '+a.detalle:''}</span>
+          <strong>· ${esc(a.accion)}</strong>
+          <span>${a.detalle?'· '+esc(a.detalle):''}</span>
         </div>`).join('')}
     </div>`:'' ;
 
@@ -850,15 +855,14 @@ async function loadAuditoria(){
   document.getElementById('audit-table').innerHTML=d.logs.map(a=>`
     <tr>
       <td style="color:#9ca3af;font-size:11px">${fdate(a.createdAt)}</td>
-      <td><span class="badge badge-blue">${a.accion}</span></td>
+      <td><span class="badge badge-blue">${esc(a.accion)}</span></td>
       <td style="font-family:monospace;font-size:11px">${a.solicitudId?.slice(0,8)||'—'}</td>
-      <td>${a.usuario||'—'}</td>
-      <td style="color:#6b7280">${a.detalle||'—'}</td>
+      <td>${esc(a.usuario||'—')}</td>
+      <td style="color:#6b7280">${esc(a.detalle||'—')}</td>
     </tr>`).join('');
 }
 
 /* ── USUARIOS ── */
-function esc(x){ return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 let usuariosCache=[];
 async function loadUsuarios(){
   const d=await req('/api/admin/usuarios'); if(!d)return;
