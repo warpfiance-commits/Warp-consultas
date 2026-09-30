@@ -7,6 +7,7 @@ services:
   - type: web
     name: warp-consultas
     runtime: node
+    region: ohio   # misma región que la base en Neon (AWS us-east-2)
     plan: free
     buildCommand: npm install
     startCommand: npm start
