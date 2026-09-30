@@ -1,0 +1,6 @@
+# Credenciales de publicación: nunca deben subir a GitHub.
+.env.deploy
+
+node_modules/
+*.db
+sse_test.txt
