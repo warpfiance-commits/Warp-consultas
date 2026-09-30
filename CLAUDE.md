@@ -86,9 +86,9 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
   Neon hoy están bajo warpfiance-commits / warpfiance@gmail.com).
 - **Demora de Render gratis:** hoy se mitiga con `mantener-despierto.yml`
   (GitHub, cada 5 min); mejor cron-job.org cada 2 min, o Render Starter.
-- **Secreto de Cloudinary en el código.** `server.js` todavía trae escritos
-  `CLOUDINARY_API_KEY`/`API_SECRET`. El repositorio es público: pasarlos a
-  Render y rotarlos. (La clave y el token de admin ya se quitaron del código.)
+- **Borrar la clave vieja de Cloudinary** (la que empieza por `985348`) en la
+  consola de Cloudinary: estuvo en el repo público. Las claves nuevas ya viven
+  solo en las variables de Render (`CLOUDINARY_*`); el código no trae ninguna.
 - El README menciona Railway y SQLite; ya no aplica ninguno de los dos.
 - No hay entorno de pruebas separado del de producción.
 
