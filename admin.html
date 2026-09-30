@@ -117,6 +117,47 @@ td{padding:10px 14px;color:#374151}
 .section.visible{display:block}
 .pdf-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
 .pdf-modal-bg.open{display:flex}
+.topbar-logout{display:none}
+
+/* ─────────── Responsive / móvil (barra inferior tipo app) ─────────── */
+@media(max-width:768px){
+  .app{display:block;min-height:100vh}
+  /* Sidebar -> barra inferior fija */
+  .sidebar{position:fixed;left:0;right:0;bottom:0;width:100%;flex-direction:row;height:auto;z-index:900;border-top:1px solid rgba(255,255,255,.12);box-shadow:0 -2px 14px rgba(0,0,0,.2);padding-bottom:env(safe-area-inset-bottom,0)}
+  .sidebar-logo,.sidebar-footer{display:none}
+  .sidebar-nav{flex:1;flex-direction:row;padding:0;display:flex}
+  .nav-item{flex:1;flex-direction:column;gap:3px;justify-content:center;padding:8px 4px 7px;font-size:10.5px;line-height:1.15;text-align:center}
+  .nav-item .nav-ico{font-size:19px;line-height:1}
+  .nav-item .nav-lbl{font-weight:600}
+  /* Contenido a todo el ancho + espacio para no quedar bajo la barra */
+  .main{padding-bottom:66px}
+  .topbar{padding:.7rem .9rem}
+  .topbar-title{font-size:15px}
+  .content{padding:1rem .85rem}
+  .topbar .btn-txt{display:none}
+  .topbar-logout{display:inline-flex;align-items:center}
+  /* Métricas en 2 columnas */
+  .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-value{font-size:20px}
+  /* Tablas con scroll horizontal dentro de la tarjeta */
+  .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .card table{min-width:560px}
+  /* Buscador apilado */
+  .search-bar{flex-wrap:wrap}
+  .search-bar input,.search-bar select{max-width:none;flex:1 1 100%}
+  /* Modal casi a pantalla completa */
+  .modal-bg{padding:0}
+  .modal{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0}
+  .modal-body{padding:1rem}
+  .info-grid,.info-grid-3{grid-template-columns:1fr}
+  .check-grid{grid-template-columns:1fr 1fr}
+  .docs-grid{grid-template-columns:1fr}
+  .cap-semaforo{grid-template-columns:1fr 1fr}
+  .ib.span2,.ib.span3{grid-column:span 1}
+  /* Login */
+  .login-wrap{padding:1rem}
+  .login-box{width:100%;max-width:100%;padding:2rem 1.5rem}
+}
 </style>
 </head>
 <body>
@@ -142,12 +183,12 @@ td{padding:10px 14px;color:#374151}
       <div class="sidebar-sub">Panel de Solicitudes</div>
     </div>
     <nav class="sidebar-nav">
-      <button class="nav-item active" onclick="showSection('dashboard',this)">◉ &nbsp;Dashboard</button>
-      <button class="nav-item" onclick="showSection('solicitudes',this)">📋 &nbsp;Solicitudes</button>
-      <button class="nav-item" onclick="showSection('auditoria',this)">🔒 &nbsp;Auditoría</button>
+      <button class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-ico">◉</span><span class="nav-lbl">Dashboard</span></button>
+      <button class="nav-item" onclick="showSection('solicitudes',this)"><span class="nav-ico">📋</span><span class="nav-lbl">Solicitudes</span></button>
+      <button class="nav-item" onclick="showSection('auditoria',this)"><span class="nav-ico">🔒</span><span class="nav-lbl">Auditoría</span></button>
     </nav>
     <div class="sidebar-footer">
-      <button class="nav-item" onclick="logout()" style="color:rgba(255,100,100,.7)">↩ &nbsp;Cerrar sesión</button>
+      <button class="nav-item" onclick="logout()" style="color:rgba(255,100,100,.7)"><span class="nav-ico">↩</span><span class="nav-lbl">Cerrar sesión</span></button>
     </div>
   </div>
 
@@ -155,8 +196,9 @@ td{padding:10px 14px;color:#374151}
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div style="display:flex;gap:8px">
-        <button class="btn-sm btn-ghost" onclick="exportCSV()">📥 Exportar CSV</button>
-        <button class="btn-sm btn-lime" onclick="recargar()">↺ Actualizar</button>
+        <button class="btn-sm btn-ghost" onclick="exportCSV()">📥 <span class="btn-txt">Exportar CSV</span></button>
+        <button class="btn-sm btn-lime" onclick="recargar()">↺ <span class="btn-txt">Actualizar</span></button>
+        <button class="btn-sm btn-ghost topbar-logout" onclick="logout()" title="Cerrar sesión">↩</button>
       </div>
     </div>
     <div class="content">
@@ -242,7 +284,8 @@ td{padding:10px 14px;color:#374151}
 <div class="toast" id="toast"></div>
 
 <script>
-const API = window.location.origin;
+// ⚠️ Front en Hostinger, backend en Render: reemplaza por la URL de tu servicio en Render.
+const API = 'https://warp-consultas.onrender.com';
 let TOKEN = localStorage.getItem('warp-admin-token') || '';
 let searchTimer;
 

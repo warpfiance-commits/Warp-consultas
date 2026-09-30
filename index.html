@@ -101,7 +101,24 @@ textarea{resize:vertical;min-height:80px}
 .tipo-intro{text-align:center;margin-bottom:.5rem}
 .tipo-intro h2{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
 .tipo-intro p{font-size:14px;color:var(--text-soft)}
-@media(max-width:600px){.grid-2,.grid-3,.cap-grid{grid-template-columns:1fr}.doc-grid{grid-template-columns:1fr}.tabs .tab{font-size:9px;padding:8px 2px}.header{flex-direction:column;align-items:flex-start;gap:8px}.tipo-selector{grid-template-columns:1fr}}
+@media(max-width:600px){
+  .wrap{padding:1.25rem .8rem 5.5rem}
+  .grid-2,.grid-3,.cap-grid{grid-template-columns:1fr}
+  .doc-grid{grid-template-columns:1fr}
+  .tabs .tab{font-size:9px;padding:8px 2px}
+  .header{flex-direction:column;align-items:flex-start;gap:8px}
+  .htitle{font-size:18px}
+  .tipo-selector{grid-template-columns:1fr;margin:1rem 0}
+  .tipo-card{padding:1.5rem 1rem}
+  .card{padding:1.15rem}
+  /* font-size:16px evita el zoom automático de iOS al enfocar un campo */
+  input,select,textarea{font-size:16px}
+  .btn{padding:11px 18px}
+  .btns{flex:1;gap:8px}
+  .btn-back,.btn-next,.btn-submit{flex:1}
+  .success-title{font-size:20px}
+  .wa-btn{bottom:16px;right:16px;width:50px;height:50px;font-size:24px}
+}
 
 .firma-wrap{border:2px solid #c8dac8;border-radius:9px;background:#fff;overflow:hidden;position:relative}
 .firma-wrap canvas{display:block;touch-action:none;cursor:crosshair;width:100%;height:160px}
@@ -753,7 +770,8 @@ textarea{resize:vertical;min-height:80px}
 
 <script>
 const MUNICIPIOS_POR_DEPTO={'Amazonas':['Leticia','Puerto Nariño'],'Antioquia':['Medellín','Envigado','Itagüí','Bello','Rionegro','Apartadó','Turbo','Sabaneta'],'Arauca':['Arauca','Saravena','Tame','Arauquita'],'Atlántico':['Barranquilla','Soledad','Malambo','Sabanalarga','Puerto Colombia'],'Bogotá D.C.':['Bogotá'],'Bolívar':['Cartagena','Magangué','Turbaco','El Carmen de Bolívar','Arjona'],'Boyacá':['Tunja','Duitama','Sogamoso','Chiquinquirá','Paipa'],'Caldas':['Manizales','La Dorada','Chinchiná','Villamaría','Riosucio'],'Caquetá':['Florencia','San Vicente del Caguán','Puerto Rico'],'Casanare':['Yopal','Aguazul','Villanueva','Tauramena'],'Cauca':['Popayán','Santander de Quilichao','Patía','Puerto Tejada'],'Cesar':['Valledupar','Aguachica','Bosconia','Codazzi','La Jagua de Ibirico'],'Chocó':['Quibdó','Istmina','Tadó'],'Córdoba':['Montería','Cereté','Lorica','Sahagún','Tierralta'],'Cundinamarca':['Soacha','Chía','Zipaquirá','Facatativá','Fusagasugá','Girardot','Mosquera'],'Guainía':['Inírida'],'Guaviare':['San José del Guaviare'],'Huila':['Neiva','Pitalito','Garzón','La Plata'],'La Guajira':['Riohacha','Maicao','Uribia','Fonseca'],'Magdalena':['Santa Marta','Ciénaga','Fundación','El Banco'],'Meta':['Villavicencio','Acacías','Granada','Puerto López'],'Nariño':['Pasto','Tumaco','Ipiales','Túquerres'],'Norte de Santander':['Cúcuta','Ocaña','Pamplona','Villa del Rosario'],'Putumayo':['Mocoa','Puerto Asís','Orito','Sibundoy'],'Quindío':['Armenia','Calarcá','Montenegro','La Tebaida'],'Risaralda':['Pereira','Dosquebradas','Santa Rosa de Cabal','La Virginia'],'San Andrés y Providencia':['San Andrés','Providencia'],'Santander':['Bucaramanga','Floridablanca','Girón','Piedecuesta','Barrancabermeja','San Gil'],'Sucre':['Sincelejo','Corozal','San Marcos','Sampués'],'Tolima':['Ibagué','Espinal','Melgar','Honda','Líbano'],'Valle del Cauca':['Cali','Palmira','Buenaventura','Tuluá','Buga','Cartago','Yumbo'],'Vaupés':['Mitú'],'Vichada':['Puerto Carreño']};
-const API_URL = window.location.origin;
+// ⚠️ Front en Hostinger, backend en Render: reemplaza por la URL de tu servicio en Render.
+const API_URL = 'https://warp-consultas.onrender.com';
 const DRAFT_KEY = 'warp_credito_draft';
 let tipoPersona = null;
 let currentStep = 0;
