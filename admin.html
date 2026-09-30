@@ -270,6 +270,8 @@ tbody tr:hover{background:#fafbf9}
 .hero-btn{background:var(--navy);color:#fff;box-shadow:none}
 .hero-btn:hover{background:#14491a;box-shadow:none;transform:none}
 .stat-card.accent .stat-ico{background:var(--lime-l);color:var(--lime-d)}
+.score-sin{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:#9ca3af}
+.score-sin::before{content:"";width:7px;height:7px;border-radius:50%;border:1.5px solid #9ca3af;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -460,50 +462,36 @@ function boolItem(lbl,val){ const ok=!!val; return `<div class="check-item ${ok?
 /* ── SCORE INTERNO ── */
 function limpio(x){ return Number(String(x||0).replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.]/g,'')||0); }
 
+/* ── SCORE INTERNO (0-100) ──
+   Capacidad de pago 40 · Monto vs ingresos 20 · Antigüedad 20 · Contrato 10 · Vivienda 10.
+   Los valores coinciden EXACTO con las opciones del formulario (index.html). */
+const SCORE_ANTIGUEDAD={'Más de 5 años':20,'3 - 5 años':16,'1 - 3 años':12,'6 meses - 1 año':7,'Menos de 6 meses':0};
+const SCORE_CONTRATO={'Término indefinido':10,'Término fijo':7,'Obra o labor':5,'Prestación de servicios':5,'Temporal / agencia':4,'Aprendizaje (SENA)':3,'No aplica':4};
+const SCORE_VIVIENDA={'Propia (libre de hipoteca)':10,'Familiar / cedida':7,'Propia (con hipoteca)':6,'Arrendada':5};
+
 function calcScore(s){
-  let pts=0, max=100;
-  const ing=limpio(s.ingresosMensuales);
+  const ing=limpio(s.ingresosMensuales)+limpio(s.ingresosAdicionales);
+  // Sin ingresos no hay base para calificar: mejor decirlo que inventar un "alto riesgo".
+  if(!ing) return {pct:null,clase:'score-sin',label:'Sin datos'};
   const egr=limpio(s.egresosMensuales)+limpio(s.obligacionesFinancieras);
   const monto=limpio(s.montoSolicitado);
-  const disp=ing-egr;
+  const pensionado=String(s.situacionLaboral||'').startsWith('Pensionad');
+  let pts=0;
 
-  // Capacidad de pago (40 pts)
-  if(ing>0){
-    const ratio=disp/ing;
-    if(ratio>=0.5) pts+=40;
-    else if(ratio>=0.3) pts+=28;
-    else if(ratio>=0.1) pts+=14;
-    else pts+=0;
-  }
-  // Monto vs ingresos (20 pts)
-  if(ing>0){
-    const mr=monto/ing;
-    if(mr<=3) pts+=20;
-    else if(mr<=6) pts+=12;
-    else if(mr<=10) pts+=6;
-  }
-  // Estabilidad laboral (20 pts)
-  const ant=s.antiguedad||'';
-  if(ant.includes('5 años')) pts+=20;
-  else if(ant.includes('3 -')) pts+=16;
-  else if(ant.includes('1 -')) pts+=12;
-  else if(ant.includes('6 meses')) pts+=7;
-  else if(ant.includes('Menos')) pts+=0;
+  // Capacidad de pago: qué parte del ingreso queda libre
+  const libre=(ing-egr)/ing;
+  pts+= libre>=0.5?40 : libre>=0.3?28 : libre>=0.1?14 : 0;
+
+  // Monto pedido frente al ingreso mensual
+  if(monto){ const veces=monto/ing; pts+= veces<=3?20 : veces<=6?12 : veces<=10?6 : 0; }
   else pts+=10;
-  // Tipo contrato (10 pts)
-  const cont=s.tipoContrato||'';
-  if(cont.includes('indefinido')) pts+=10;
-  else if(cont.includes('fijo')) pts+=7;
-  else if(cont.includes('servicios')) pts+=5;
-  else pts+=3;
-  // Vivienda (10 pts)
-  const viv=s.tipoVivienda||'';
-  if(viv.includes('libre de hipoteca')) pts+=10;
-  else if(viv.includes('hipoteca')) pts+=6;
-  else if(viv.includes('Familiar')) pts+=7;
-  else pts+=5;
 
-  const pct=Math.min(pts,max);
+  // Estabilidad: un pensionado tiene ingreso estable aunque no tenga antigüedad laboral
+  pts+= pensionado?20 : (SCORE_ANTIGUEDAD[s.antiguedad] ?? 10);
+  pts+= pensionado?10 : (SCORE_CONTRATO[s.tipoContrato] ?? 3);
+  pts+= SCORE_VIVIENDA[s.tipoVivienda] ?? 5;
+
+  const pct=Math.min(pts,100);
   if(pct>=70) return {pct,clase:'score-verde',label:'Viable ('+pct+'/100)'};
   if(pct>=45) return {pct,clase:'score-amarillo',label:'Revisar ('+pct+'/100)'};
   return {pct,clase:'score-rojo',label:'Alto riesgo ('+pct+'/100)'};

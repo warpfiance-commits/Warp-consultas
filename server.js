@@ -890,7 +890,7 @@ app.get('/api/admin/dashboard', authAdmin, async (req, res) => {
       pool.query('SELECT estado, COUNT(*) as cnt FROM solicitudes GROUP BY estado'),
       pool.query(`SELECT COUNT(*) FROM solicitudes WHERE created_at::date=$1`, [hoy]),
       pool.query(`SELECT COALESCE(SUM(monto_solicitado),0) as total FROM solicitudes WHERE estado IN ('APROBADA','DESEMBOLSADA')`),
-      pool.query('SELECT id,radicado,primer_nombre,primer_apellido,monto_solicitado,estado,created_at FROM solicitudes ORDER BY created_at DESC LIMIT 10')
+      pool.query('SELECT * FROM solicitudes ORDER BY created_at DESC LIMIT 10')
     ]);
     const em = {};
     byEstado.rows.forEach(r => { em[r.estado] = Number(r.cnt); });
@@ -900,7 +900,8 @@ app.get('/api/admin/dashboard', authAdmin, async (req, res) => {
       aprobadas: em['APROBADA']||0, rechazadas: em['RECHAZADA']||0,
       desembolsadas: em['DESEMBOLSADA']||0,
       hoy: Number(hoyN.rows[0].count), montoTotal: Number(montoRes.rows[0].total),
-      recientes: recientes.rows.map(r => ({ id:r.id, radicado:r.radicado, primerNombre:r.primer_nombre, primerApellido:r.primer_apellido, montoSolicitado:r.monto_solicitado?Number(r.monto_solicitado):null, estado:r.estado, createdAt:r.created_at }))
+      // Solicitud completa: el panel necesita los datos financieros para el score
+      recientes: recientes.rows.map(rowToSolicitud)
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
