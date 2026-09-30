@@ -97,10 +97,18 @@ function publicarPaginas(env) {
     const local = path.join(ROOT, pagina);
     if (!fs.existsSync(local)) salirCon(`No existe ${pagina}`);
 
-    const destino = `ftp://${env.FTP_HOST}/${dir}/${pagina}`;
+    // El certificado FTP de Hostinger es de *.hstgr.io: si FTP_HOST es una IP,
+    // se conecta a ella pero el certificado se valida con un nombre de Hostinger.
+    const esIp = /^\d+\.\d+\.\d+\.\d+$/.test(env.FTP_HOST);
+    const host = esIp ? 'servidor.hstgr.io' : env.FTP_HOST;
+    const destino = `ftp://${host}/${dir}/${pagina}`;
     const r = spawnSync(
       'curl',
-      ['-K', '-', '--ssl', '--ftp-create-dirs', '-sS', '--connect-timeout', '20', '-T', local, destino],
+      [
+        '-K', '-', '--ssl-reqd', '--ftp-create-dirs', '-sS', '--connect-timeout', '20',
+        ...(esIp ? ['--resolve', `${host}:21:${env.FTP_HOST}`] : []),
+        '-T', local, destino,
+      ],
       // La contraseña va por stdin, no en los argumentos: así no queda
       // visible en la lista de procesos del sistema.
       { input: `user = "${env.FTP_USER}:${env.FTP_PASS}"\n`, encoding: 'utf8' },

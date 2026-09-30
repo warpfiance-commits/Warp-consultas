@@ -19,6 +19,7 @@ jobs:
         run: |
           echo "prueba de despliegue de Finanzas Inteligentes" > prueba-deploy.txt
           printf 'user = "%s:%s"\n' "$FTP_USER" "$FTP_PASS" | \
-            curl -K - --ssl --connect-timeout 20 -sS -T prueba-deploy.txt \
-            "ftp://$FTP_HOST/$FTP_DIR/prueba-deploy.txt"
+            curl -K - --ssl-reqd --connect-timeout 20 -sS -T prueba-deploy.txt \
+            --resolve "servidor.hstgr.io:21:$FTP_HOST" \
+            "ftp://servidor.hstgr.io/$FTP_DIR/prueba-deploy.txt"
           echo "Subido. Debe verse en https://form.warpfinance.co/prueba-deploy.txt"
