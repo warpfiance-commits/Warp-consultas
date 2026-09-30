@@ -213,6 +213,51 @@ td{padding:10px 14px;color:#374151}
   .stat-card{gap:10px;padding:.85rem .9rem}
   .stat-ico{width:36px;height:36px}
 }
+
+/* ─────────── Minimalismo: barra lateral y tablas ─────────── */
+.sidebar{background:#fff;border-right:1px solid #ebeee8}
+.sidebar-logo{padding:1.4rem 1.4rem 1rem;border-bottom:none}
+.sidebar-logo-text{color:var(--navy);font-size:12px;letter-spacing:.16em}
+.sidebar-sub{color:#9ca3af;font-size:11px;margin-top:3px}
+.sidebar-nav{padding:.5rem .75rem}
+.nav-item{gap:11px;padding:9px 12px;margin-bottom:2px;border-radius:9px;color:#6b7280;font-weight:500}
+.nav-item:hover{background:#f5f7f3;color:var(--navy)}
+.nav-item.active{background:#eef4ee;color:var(--navy);font-weight:600}
+.nav-ico{display:inline-flex;width:18px;height:18px;flex-shrink:0}
+.nav-ico svg{width:18px;height:18px}
+.sidebar-footer{border-top:1px solid #ebeee8;padding:.85rem .75rem 1rem}
+.who{display:flex;align-items:center;gap:10px;padding:0 6px 10px;min-width:0}
+.who .av{margin-right:0}
+.who-n{font-size:12.5px;font-weight:600;color:#1f2937;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who-e{font-size:11px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-item.out{color:#9ca3af;font-weight:500}
+.nav-item.out:hover{background:#fdf3f3;color:#dc2626}
+
+.card{border-color:#edf0ea;border-radius:14px}
+.card-header{border-bottom:none;padding:1.1rem 1.3rem .5rem}
+thead tr{background:transparent;color:#9ca3af}
+th{padding:12px 16px;font-weight:500;letter-spacing:.06em;border-bottom:1px solid #eef0ec}
+td{padding:14px 16px}
+tbody tr{border-bottom:1px solid #f4f6f2}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafbf9}
+.badge,.badge-blue,.badge-amber,.badge-green,.badge-red,.badge-gray,
+.score-verde,.score-amarillo,.score-rojo{display:inline-flex;align-items:center;gap:7px;background:none;border:none;border-radius:0;padding:0;font-size:12px;font-weight:500;color:#374151}
+.badge::before,.score-verde::before,.score-amarillo::before,.score-rojo::before{content:"";width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#9ca3af}
+.badge-blue::before{background:#3b82f6}
+.badge-amber::before,.score-amarillo::before{background:#f59e0b}
+.badge-green::before,.score-verde::before{background:#16a34a}
+.badge-red::before,.score-rojo::before{background:#dc2626}
+.badge-gray::before{background:#9ca3af}
+.card td .btn-navy{background:none;color:var(--navy);border:1px solid #dfe5dc;padding:6px 13px;border-radius:8px;font-weight:600}
+.card td .btn-navy:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+@media(max-width:768px){
+  .sidebar{background:#fff;border-right:none;border-top:1px solid #ebeee8;box-shadow:0 -8px 22px -14px rgba(0,0,0,.22)}
+  .sidebar-nav{padding:0 4px}
+  .nav-item{margin:0;padding:8px 2px 7px;border-radius:10px;color:#9ca3af}
+  .nav-item.active{background:none;color:var(--navy)}
+  .nav-item .nav-ico,.nav-item .nav-ico svg{width:21px;height:21px}
+}
 </style>
 </head>
 <body>
@@ -238,14 +283,14 @@ td{padding:10px 14px;color:#374151}
       <div class="sidebar-sub">Panel de Solicitudes</div>
     </div>
     <nav class="sidebar-nav">
-      <button class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-ico">◉</span><span class="nav-lbl">Dashboard</span></button>
-      <button class="nav-item" onclick="showSection('solicitudes',this)"><span class="nav-ico">📋</span><span class="nav-lbl">Solicitudes</span></button>
-      <button class="nav-item" onclick="showSection('auditoria',this)"><span class="nav-ico">🔒</span><span class="nav-lbl">Auditoría</span></button>
-      <button class="nav-item" onclick="showSection('usuarios',this)"><span class="nav-ico">👥</span><span class="nav-lbl">Usuarios</span></button>
+      <button class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/></svg></span><span class="nav-lbl">Dashboard</span></button>
+      <button class="nav-item" onclick="showSection('solicitudes',this)"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span><span class="nav-lbl">Solicitudes</span></button>
+      <button class="nav-item" onclick="showSection('auditoria',this)"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.2 10"/></svg></span><span class="nav-lbl">Auditoría</span></button>
+      <button class="nav-item" onclick="showSection('usuarios',this)"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.2 3.1-5 6-5s5.4 1.8 6 5"/><path d="M16 4.9a3.2 3.2 0 0 1 0 6.2M18.5 14.8c1.4.7 2.3 2.1 2.5 4"/></svg></span><span class="nav-lbl">Usuarios</span></button>
     </nav>
     <div class="sidebar-footer">
-      <div id="usuarioActual" style="color:rgba(255,255,255,.45);font-size:11px;padding:0 0 8px;word-break:break-all"></div>
-      <button class="nav-item" onclick="logout()" style="color:rgba(255,100,100,.7)"><span class="nav-ico">↩</span><span class="nav-lbl">Cerrar sesión</span></button>
+      <div class="who" id="usuarioActual"></div>
+      <button class="nav-item out" onclick="logout()"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M16 8l4 4-4 4M20 12H9"/></svg></span><span class="nav-lbl">Cerrar sesión</span></button>
     </div>
   </div>
 
@@ -447,9 +492,9 @@ function calcScore(s){
   else pts+=5;
 
   const pct=Math.min(pts,max);
-  if(pct>=70) return {pct,clase:'score-verde',label:'🟢 Viable ('+pct+'/100)'};
-  if(pct>=45) return {pct,clase:'score-amarillo',label:'🟡 Revisar ('+pct+'/100)'};
-  return {pct,clase:'score-rojo',label:'🔴 Alto riesgo ('+pct+'/100)'};
+  if(pct>=70) return {pct,clase:'score-verde',label:'Viable ('+pct+'/100)'};
+  if(pct>=45) return {pct,clase:'score-amarillo',label:'Revisar ('+pct+'/100)'};
+  return {pct,clase:'score-rojo',label:'Alto riesgo ('+pct+'/100)'};
 }
 
 function scoreBadge(s){
@@ -499,7 +544,7 @@ function entrarApp(){
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('appWrap').style.display='flex';
   loadDashboard(); loadContadores(); marcarActualizado();
-  req('/api/admin/yo').then(u=>{ if(u){ USUARIO=u; document.getElementById('usuarioActual').textContent=u.nombre+(u.email!==u.nombre?' · '+u.email:''); saludoHero(); } });
+  req('/api/admin/yo').then(u=>{ if(u){ USUARIO=u; pintarUsuario(u); saludoHero(); } });
 }
 function logout(){
   if(TOKEN)fetch(API+'/api/admin/logout',{method:'POST',headers:headers()}).catch(()=>{});
@@ -538,6 +583,11 @@ function saludoHero(){
   document.getElementById('hero-saludo').textContent=momento+(nombre?', '+nombre:'');
   const f=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   document.getElementById('hero-fecha').textContent=f.charAt(0).toUpperCase()+f.slice(1);
+}
+function pintarUsuario(u){
+  const ini=((u.nombre||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('')||'·').toUpperCase();
+  document.getElementById('usuarioActual').innerHTML=
+    `<span class="av">${esc(ini)}</span><div style="min-width:0"><div class="who-n">${esc(u.nombre)}</div>${u.email&&u.email!==u.nombre?`<div class="who-e">${esc(u.email)}</div>`:''}</div>`;
 }
 function iniciales(a,b){ return ((a||'').trim()[0]||'')+((b||'').trim()[0]||'') || '·'; }
 function tip(ev,html){
@@ -587,7 +637,7 @@ async function loadDashboard(){
   tbody.innerHTML=d.recientes.map(s=>`
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
-      <td style="font-weight:500"><div class="tbl-name"><span class="av">${esc(iniciales(s.primerNombre,s.primerApellido)).toUpperCase()}</span>${v(s.primerNombre)} ${v(s.primerApellido)}</div></td>
+      <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
