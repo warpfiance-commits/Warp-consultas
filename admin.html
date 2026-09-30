@@ -637,12 +637,12 @@ async function loadDashboard(){
   tbody.innerHTML=d.recientes.map(s=>`
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
-      <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
+      <td style="font-weight:500">${s.tipo==='juridica'?v(s.razonSocial)+'<div style="font-size:11px;color:#9ca3af;font-weight:400">Empresa</div>':v(s.primerNombre)+' '+v(s.primerApellido)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
-      <td>${scoreBadge(s)}</td>
+      <td>${s.tipo==='juridica'?'<span style="color:#9ca3af;font-size:12px">—</span>':scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
-      <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
+      <td><button class="btn-sm btn-navy" onclick="${s.tipo==='juridica'?'verSolicitudJuridica':'verSolicitud'}('${s.id}')">Ver →</button></td>
     </tr>`).join('');
 }
 

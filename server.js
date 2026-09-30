@@ -470,8 +470,8 @@ app.get('/docs/:radicado/:filename', (req, res) => {
 // ── Health ────────────────────────────────────────────────────────────────────
 app.get('/health', async (req, res) => {
   try {
-    const r = await pool.query('SELECT COUNT(*) FROM solicitudes');
-    res.json({ status: 'ok', db: 'postgresql', solicitudes: Number(r.rows[0].count), email: !!SENDGRID_KEY, timestamp: new Date().toISOString() });
+    const [r, rj] = await Promise.all([pool.query('SELECT COUNT(*) FROM solicitudes'), pool.query('SELECT COUNT(*) FROM solicitudes_juridica')]);
+    res.json({ status: 'ok', db: 'postgresql', solicitudes: Number(r.rows[0].count), solicitudesJuridica: Number(rj.rows[0].count), email: !!SENDGRID_KEY, timestamp: new Date().toISOString() });
   } catch(e) {
     res.status(500).json({ status: 'error', db: e.message });
   }
@@ -885,24 +885,30 @@ app.get('/api/admin/contadores', authAdmin, async (req, res) => {
 
 app.get('/api/admin/dashboard', authAdmin, async (req, res) => {
   try {
-    const hoy = new Date().toISOString().slice(0,10);
-    const [total, byEstado, hoyN, montoRes, recientes] = await Promise.all([
-      pool.query('SELECT COUNT(*) FROM solicitudes'),
-      pool.query('SELECT estado, COUNT(*) as cnt FROM solicitudes GROUP BY estado'),
-      pool.query(`SELECT COUNT(*) FROM solicitudes WHERE created_at::date=$1`, [hoy]),
-      pool.query(`SELECT COALESCE(SUM(monto_solicitado),0) as total FROM solicitudes WHERE estado IN ('APROBADA','DESEMBOLSADA')`),
-      pool.query('SELECT * FROM solicitudes ORDER BY created_at DESC LIMIT 10')
+    // Natural y jurídica juntas: el panel es de todas las solicitudes.
+    const ambas = `(SELECT estado, created_at, monto_solicitado FROM solicitudes
+                    UNION ALL SELECT estado, created_at, monto_solicitado FROM solicitudes_juridica) t`;
+    const hoyBogota = `(created_at AT TIME ZONE 'America/Bogota')::date = (NOW() AT TIME ZONE 'America/Bogota')::date`;
+    const [byEstado, hoyN, montoRes, recN, recJ] = await Promise.all([
+      pool.query(`SELECT estado, COUNT(*) AS cnt FROM ${ambas} GROUP BY estado`),
+      pool.query(`SELECT COUNT(*) FROM ${ambas} WHERE ${hoyBogota}`),
+      pool.query(`SELECT COALESCE(SUM(monto_solicitado),0) AS total FROM ${ambas} WHERE estado IN ('APROBADA','DESEMBOLSADA')`),
+      pool.query('SELECT * FROM solicitudes ORDER BY created_at DESC LIMIT 10'),
+      pool.query('SELECT * FROM solicitudes_juridica ORDER BY created_at DESC LIMIT 10')
     ]);
     const em = {};
     byEstado.rows.forEach(r => { em[r.estado] = Number(r.cnt); });
+    const recientes = [
+      ...recN.rows.map(r => ({ ...rowToSolicitud(r), tipo: 'natural' })),
+      ...recJ.rows.map(r => ({ ...rowToSolicitudJuridica(r), tipo: 'juridica' }))
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
     res.json({
-      total: Number(total.rows[0].count),
+      total: Object.values(em).reduce((a, b) => a + b, 0),
       radicadas: em['RADICADA']||0, enAnalisis: em['EN_ANALISIS']||0,
       aprobadas: em['APROBADA']||0, rechazadas: em['RECHAZADA']||0,
       desembolsadas: em['DESEMBOLSADA']||0,
       hoy: Number(hoyN.rows[0].count), montoTotal: Number(montoRes.rows[0].total),
-      // Solicitud completa: el panel necesita los datos financieros para el score
-      recientes: recientes.rows.map(rowToSolicitud)
+      recientes
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
