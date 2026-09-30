@@ -89,9 +89,6 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
 - **Secreto de Cloudinary en el código.** `server.js` todavía trae escritos
   `CLOUDINARY_API_KEY`/`API_SECRET`. El repositorio es público: pasarlos a
   Render y rotarlos. (La clave y el token de admin ya se quitaron del código.)
-- **XSS en el panel.** Los datos del formulario público se pintan en admin.html
-  sin escapar; un nombre con HTML podría robar la sesión de un admin. Existe el
-  helper `esc()` en admin.html, falta aplicarlo en las tablas y el detalle.
 - El README menciona Railway y SQLite; ya no aplica ninguno de los dos.
 - No hay entorno de pruebas separado del de producción.
 
