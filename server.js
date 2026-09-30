@@ -16,9 +16,13 @@ const DOCS_DIR = path.join(__dirname, 'documentos');
 if (!fs.existsSync(DOCS_DIR)) fs.mkdirSync(DOCS_DIR, { recursive: true });
 
 // ── Credenciales ──────────────────────────────────────────────────────────────
-const CLOUD_NAME  = process.env.CLOUDINARY_CLOUD_NAME || 'dtoq5nbz4';
-const API_KEY     = process.env.CLOUDINARY_API_KEY    || '985348958691353';
-const API_SECRET  = process.env.CLOUDINARY_API_SECRET || 'N8mnqMCA_xVtSzxL4p13YVvhnLM';
+// Cloudinary: las tres variables van en Render → Environment, nunca en el código.
+const CLOUD_NAME  = process.env.CLOUDINARY_CLOUD_NAME || '';
+const API_KEY     = process.env.CLOUDINARY_API_KEY    || '';
+const API_SECRET  = process.env.CLOUDINARY_API_SECRET || '';
+if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
+  console.log('⚠️  Cloudinary sin configurar (CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET) — no se podrán subir documentos');
+}
 // Acceso heredado de un solo usuario: solo funciona si ADMIN_PASS está definida
 // en Render. Los usuarios reales viven en la tabla admin_usuarios.
 const ADMIN_USER  = process.env.ADMIN_USER  || 'admin';
@@ -404,6 +408,7 @@ function rowToSolicitudJuridica(r) {
 // resourceType: 'auto' deja que Cloudinary detecte si es imagen, PDF, etc.
 // Esto reemplaza el guardado local de PDFs (Railway borra el disco en cada deploy).
 async function uploadImageToCloudinary(base64Data, fileName, folder, resourceType = 'auto') {
+  if (!CLOUD_NAME || !API_KEY || !API_SECRET) throw new Error('Cloudinary sin configurar');
   const mimeMatch = base64Data.match(/data:([^;]+);/);
   const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
   const base64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
