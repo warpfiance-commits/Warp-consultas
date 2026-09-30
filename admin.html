@@ -792,7 +792,7 @@ async function verSolicitud(id){
       ${ib('Núm. dependientes',s.numeroDependientes)}${ib('Referencia — nombre',s.refNombre)}${ib('Parentesco',s.refParentesco)}
     </div>
     <div class="info-grid">
-      ${ib('Celular referencia',s.refCelular)}${ib('Referencia adicional',s.refAdicional)}
+      ${ib('Celular referencia',s.refCelular)}${ib('Dirección referencia',s.refDireccion)}${s.refAdicional?ib('Referencia adicional',s.refAdicional):''}
     </div>`;
 
   /* Documentos */

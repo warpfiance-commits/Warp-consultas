@@ -85,7 +85,7 @@ async function initDB() {
       antiguedad TEXT, tipo_contrato TEXT,
       telefono_trabajo TEXT, direccion_trabajo TEXT,
       estado_civil TEXT, nivel_educativo TEXT, numero_dependientes TEXT,
-      ref_nombre TEXT, ref_parentesco TEXT, ref_celular TEXT, ref_adicional TEXT,
+      ref_nombre TEXT, ref_parentesco TEXT, ref_celular TEXT, ref_adicional TEXT, ref_direccion TEXT,
       declaracion_veracidad BOOLEAN DEFAULT FALSE,
       autorizacion_centrales BOOLEAN DEFAULT FALSE,
       autorizacion_datos BOOLEAN DEFAULT FALSE,
@@ -143,6 +143,7 @@ async function initDB() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_estado ON solicitudes_juridica(estado);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_created ON solicitudes_juridica(created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_sol ON auditoria(solicitud_id);`);
+  await pool.query(`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS ref_direccion TEXT;`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS admin_usuarios (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -355,7 +356,7 @@ function rowToSolicitud(r) {
     estadoCivil: r.estado_civil, nivelEducativo: r.nivel_educativo,
     numeroDependientes: r.numero_dependientes,
     refNombre: r.ref_nombre, refParentesco: r.ref_parentesco,
-    refCelular: r.ref_celular, refAdicional: r.ref_adicional,
+    refCelular: r.ref_celular, refAdicional: r.ref_adicional, refDireccion: r.ref_direccion,
     declaracionVeracidad: r.declaracion_veracidad,
     autorizacionCentrales: r.autorizacion_centrales,
     autorizacionDatos: r.autorizacion_datos,
@@ -488,7 +489,7 @@ app.post('/api/solicitudes', async (req, res) => {
       u0:'Cédula Frontal', u1:'Cédula Reverso',
       u2:'Últimas 3 colillas de pago', u3:'Certificado laboral',
       u4:'RUT actualizado', u5:'Declaración de renta',
-      u6:'Extracto bancario — Mes 1', u7:'Extracto bancario — Mes 2',
+      u6:'Extractos bancarios — últimos 3 meses', u7:'Extracto bancario — Mes 2',
       u8:'Extracto bancario — Mes 3', u9:'Extracto banco alternativo',
       u10:'Recibo de servicios públicos', u12:'Documento de garantía / colateral',
       u13:'Selfie sosteniendo cédula', u14:'Reporte DataCrédito Experian',
@@ -499,7 +500,7 @@ app.post('/api/solicitudes', async (req, res) => {
       'j-u4':'Cédula rep. legal — Frontal', 'j-u5':'Cédula rep. legal — Reverso',
       'j-u6':'Selfie rep. legal con cédula', 'j-u7':'Balance general',
       'j-u8':'Estado de resultados (P&G)', 'j-u9':'Declaración de renta empresa',
-      'j-u10':'Estados financieros intermedios', 'j-u11':'Extracto empresa — Mes 1',
+      'j-u10':'Estados financieros intermedios', 'j-u11':'Extractos bancarios de la empresa',
       'j-u12':'Extracto empresa — Mes 2', 'j-u13':'Extracto empresa — Mes 3',
       'j-u14':'Documento de garantía / colateral', 'j-u15':'Reporte DataCrédito Experian',
       'j-selfieLive':'Selfie en vivo del representante legal',
@@ -513,6 +514,7 @@ app.post('/api/solicitudes', async (req, res) => {
       garantia:'Documento garantía', selfie:'Selfie con cédula'
     };
 
+    const nombreDoc = (key) => { const m = key.match(/^(.+)_(\d+)$/); return m && nombresDoc[m[1]] ? nombresDoc[m[1]] + " (archivo " + m[2] + ")" : (nombresDoc[key] || key); };
     const documentosUrls = {};
     if (data.documentos && typeof data.documentos === 'object') {
       for (const [key, fileData] of Object.entries(data.documentos)) {
@@ -522,10 +524,10 @@ app.post('/api/solicitudes', async (req, res) => {
             // Todo sube a Cloudinary (resource_type=auto detecta imagen/PDF/etc).
             // Railway borra el disco local en cada deploy, por eso ya no se usa saveDocumentLocally.
             const url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado, 'auto');
-            documentosUrls[key] = { url, nombre: nombresDoc[key]||key, nombreArchivo: fileData.nombre, tipo: mimeType };
+            documentosUrls[key] = { url, nombre: nombreDoc(key), nombreArchivo: fileData.nombre, tipo: mimeType };
           } catch(e) {
             console.error(`✗ ${key}:`, e.message);
-            documentosUrls[key] = { url: null, nombre: nombresDoc[key]||key, error: e.message };
+            documentosUrls[key] = { url: null, nombre: nombreDoc(key), error: e.message };
           }
         }
       }
@@ -608,12 +610,12 @@ app.post('/api/solicitudes', async (req, res) => {
       ref_nombre, ref_parentesco, ref_celular, ref_adicional,
       declaracion_veracidad, autorizacion_centrales, autorizacion_datos,
       declaracion_sarlaft, declaracion_pep, autorizacion_debito,
-      firma_electronica, documentos
+      firma_electronica, documentos, ref_direccion
     ) VALUES (
       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
       $16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,
       $32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,
-      $45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58,$59
+      $45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58,$59,$60
     ) RETURNING id, radicado`;
 
     const values = [
@@ -650,7 +652,8 @@ app.post('/api/solicitudes', async (req, res) => {
       !!data.autorizacionDatos, !!data.declaracionSarlaft,
       !!data.declaracionPep, !!data.autorizacionDebito,
       data.firmaElectronica||null,
-      JSON.stringify(documentosUrls)
+      JSON.stringify(documentosUrls),
+      data.refDireccion||null
     ];
 
     const result = await pool.query(q, values);
