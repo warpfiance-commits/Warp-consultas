@@ -9,12 +9,17 @@ El README está desactualizado: dice Railway, pero **hoy no se usa Railway**.
 
 | Parte | Dónde vive | Cómo se publica |
 |---|---|---|
-| `index.html`, `admin.html` | Hostinger — `form.warpfinance.co` | FTPS (`npm run deploy`) |
-| `server.js` + PostgreSQL | Render — `warp-consultas.onrender.com` | push a GitHub, Render redespliega solo |
+| `index.html`, `admin.html` | Hostinger — `form.warpfinance.co` | push a GitHub → Action `publicar-paginas.yml` sube por FTPS |
+| `server.js` | Render (cuenta propia, GitHub warpfiance-commits) — `warp-consultas-t6sj.onrender.com`, Ohio | push a GitHub, Render redespliega solo (Blueprint `render.yaml`) |
+| PostgreSQL | Neon, proyecto en AWS us-east-2 (Ohio), plan gratis sin vencimiento | — (`DATABASE_URL` en Render) |
+
+Desde 2026-09-30 se usa este Render + Neon. El servicio viejo
+`warp-consultas.onrender.com` estaba en una cuenta de Render a la que nadie
+tiene acceso; sus datos (4 solicitudes de prueba) se dejaron atrás.
 
 Las páginas y el backend están en **servidores distintos**. Por eso el HTML
-llama a la API con la URL absoluta de Render (`const API = '...onrender.com'`),
-no con `window.location.origin`.
+llama a la API con la URL absoluta de Render. Si la página se sirve desde
+el propio Render (`…onrender.com/admin`), usa `location.origin`.
 
 ## Trabajar en local
 
@@ -40,15 +45,33 @@ npm run deploy
 Sube el backend a GitHub (→ Render) y las páginas a Hostinger, y después
 verifica que lo publicado coincida byte a byte con lo local.
 
-Requiere `.env.deploy` con las credenciales FTP de Hostinger — no está en git.
-Plantilla en `.env.deploy.example`.
+Normalmente basta con `git push`: Render redespliega el backend y la Action
+`.github/workflows/publicar-paginas.yml` sube las páginas cuando cambian
+(`node deploy.mjs --paginas`). Las credenciales FTP van como secrets de GitHub
+(`FTP_HOST`, `FTP_USER`, `FTP_PASS`, `FTP_DIR`).
+
+`npm run deploy` queda como camino manual; requiere `.env.deploy` (no está en
+git, plantilla en `.env.deploy.example`).
+
+## Acceso al panel
+
+Usuarios en la tabla `admin_usuarios` (contraseñas con scrypt), sesiones de
+12 h en `admin_sesiones`. Se gestionan desde la sección Usuarios del panel.
+El primer administrador se crea al arrancar desde las variables de Render
+`ADMIN_INICIAL_EMAIL`, `ADMIN_INICIAL_NOMBRE`, `ADMIN_INICIAL_PASS` (solo si ese
+email no existe; no pisa cambios hechos desde el panel). El acceso viejo
+`ADMIN_USER`/`ADMIN_PASS` solo funciona si `ADMIN_PASS` está definida en Render.
+
+El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
 
 ## Pendientes conocidos
 
-- **Credenciales en el código.** `server.js` líneas 19-26 tienen escritas la
-  contraseña de admin, el secreto de Cloudinary y tokens. El repositorio es
-  público en GitHub. Deberían pasar a variables de entorno en Render y luego
-  rotarse.
+- **Secreto de Cloudinary en el código.** `server.js` todavía trae escritos
+  `CLOUDINARY_API_KEY`/`API_SECRET`. El repositorio es público: pasarlos a
+  Render y rotarlos. (La clave y el token de admin ya se quitaron del código.)
+- **XSS en el panel.** Los datos del formulario público se pintan en admin.html
+  sin escapar; un nombre con HTML podría robar la sesión de un admin. Existe el
+  helper `esc()` en admin.html, falta aplicarlo en las tablas y el detalle.
 - El README menciona Railway y SQLite; ya no aplica ninguno de los dos.
 - No hay entorno de pruebas separado del de producción.
 
