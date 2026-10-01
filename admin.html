@@ -528,16 +528,17 @@ async function doLogin(){
   const p=document.getElementById('loginPass').value;
   const btn=document.getElementById('loginBtn');
   btn.textContent='Ingresando...'; btn.disabled=true;
+  const lento=setTimeout(()=>{btn.textContent='Despertando el servidor, puede tardar hasta un minuto…';},4000);
   try{
     const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,password:p})});
-    const j=await r.json();
+    const j=await r.json(); clearTimeout(lento);
     if(r.ok&&j.token){ TOKEN=j.token; localStorage.setItem('warp-admin-token',TOKEN);
       document.getElementById('loginPass').value='';
       document.getElementById('loginErr').style.display='none';
       btn.textContent='Ingresar →'; btn.disabled=false;
       entrarApp();
     }else{ errLogin(j.error); btn.textContent='Ingresar →'; btn.disabled=false; }
-  }catch(e){ errLogin('No se pudo conectar con el servidor'); btn.textContent='Ingresar →'; btn.disabled=false; }
+  }catch(e){ clearTimeout(lento); errLogin('No se pudo conectar con el servidor'); btn.textContent='Ingresar →'; btn.disabled=false; }
 }
 function errLogin(msg){ const e=document.getElementById('loginErr'); e.textContent=msg||'Credenciales incorrectas'; e.style.display='block'; }
 function entrarApp(){
@@ -1112,6 +1113,8 @@ function closePdf(e){ if(!e||e.target.id==='pdfBg'){document.getElementById('pdf
 
 /* ── INIT ── */
 window.onload=()=>{
+  // Despierta el servidor (plan gratis de Render) mientras la persona escribe
+  fetch(API+'/health').catch(()=>{});
   if(TOKEN)entrarApp();
 };
 </script>
