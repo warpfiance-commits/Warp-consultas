@@ -287,7 +287,12 @@ tbody tr:hover{background:#fafbf9}
 .sd-bar i{display:block;height:100%;background:var(--lime-d)}
 .sd-corte{margin:0 14px 8px;padding:8px 10px;border-radius:8px;background:#fef2f2;color:#b91c1c;font-size:12.5px}
 .sd-nota{padding:8px 14px 12px;font-size:11.5px;color:#9ca3af}
-</style>\n</head>`
+.stat-card[role=button],.pipe-item[role=button]{cursor:pointer}
+.pipe-item[role=button]{transition:border-color .15s,background .15s}
+.pipe-item[role=button]:hover{border-color:#cfe3d0;background:#fafcf9}
+.chip-hoy{border:1px solid #cfe3d0;background:#eef4ee;color:var(--navy);border-radius:20px;padding:0 12px;font:600 12px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+</style>
+</head>
 <body>
 
 <!-- LOGIN -->
@@ -327,7 +332,7 @@ tbody tr:hover{background:#fafbf9}
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div style="display:flex;gap:8px">
         <span id="ultimaAct" title="El panel se actualiza solo cada 30 segundos" style="align-self:center;font-size:11px;color:#9ca3af"></span>
-        <button class="btn-sm btn-ghost" onclick="exportCSV()">📥 <span class="btn-txt">Exportar CSV</span></button>
+        <button class="btn-sm btn-ghost" onclick="exportExcel(this)">📥 <span class="btn-txt">Exportar Excel</span></button>
         <button class="btn-sm btn-lime" onclick="recargar()">↺ <span class="btn-txt">Actualizar</span></button>
         <button class="btn-sm btn-ghost topbar-logout" onclick="logout()" title="Cerrar sesión">↩</button>
       </div>
@@ -348,10 +353,10 @@ tbody tr:hover{background:#fafbf9}
           </div>
         </div>
         <div class="stat-grid">
-          <div class="stat-card"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div><div><div class="stat-label">Total solicitudes</div><div class="stat-value" id="st-total">—</div></div></div>
-          <div class="stat-card"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div><div><div class="stat-label">Hoy</div><div class="stat-value" id="st-hoy">—</div></div></div>
-          <div class="stat-card"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.6 2.6L16 9.5"/></svg></div><div><div class="stat-label">Aprobadas</div><div class="stat-value" id="st-apr">—</div></div></div>
-          <div class="stat-card accent"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div><div><div class="stat-label">Monto aprobado</div><div class="stat-value" id="st-monto">—</div></div></div>
+          <div class="stat-card" role="button" tabindex="0" onclick="irAFiltro('TODAS')"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div><div><div class="stat-label">Total solicitudes</div><div class="stat-value" id="st-total">—</div></div></div>
+          <div class="stat-card" role="button" tabindex="0" onclick="irAFiltro('TODAS',true)"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div><div><div class="stat-label">Hoy</div><div class="stat-value" id="st-hoy">—</div></div></div>
+          <div class="stat-card" role="button" tabindex="0" onclick="irAFiltro('APROBADA')"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.6 2.6L16 9.5"/></svg></div><div><div class="stat-label">Aprobadas</div><div class="stat-value" id="st-apr">—</div></div></div>
+          <div class="stat-card accent" role="button" tabindex="0" onclick="irAFiltro('APROBADA')"><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div><div><div class="stat-label">Monto aprobado</div><div class="stat-value" id="st-monto">—</div></div></div>
         </div>
         <div class="card pipe-card">
           <div class="pipe-head"><div class="card-title">Embudo de solicitudes</div><small id="pipe-total"></small></div>
@@ -373,6 +378,7 @@ tbody tr:hover{background:#fafbf9}
         </div>
         <div class="search-bar">
           <input type="text" id="buscar" placeholder="Buscar por nombre, documento, email..." oninput="debSearch()">
+          <button type="button" id="chipHoy" class="chip-hoy" onclick="filtroHoy=false;this.style.display='none';loadSolicitudesActivas()" style="display:none">Solo hoy ✕</button>
           <select id="filtroEstado" onchange="loadSolicitudesActivas()">
             <option value="TODAS">Todos los estados</option>
             <option value="RADICADA">Radicada</option>
@@ -471,6 +477,10 @@ function v(x){ return (x!=null&&x!==''&&x!=='null')?esc(x):'—'; }
 // Solo enlaces http(s): evita javascript: en las URLs de documentos.
 function urlSegura(u){ try{ const x=new URL(u,location.href); return (x.protocol==='https:'||x.protocol==='http:')?x.href:''; }catch(e){ return ''; } }
 function ib(lbl,val,cls=''){ return `<div class="ib ${cls}"><div class="lbl">${lbl}</div><div class="val">${v(val)}</div></div>`; }
+function firmaBloque(s){
+  const url=s.documentos?.firma?.url?urlSegura(s.documentos.firma.url):'';
+  return `<div class="ib span2"><div class="lbl">Firma electrónica</div>${url?`<img src="${esc(url)}" alt="Firma" style="max-width:260px;max-height:90px;display:block;margin:6px 0;background:#fff;border:1px solid #eef0ec;border-radius:8px">`:''}<div class="val" style="font-size:12px;color:#6b7280">${v(s.firmaElectronica)}</div></div>`;
+}
 function boolItem(lbl,val){ const ok=!!val; return `<div class="check-item ${ok?'si':'no'}">${ok?'✓':'✗'} ${lbl}</div>`; }
 
 /* ── SCORE INTERNO ── */
@@ -631,10 +641,10 @@ function recargar(){ const vi=document.querySelector('.section.visible'); if(vi)
 /* ── DASHBOARD ── */
 /* Colores del embudo: un verde ordenado claro→oscuro (validado) + rojo de estado para Rechazada. */
 const ETAPAS=[
-  {k:'radicadas',n:'Radicada',c:'#6fbf73'},
-  {k:'enAnalisis',n:'En análisis',c:'#43a047'},
-  {k:'aprobadas',n:'Aprobada',c:'#2e7d32'},
-  {k:'desembolsadas',n:'Desembolsada',c:'#1b5e20'}
+  {k:'radicadas',n:'Radicada',c:'#6fbf73',e:'RADICADA'},
+  {k:'enAnalisis',n:'En análisis',c:'#43a047',e:'EN_ANALISIS'},
+  {k:'aprobadas',n:'Aprobada',c:'#2e7d32',e:'APROBADA'},
+  {k:'desembolsadas',n:'Desembolsada',c:'#1b5e20',e:'DESEMBOLSADA'}
 ];
 let USUARIO=null;
 function saludoHero(){
@@ -676,8 +686,8 @@ function pintarEmbudo(d){
   });
   const pct=v=>total?Math.round(v*100/total)+'%':'0%';
   document.getElementById('pipe-legend').innerHTML=
-    items.map(i=>`<div class="pipe-item"><div class="lbl"><span class="sw" style="background:${i.c}"></span>${i.n}</div><div class="num">${i.v}<span class="pct">${pct(i.v)}</span></div></div>`).join('')+
-    `<div class="pipe-item"><div class="lbl"><span class="sw rej">✕</span>Rechazada</div><div class="num">${rech}<span class="pct">${pct(rech)}</span></div></div>`;
+    items.map(i=>`<div class="pipe-item" role="button" onclick="irAFiltro('${i.e}')"><div class="lbl"><span class="sw" style="background:${i.c}"></span>${i.n}</div><div class="num">${i.v}<span class="pct">${pct(i.v)}</span></div></div>`).join('')+
+    `<div class="pipe-item" role="button" onclick="irAFiltro('RECHAZADA')"><div class="lbl"><span class="sw rej">✕</span>Rechazada</div><div class="num">${rech}<span class="pct">${pct(rech)}</span></div></div>`;
 }
 async function loadDashboard(){
   const d=await req('/api/admin/dashboard'); if(!d)return;
@@ -736,7 +746,7 @@ function loadSolicitudesActivas(){
 async function loadSolicitudes(){
   const buscar=document.getElementById('buscar').value;
   const estado=document.getElementById('filtroEstado').value;
-  const d=await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
+  const d=await req(`/api/admin/solicitudes?buscar=${encodeURIComponent(buscar)}&estado=${estado}${filtroHoy?'&hoy=1':''}&limit=100`);
   if(!d)return;
   const tbody=document.getElementById('sol-table');
   if(!d.solicitudes.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';return;}
@@ -757,7 +767,7 @@ async function loadSolicitudes(){
 async function loadSolicitudesJuridica(){
   const buscar=document.getElementById('buscar').value;
   const estado=document.getElementById('filtroEstado').value;
-  const d=await req(`/api/admin/solicitudes-juridica?buscar=${encodeURIComponent(buscar)}&estado=${estado}&limit=100`);
+  const d=await req(`/api/admin/solicitudes-juridica?buscar=${encodeURIComponent(buscar)}&estado=${estado}${filtroHoy?'&hoy=1':''}&limit=100`);
   if(!d)return;
   const tbody=document.getElementById('solj-table');
   if(!d.solicitudes.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:#9ca3af">No hay solicitudes</td></tr>';return;}
@@ -773,6 +783,14 @@ async function loadSolicitudesJuridica(){
       <td><button class="btn-sm btn-navy" onclick="verSolicitudJuridica('${s.id}')">Ver →</button></td>
     </tr>`).join('');
 }
+let filtroHoy=false;
+function irAFiltro(estado,hoy){
+  document.getElementById('filtroEstado').value=estado;
+  document.getElementById('buscar').value='';
+  filtroHoy=!!hoy;
+  document.getElementById('chipHoy').style.display=filtroHoy?'':'none';
+  showSection('solicitudes',document.querySelectorAll('.nav-item')[1]);
+}
 function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSolicitudesActivas,400); }
 
 /* ── MODAL DETALLE ── */
@@ -780,7 +798,6 @@ async function verSolicitud(id){
   const s=await req('/api/admin/solicitudes/'+id); if(!s)return;
   document.getElementById('modal-title').innerHTML=`${esc(s.radicado)} &nbsp;·&nbsp; ${badge(s.estado)}`;
 
-  const dcBtn=`<a href="https://www.datacredito.com.co" target="_blank" class="datacredito-btn">🔍 Consultar Datacrédito · CC: ${v(s.numDocumento)}</a>`;
 
   /* Capacidad + Score */
   const secCap=`
@@ -892,7 +909,7 @@ async function verSolicitud(id){
       ${boolItem('Débito automático',s.autorizacionDebito)}
     </div>
     <div class="info-grid">
-      ${ib('Firma electrónica',s.firmaElectronica)}
+      ${firmaBloque(s)}
     </div>`;
 
   /* Gestión */
@@ -903,7 +920,7 @@ async function verSolicitud(id){
     </div>
     <div>
       <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
-      <textarea id="notaDecision" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${esc(s.notaAnalista||'')}</textarea>
+      <textarea id="notaDecision" rows="2" placeholder="Obligatoria: explica el motivo de la decisión" oninput="this.style.borderColor=''" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${esc(s.notaAnalista||'')}</textarea>
     </div>`;
 
   /* Historial */
@@ -919,7 +936,7 @@ async function verSolicitud(id){
     </div>`:'' ;
 
   document.getElementById('modal-body').innerHTML=
-    dcBtn+secCap+secIdent+secFin+secLab+secDocs+secDecl+secGestion+histHtml;
+    secCap+secIdent+secFin+secLab+secDocs+secDecl+secGestion+histHtml;
 
   const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
   document.getElementById('modal-foot').innerHTML=`
@@ -932,10 +949,11 @@ async function verSolicitud(id){
 }
 
 async function cambiarEstado(id,estado){
-  const nota=document.getElementById('notaDecision')?.value||'';
+  const campo=document.getElementById('notaDecision'), nota=(campo?.value||'').trim();
+  if(nota.length<3){ showToast('Escribe la nota de decisión antes de cambiar el estado','err'); if(campo){campo.style.borderColor='#dc2626';campo.focus();} return; }
   const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota})});
   if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudes();loadDashboard();loadContadores();}
-  else showToast('Error cambiando estado','err');
+  else if(r) showToast(r.error||'Error cambiando estado','err');
 }
 function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('modalBg').classList.remove('open'); }
 
@@ -1040,7 +1058,7 @@ async function verSolicitudJuridica(id){
       ${boolItem('Declaración 7',s.decl7)}${boolItem('Declaración 8',s.decl8)}
     </div>
     <div class="info-grid">
-      ${ib('Firma electrónica',s.firmaElectronica)}
+      ${firmaBloque(s)}
     </div>`;
 
   /* Gestión */
@@ -1051,7 +1069,7 @@ async function verSolicitudJuridica(id){
     </div>
     <div>
       <label style="font-size:12px;font-weight:600;color:#6b7280;display:block;margin-bottom:5px">Nota de decisión</label>
-      <textarea id="notaDecisionJ" rows="2" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${esc(s.notaAnalista||'')}</textarea>
+      <textarea id="notaDecisionJ" rows="2" placeholder="Obligatoria: explica el motivo de la decisión" oninput="this.style.borderColor=''" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-family:inherit;resize:vertical">${esc(s.notaAnalista||'')}</textarea>
     </div>`;
 
   /* Historial */
@@ -1080,10 +1098,11 @@ async function verSolicitudJuridica(id){
 }
 
 async function cambiarEstadoJuridica(id,estado){
-  const nota=document.getElementById('notaDecisionJ')?.value||'';
+  const campo=document.getElementById('notaDecisionJ'), nota=(campo?.value||'').trim();
+  if(nota.length<3){ showToast('Escribe la nota de decisión antes de cambiar el estado','err'); if(campo){campo.style.borderColor='#dc2626';campo.focus();} return; }
   const r=await req('/api/admin/solicitudes-juridica/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota})});
   if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudesJuridica();loadDashboard();loadContadores();}
-  else showToast('Error cambiando estado','err');
+  else if(r) showToast(r.error||'Error cambiando estado','err');
 }
 
 /* ── AUDITORÍA ── */
@@ -1169,7 +1188,18 @@ setInterval(refrescoAutomatico,REFRESCO_MS);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden)refrescoAutomatico(); });
 
 /* ── PDF & EXPORT ── */
-function exportCSV(){ window.open(API+'/api/admin/exportar?token='+TOKEN,'_blank'); }
+async function exportExcel(btn){
+  const t=btn.querySelector('.btn-txt'), antes=t.textContent; t.textContent='Generando…'; btn.disabled=true;
+  try{
+    const r=await fetch(API+'/api/admin/exportar',{headers:headers()});
+    if(r.status===401){logout();return;}
+    if(!r.ok)throw new Error();
+    const url=URL.createObjectURL(await r.blob()), a=document.createElement('a');
+    a.href=url; a.download='solicitudes-'+new Date().toISOString().slice(0,10)+'.xlsx'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){ showToast('No se pudo generar el Excel','err'); }
+  finally{ t.textContent=antes; btn.disabled=false; }
+}
 function abrirPdf(url,nombre){ document.getElementById('pdfTitle').textContent=nombre||'Documento'; document.getElementById('pdfFrame').src=url; document.getElementById('pdfBg').classList.add('open'); }
 function closePdf(e){ if(!e||e.target.id==='pdfBg'){document.getElementById('pdfBg').classList.remove('open');document.getElementById('pdfFrame').src='';} }
 

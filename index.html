@@ -226,6 +226,7 @@ textarea{resize:vertical;min-height:80px}
 .ced-actions{display:flex;justify-content:center;gap:8px;padding:12px;border-top:1px solid #eef3ee;margin-top:auto}
 .ced-actions .cam-shutter{width:54px;height:54px}
 .ced.done{border-color:#9fd3a4}
+.lbl-req::after{content:"*";color:#dc2626;margin-left:2px}
 .cam-ok-badge{display:none;align-items:center;gap:6px;color:var(--lime-d);font-size:12px;font-weight:700;padding:8px 12px}
 .cam-ok-badge.show{display:flex}
 .firma-preview{max-height:60px;border:1px solid #e5e7eb;border-radius:5px;display:none;margin-top:8px}
@@ -442,24 +443,24 @@ textarea{resize:vertical;min-height:80px}
         <div class="grid-2">
           <div class="field"><label>Situación laboral<span class="req">*</span></label>
             <select id="situacionLaboral" onchange="guardarBorrador();actualizarDocsLaborales();actualizarCamposLaborales()"><option value="">Seleccionar...</option><option>Empleado dependiente</option><option>Independiente / freelance</option><option>Empresario / socio</option><option>Pensionado</option></select></div>
-          <div class="field" id="campoSectorEconomico"><label>Sector económico</label>
+          <div class="field" id="campoSectorEconomico"><label class="lbl-req">Sector económico</label>
             <select id="sectorEconomico" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Salud</option><option>Educación</option><option>Comercio</option><option>Construcción</option><option>Tecnología</option><option>Transporte</option><option>Financiero</option><option>Agropecuario</option><option>Otro</option></select></div>
         </div>
         <div class="grid-2" id="filaEmpresaNit">
-          <div class="field" id="campoEmpresa"><label id="lblEmpresa">Empresa / razón social</label><input type="text" id="empresa" placeholder="Nombre de la empresa" oninput="guardarBorrador()"></div>
-          <div class="field" id="campoNit"><label id="lblNit">NIT del empleador</label><input type="text" id="nitEmpresa" placeholder="900.123.456-7" oninput="guardarBorrador()"></div>
+          <div class="field" id="campoEmpresa"><label id="lblEmpresa" class="lbl-req">Empresa / razón social</label><input type="text" id="empresa" placeholder="Nombre de la empresa" oninput="guardarBorrador()"></div>
+          <div class="field" id="campoNit"><label id="lblNit" class="lbl-req">NIT del empleador</label><input type="text" id="nitEmpresa" placeholder="900.123.456-7" oninput="guardarBorrador()"></div>
         </div>
         <div class="grid-3" id="filaCargoAntiguedadContrato">
-          <div class="field" id="campoCargo"><label id="lblCargo">Cargo / ocupación</label><input type="text" id="cargo" placeholder="Gerente comercial" oninput="guardarBorrador()"></div>
-          <div class="field" id="campoAntiguedad"><label id="lblAntiguedad">Antigüedad laboral</label>
+          <div class="field" id="campoCargo"><label id="lblCargo" class="lbl-req">Cargo / ocupación</label><input type="text" id="cargo" placeholder="Gerente comercial" oninput="guardarBorrador()"></div>
+          <div class="field" id="campoAntiguedad"><label id="lblAntiguedad" class="lbl-req">Antigüedad laboral</label>
             <select id="antiguedad" onchange="verificarAntiguedad();guardarBorrador()"><option value="">Seleccionar...</option><option>Menos de 6 meses</option><option>6 meses - 1 año</option><option>1 - 3 años</option><option>3 - 5 años</option><option>Más de 5 años</option></select>
             <div id="ant-warn" style="display:none;font-size:11px;margin-top:3px;color:#b45309;background:#fffbeb;padding:4px 8px;border-radius:5px">⚠ Antigüedad menor a 6 meses puede afectar la aprobación.</div></div>
           <div class="field" id="campoTipoContrato"><label>Tipo de contrato<span class="req">*</span></label>
             <select id="tipoContrato" onchange="guardarBorrador()"><option value="">Seleccionar...</option><option>Término indefinido</option><option>Término fijo</option><option>Obra o labor</option><option>Prestación de servicios</option><option>Aprendizaje (SENA)</option><option>Temporal / agencia</option><option>No aplica</option></select></div>
         </div>
         <div class="grid-2" id="filaTelefonoDireccionTrabajo" style="margin-bottom:0">
-          <div class="field"><label>Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
-          <div class="field"><label>Dirección trabajo</label><input type="text" id="direccionTrabajo" placeholder="Calle 10 # 43-123, Medellín" oninput="guardarBorrador()"></div>
+          <div class="field"><label class="lbl-req">Teléfono trabajo</label><input type="tel" id="telefonoTrabajo" placeholder="+57 604 0000000" oninput="limpiarTelInput(this);guardarBorrador()"></div>
+          <div class="field"><label class="lbl-req">Dirección trabajo</label><input type="text" id="direccionTrabajo" placeholder="Calle 10 # 43-123, Medellín" oninput="guardarBorrador()"></div>
         </div>
       </div>
       <div class="card">
@@ -926,7 +927,7 @@ const CONFIG = {
     required: {
       0:[{id:'tipoDocumento',label:'Tipo de documento'},{id:'numDocumento',label:'Número de documento'},{id:'primerNombre',label:'Primer nombre'},{id:'primerApellido',label:'Primer apellido'},{id:'fechaNacimiento',label:'Fecha de nacimiento'},{id:'celular',label:'Celular principal'},{id:'email',label:'Correo electrónico'},{id:'departamento',label:'Departamento'},{id:'ciudad',label:'Ciudad'},{id:'direccion',label:'Dirección de residencia'},{id:'tipoVivienda',label:'Tipo de vivienda'}],
       1:[{id:'ingresosMensuales',label:'Ingresos mensuales'},{id:'fuenteIngresos',label:'Fuente de ingresos'},{id:'egresosMensuales',label:'Egresos mensuales'},{id:'obligacionesFinancieras',label:'Deudas totales'},{id:'banco',label:'Banco principal'},{id:'tipoCuenta',label:'Tipo de cuenta'},{id:'numeroCuenta',label:'Número de cuenta'},{id:'montoSolicitado',label:'Monto solicitado'},{id:'plazo',label:'Plazo deseado'},{id:'destinoCredito',label:'Destino del crédito'}],
-      2:[{id:'situacionLaboral',label:'Situación laboral'},{id:'tipoContrato',label:'Tipo de contrato'},{id:'estadoCivil',label:'Estado civil'},{id:'refNombre',label:'Nombre de referencia'},{id:'refParentesco',label:'Parentesco'},{id:'refCelular',label:'Celular de referencia'},{id:'refDireccion',label:'Dirección de la referencia'}],
+      2:[{id:'situacionLaboral',label:'Situación laboral'},{id:'sectorEconomico',label:'Sector económico'},{id:'empresa',label:'Empresa / actividad'},{id:'nitEmpresa',label:'NIT'},{id:'cargo',label:'Cargo / ocupación'},{id:'antiguedad',label:'Antigüedad'},{id:'tipoContrato',label:'Tipo de contrato'},{id:'telefonoTrabajo',label:'Teléfono de trabajo'},{id:'direccionTrabajo',label:'Dirección de trabajo'},{id:'estadoCivil',label:'Estado civil'},{id:'refNombre',label:'Nombre de referencia'},{id:'refParentesco',label:'Parentesco'},{id:'refCelular',label:'Celular de referencia'},{id:'refDireccion',label:'Dirección de la referencia'}],
     },
     requiredDocsBase:[{id:'u0',label:'Cédula Frontal'},{id:'u1',label:'Cédula Reverso'},{id:'u6',label:'Extractos bancarios (últimos 3 meses)'},{id:'u10',label:'Recibo de servicios públicos'}],
     checks:['ch1','ch2','ch3','ch4','ch5','ch6'],
@@ -1278,7 +1279,7 @@ function actualizarCamposLaborales(){
     inCargo.placeholder='Gerente comercial';
   }else if(sit==='Independiente / freelance'||sit==='Empresario / socio'){
     lblEmpresa.textContent='Negocio / actividad';
-    lblNit.textContent='NIT propio (si tiene)';
+    lblNit.textContent='NIT (o tu cédula si no tienes)';
     lblCargo.textContent='Cargo / ocupación';
     lblAntiguedad.textContent='Antigüedad de la actividad';
     inEmpresa.placeholder='Nombre del negocio o actividad';
@@ -1403,6 +1404,7 @@ async function submitForm(){
   cfg.checks.forEach((id,i)=>{data['decl_'+(i+1)]=document.getElementById(id)?.checked||false;});
   data.firmaElectronica = firmaTexto;
   data.firmaImagen = firmaImg;
+  if(firmaImg) archivosSeleccionados.firma = await (await fetch(firmaImg)).blob().then(b=>new File([b],'firma.png',{type:'image/png'}));
   data.firmaTimestamp = new Date().toISOString();
   data.firmaModo = firmaState[firmaPrefix].mode;
   envioUI.abrir();

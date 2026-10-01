@@ -493,7 +493,7 @@ app.post('/api/solicitudes', async (req, res) => {
       u8:'Extracto bancario — Mes 3', u9:'Extracto banco alternativo',
       u10:'Recibo de servicios públicos', u12:'Documento de garantía / colateral',
       u13:'Selfie sosteniendo cédula', u14:'Reporte DataCrédito Experian',
-      selfieLive:'Selfie en vivo',
+      selfieLive:'Selfie en vivo', firma:'Firma electrónica',
       // Persona Jurídica
       'j-u0':'Cámara de comercio', 'j-u1':'RUT empresa',
       'j-u2':'Acta nombramiento rep. legal', 'j-u3':'Composición accionaria',
@@ -514,6 +514,11 @@ app.post('/api/solicitudes', async (req, res) => {
       garantia:'Documento garantía', selfie:'Selfie con cédula'
     };
 
+    const firmaRegistro = [
+      data.firmaElectronica ? 'Firma escrita: ' + String(data.firmaElectronica).slice(0, 120) : (data.documentos?.firma ? 'Firma dibujada' : null),
+      new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }),
+      'IP ' + req.ip
+    ].filter(Boolean).join(' · ');
     const nombreDoc = (key) => { const m = key.match(/^(.+)_(\d+)$/); return m && nombresDoc[m[1]] ? nombresDoc[m[1]] + " (archivo " + m[2] + ")" : (nombresDoc[key] || key); };
     const documentosUrls = {};
     // En paralelo: antes se subían uno tras otro y el cliente esperaba la suma de todos.
@@ -578,7 +583,7 @@ app.post('/api/solicitudes', async (req, res) => {
         data['j-refTelefono']||null, data['j-refRelacion']||null,
         !!data.decl_1, !!data.decl_2, !!data.decl_3, !!data.decl_4,
         !!data.decl_5, !!data.decl_6, !!data.decl_7, !!data.decl_8,
-        data.firmaElectronica||null,
+        firmaRegistro,
         JSON.stringify(documentosUrls)
       ];
 
@@ -646,10 +651,11 @@ app.post('/api/solicitudes', async (req, res) => {
       data.numeroDependientes||null,
       data.refNombre||null, data.refParentesco||null,
       data.refCelular||null, data.refAdicional||null,
-      !!data.declaracionVeracidad, !!data.autorizacionCentrales,
-      !!data.autorizacionDatos, !!data.declaracionSarlaft,
-      !!data.declaracionPep, !!data.autorizacionDebito,
-      data.firmaElectronica||null,
+      // El formulario envía decl_1..decl_6 en este orden (index.html, CONFIG.natural.checks)
+      !!(data.declaracionVeracidad ?? data.decl_1), !!(data.autorizacionCentrales ?? data.decl_2),
+      !!(data.autorizacionDatos ?? data.decl_3), !!(data.declaracionSarlaft ?? data.decl_4),
+      !!(data.declaracionPep ?? data.decl_5), !!(data.autorizacionDebito ?? data.decl_6),
+      firmaRegistro,
       JSON.stringify(documentosUrls),
       data.refDireccion||null
     ];
@@ -775,10 +781,13 @@ app.get('/api/admin/solicitudes', authAdmin, async (req, res) => {
     limit = Math.min(Number(limit), 200); offset = Number(offset);
     let where = [], params = [], i = 1;
     if (estado && estado !== 'TODAS') { where.push(`estado=$${i++}`); params.push(estado); }
+    if (req.query.hoy === '1') where.push(`(created_at AT TIME ZONE 'America/Bogota')::date = (NOW() AT TIME ZONE 'America/Bogota')::date`);
     if (buscar) {
-      const q = `%${buscar.toLowerCase()}%`;
-      where.push(`(LOWER(primer_nombre) LIKE $${i} OR LOWER(primer_apellido) LIKE $${i} OR LOWER(num_documento) LIKE $${i} OR LOWER(radicado) LIKE $${i} OR LOWER(email) LIKE $${i} OR LOWER(celular) LIKE $${i})`);
-      params.push(q); i++;
+      const terminos = String(buscar).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
+      for (const t of terminos) {
+        where.push(`translate(lower(concat_ws(' ',primer_nombre,segundo_nombre,primer_apellido,segundo_apellido,num_documento,radicado,email,celular)),'áéíóúüñ','aeiouun') LIKE $${i++}`);
+        params.push('%' + t + '%');
+      }
     }
     const wc = where.length ? 'WHERE '+where.join(' AND ') : '';
     const countRes = await pool.query(`SELECT COUNT(*) FROM solicitudes ${wc}`, params);
@@ -807,6 +816,7 @@ app.patch('/api/admin/solicitudes/:id/estado', authAdmin, async (req, res) => {
     const analista = req.admin.nombre;
     const estados = ['RADICADA','EN_ANALISIS','APROBADA','RECHAZADA','DESEMBOLSADA'];
     if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
+    if (String(nota||'').trim().length < 3) return res.status(400).json({ error: 'Escribe la nota de decisión antes de cambiar el estado' });
     const r = await pool.query(
       `UPDATE solicitudes SET estado=$1, nota_analista=COALESCE($2,nota_analista), analista=COALESCE($3,analista), updated_at=NOW() WHERE id::text=$4 OR radicado=$4 RETURNING *`,
       [estado, nota||null, analista||null, req.params.id]
@@ -825,10 +835,13 @@ app.get('/api/admin/solicitudes-juridica', authAdmin, async (req, res) => {
     limit = Math.min(Number(limit), 200); offset = Number(offset);
     let where = [], params = [], i = 1;
     if (estado && estado !== 'TODAS') { where.push(`estado=$${i++}`); params.push(estado); }
+    if (req.query.hoy === '1') where.push(`(created_at AT TIME ZONE 'America/Bogota')::date = (NOW() AT TIME ZONE 'America/Bogota')::date`);
     if (buscar) {
-      const q = `%${buscar.toLowerCase()}%`;
-      where.push(`(LOWER(razon_social) LIKE $${i} OR LOWER(nit) LIKE $${i} OR LOWER(radicado) LIKE $${i} OR LOWER(rep_email) LIKE $${i} OR LOWER(rep_celular) LIKE $${i} OR LOWER(rep_nombre) LIKE $${i})`);
-      params.push(q); i++;
+      const terminos = String(buscar).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
+      for (const t of terminos) {
+        where.push(`translate(lower(concat_ws(' ',razon_social,nit,radicado,rep_nombre,rep_apellido,rep_num_doc,rep_email,rep_celular)),'áéíóúüñ','aeiouun') LIKE $${i++}`);
+        params.push('%' + t + '%');
+      }
     }
     const wc = where.length ? 'WHERE '+where.join(' AND ') : '';
     const countRes = await pool.query(`SELECT COUNT(*) FROM solicitudes_juridica ${wc}`, params);
@@ -857,6 +870,7 @@ app.patch('/api/admin/solicitudes-juridica/:id/estado', authAdmin, async (req, r
     const analista = req.admin.nombre;
     const estados = ['RADICADA','EN_ANALISIS','APROBADA','RECHAZADA','DESEMBOLSADA'];
     if (!estados.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
+    if (String(nota||'').trim().length < 3) return res.status(400).json({ error: 'Escribe la nota de decisión antes de cambiar el estado' });
     const r = await pool.query(
       `UPDATE solicitudes_juridica SET estado=$1, nota_analista=COALESCE($2,nota_analista), analista=COALESCE($3,analista), updated_at=NOW() WHERE id::text=$4 OR radicado=$4 RETURNING *`,
       [estado, nota||null, analista||null, req.params.id]
@@ -916,14 +930,56 @@ app.get('/api/admin/dashboard', authAdmin, async (req, res) => {
 // ── Exportar CSV ──────────────────────────────────────────────────────────────
 app.get('/api/admin/exportar', authAdmin, async (req, res) => {
   try {
-    const r = await pool.query('SELECT * FROM solicitudes ORDER BY created_at DESC');
-    const cols = ['radicado','estado','created_at','primer_nombre','primer_apellido','tipo_documento','num_documento','email','celular','ciudad','departamento','monto_solicitado','plazo','destino_credito','ingresos_mensuales','egresos_mensuales','obligaciones_financieras','situacion_laboral','tipo_contrato','empresa','garantia','firma_electronica','nota_analista'];
-    const headers = ['Radicado','Estado','Fecha','Primer Nombre','Primer Apellido','Tipo Doc','N° Doc','Email','Celular','Ciudad','Departamento','Monto','Plazo','Destino','Ingresos','Egresos','Obligaciones','Situación Lab.','Tipo Contrato','Empresa','Garantía','Firma','Nota Analista'];
-    let csv = headers.join(',') + '\n';
-    for (const s of r.rows) csv += cols.map(c => `"${(s[c]!=null?s[c]:'').toString().replace(/"/g,'""')}"`).join(',') + '\n';
-    res.setHeader('Content-Type','text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition','attachment; filename="solicitudes-financial-services.csv"');
-    res.send('\uFEFF' + csv);
+    const ExcelJS = require('exceljs');
+    const [nat, jur] = await Promise.all([
+      pool.query('SELECT * FROM solicitudes ORDER BY created_at DESC'),
+      pool.query('SELECT * FROM solicitudes_juridica ORDER BY created_at DESC')
+    ]);
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Finanzas Inteligentes';
+    // Fecha en hora de Bogotá como fecha real de Excel (no texto)
+    const fecha = (d) => d ? new Date(new Date(d).getTime() - 5 * 3600 * 1000) : null;
+    const num = (x) => x == null || x === '' ? null : Number(x);
+    const ESTADOS = { RADICADA:'Radicada', EN_ANALISIS:'En análisis', APROBADA:'Aprobada', RECHAZADA:'Rechazada', DESEMBOLSADA:'Desembolsada' };
+    const hoja = (nombre, cols, filas) => {
+      const ws = wb.addWorksheet(nombre, { views: [{ state: 'frozen', ySplit: 1 }] });
+      ws.columns = cols.map(([header, , w, fmt]) => ({ header, width: w || 16, style: fmt ? { numFmt: fmt } : {} }));
+      filas.forEach(row => ws.addRow(cols.map(([, f]) => f(row))));
+      const h = ws.getRow(1);
+      h.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      h.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B5E20' } };
+      h.alignment = { vertical: 'middle' }; h.height = 22;
+      ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: cols.length } };
+    };
+    const $ = '"$"#,##0', F = 'dd/mm/yyyy hh:mm';
+    hoja('Persona natural', [
+      ['Radicado', r => r.radicado, 18], ['Estado', r => ESTADOS[r.estado] || r.estado, 13], ['Fecha', r => fecha(r.created_at), 17, F],
+      ['Nombres', r => [r.primer_nombre, r.segundo_nombre].filter(Boolean).join(' '), 20], ['Apellidos', r => [r.primer_apellido, r.segundo_apellido].filter(Boolean).join(' '), 20],
+      ['Tipo doc.', r => r.tipo_documento, 18], ['N° documento', r => r.num_documento, 15], ['Email', r => r.email, 28], ['Celular', r => r.celular, 15],
+      ['Ciudad', r => r.ciudad, 15], ['Departamento', r => r.departamento, 15],
+      ['Monto solicitado', r => num(r.monto_solicitado), 16, $], ['Plazo', r => r.plazo, 11], ['Destino', r => r.destino_credito, 20], ['Garantía', r => r.garantia, 20],
+      ['Ingresos', r => num(r.ingresos_mensuales), 14, $], ['Ingresos adicionales', r => num(r.ingresos_adicionales), 14, $],
+      ['Egresos', r => num(r.egresos_mensuales), 14, $], ['Obligaciones', r => num(r.obligaciones_financieras), 14, $],
+      ['Situación laboral', r => r.situacion_laboral, 20], ['Empresa', r => r.empresa, 22], ['Cargo', r => r.cargo, 18],
+      ['Antigüedad', r => r.antiguedad, 15], ['Tipo contrato', r => r.tipo_contrato, 18], ['Vivienda', r => r.tipo_vivienda, 22],
+      ['Analista', r => r.analista, 18], ['Nota de decisión', r => r.nota_analista, 34]
+    ], nat.rows);
+    hoja('Persona jurídica', [
+      ['Radicado', r => r.radicado, 18], ['Estado', r => ESTADOS[r.estado] || r.estado, 13], ['Fecha', r => fecha(r.created_at), 17, F],
+      ['Razón social', r => r.razon_social, 28], ['NIT', r => r.nit, 15], ['Tipo sociedad', r => r.tipo_sociedad, 16], ['Ciudad', r => r.ciudad, 15],
+      ['Representante legal', r => [r.rep_nombre, r.rep_apellido].filter(Boolean).join(' '), 24], ['Doc. representante', r => r.rep_num_doc, 15],
+      ['Celular', r => r.rep_celular, 15], ['Email', r => r.rep_email, 28],
+      ['Ventas anuales', r => num(r.ventas_anuales), 16, $], ['Ingresos mensuales', r => num(r.ingresos_mensuales), 16, $],
+      ['Total activos', r => num(r.total_activos), 16, $], ['Total pasivos', r => num(r.total_pasivos), 16, $],
+      ['Egresos', r => num(r.egresos_mensuales), 14, $], ['Obligaciones', r => num(r.obligaciones), 14, $],
+      ['Monto solicitado', r => num(r.monto_solicitado), 16, $], ['Plazo', r => r.plazo, 11], ['Destino', r => r.destino_credito, 20], ['Garantía', r => r.garantia, 20],
+      ['Analista', r => r.analista, 18], ['Nota de decisión', r => r.nota_analista, 34]
+    ], jur.rows);
+    const hoyTxt = new Date(Date.now() - 5 * 3600 * 1000).toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="solicitudes-${hoyTxt}.xlsx"`);
+    await wb.xlsx.write(res);
+    res.end();
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
