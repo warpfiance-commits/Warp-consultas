@@ -486,7 +486,7 @@ app.post('/api/solicitudes', async (req, res) => {
 
     const nombresDoc = {
       // Persona Natural
-      u0:'Cédula Frontal', u1:'Cédula Reverso',
+      u0:'Documento — Frente', u1:'Documento — Reverso',
       u2:'Últimas 3 colillas de pago', u3:'Certificado laboral',
       u4:'RUT actualizado', u5:'Declaración de renta',
       u6:'Extractos bancarios — últimos 3 meses', u7:'Extracto bancario — Mes 2',
@@ -523,7 +523,7 @@ app.post('/api/solicitudes', async (req, res) => {
         const mimeType = fileData.tipo || '';
         try {
           const url = await uploadImageToCloudinary(fileData.base64, fileData.nombre||key, radicado, 'auto');
-          documentosUrls[key] = { url, nombre: nombreDoc(key), nombreArchivo: fileData.nombre, tipo: mimeType };
+          documentosUrls[key] = { url, nombre: nombreDoc(key), nombreArchivo: fileData.nombre, tipo: mimeType, validacion: ['verificada','sin_verificar'].includes(fileData.validacion) ? fileData.validacion : undefined };
         } catch(e) {
           console.error(`✗ ${key}:`, e.message);
           documentosUrls[key] = { url: null, nombre: nombreDoc(key), error: e.message };

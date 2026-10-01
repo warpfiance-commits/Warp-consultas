@@ -89,6 +89,11 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
 - **Borrar la clave vieja de Cloudinary** (la que empieza por `985348`) en la
   consola de Cloudinary: estuvo en el repo público. Las claves nuevas ya viven
   solo en las variables de Render (`CLOUDINARY_*`); el código no trae ninguna.
+- **Validación profesional de identidad (KYC).** Hoy la foto del documento se
+  valida en el navegador (Tesseract.js): que parezca el documento del tipo
+  elegido y que el número coincida. No detecta falsificaciones. Evaluar un
+  proveedor KYC en Colombia (Truora, MetaMap…) que cruce con Registraduría y
+  compare la cara con la selfie. Las fotos "sin verificar" se marcan en el panel.
 - El README menciona Railway y SQLite; ya no aplica ninguno de los dos.
 - No hay entorno de pruebas separado del de producción.
 

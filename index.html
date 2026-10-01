@@ -206,6 +206,26 @@ textarea{resize:vertical;min-height:80px}
 .send-note{margin-top:10px;font-size:12px;color:#8a5a00;background:#fff8e6;border-radius:10px;padding:8px 10px;display:none}
 .send-note.show{display:block}
 @media(prefers-reduced-motion:reduce){.send-ring.spin svg,.cam-count span,.cam-flash{animation:none}}
+.ced{border:1px solid #dfe9df;border-radius:18px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.ced-head{padding:12px 14px 8px;display:flex;flex-direction:column;gap:2px}
+.ced-head b{font-size:13.5px;color:#1f2937}
+.ced-head span{font-size:12px;color:#9ca3af}
+.ced-stage{position:relative;aspect-ratio:1.585;background:#0f1a12;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ced-stage video,.ced-stage img{width:100%;height:100%;object-fit:cover;display:block}
+.ced-guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.ced-guide::before{content:"";width:82%;aspect-ratio:1.585;border-radius:12px;border:3px dashed rgba(255,255,255,.9);box-shadow:0 0 0 9999px rgba(8,20,10,.45)}
+.ced-ph{display:flex;flex-direction:column;align-items:center;gap:8px;color:#cfe3d0;font-size:12.5px}
+.ced-ph svg{width:46px;height:46px}
+.ced-status{display:none;align-items:center;gap:8px;padding:9px 14px;font-size:12.5px;font-weight:500}
+.ced-status.show{display:flex}
+.ced-status.wait{color:#4b5563;background:#f5f7f4}
+.ced-status.ok{color:#15803d;background:#effaf0}
+.ced-status.bad{color:#b45309;background:#fff8e6}
+.ced-spin{width:14px;height:14px;border-radius:50%;border:2px solid #cfe0cf;border-top-color:var(--lime-d);animation:cedSpin .8s linear infinite;flex-shrink:0}
+@keyframes cedSpin{to{transform:rotate(360deg)}}
+.ced-actions{display:flex;justify-content:center;gap:8px;padding:12px;border-top:1px solid #eef3ee;margin-top:auto}
+.ced-actions .cam-shutter{width:54px;height:54px}
+.ced.done{border-color:#9fd3a4}
 .cam-ok-badge{display:none;align-items:center;gap:6px;color:var(--lime-d);font-size:12px;font-weight:700;padding:8px 12px}
 .cam-ok-badge.show{display:flex}
 .firma-preview{max-height:60px;border:1px solid #e5e7eb;border-radius:5px;display:none;margin-top:8px}
@@ -474,8 +494,18 @@ textarea{resize:vertical;min-height:80px}
         <div class="alert">⚠ Archivos legibles, vigentes y sin alteraciones. Formatos: PDF, JPG, PNG. Máximo 5 MB por archivo.</div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos de identidad</p>
         <div class="doc-grid">
-          <div class="upload-zone" onclick="clickUpload('u0')"><input type="file" id="u0" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Frontal <span style="color:#dc2626">*</span></div><div class="uz-hint">Ambas caras si es posible</div></div>
-          <div class="upload-zone" onclick="clickUpload('u1')"><input type="file" id="u1" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula — Reverso <span style="color:#dc2626">*</span></div><div class="uz-hint">Con huella y firma</div></div>
+          <div class="ced" id="ced-u0" data-lado="frontal" data-num="numDocumento" data-tipo="tipoDocumento">
+            <div class="ced-head"><b>Documento — Frente <span style="color:#dc2626">*</span></b><span>Con tu foto y número</span></div>
+            <div class="ced-stage" id="ced-u0-stage"><div class="ced-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.5-1.6 1.6-2.4 3-2.4s2.5.8 3 2.4M14 10h5M14 13h4"/></svg><span>Toma la foto con la cámara</span></div></div>
+            <div class="ced-status" id="ced-u0-status"></div>
+            <div class="ced-actions" id="ced-u0-actions"><button type="button" class="cam-btn cam-btn-primary" onclick="cedAbrir('u0')">Abrir cámara</button></div>
+          </div>
+          <div class="ced" id="ced-u1" data-lado="reverso" data-num="numDocumento" data-tipo="tipoDocumento">
+            <div class="ced-head"><b>Documento — Reverso <span style="color:#dc2626">*</span></b><span>Con huella y firma</span></div>
+            <div class="ced-stage" id="ced-u1-stage"><div class="ced-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.5-1.6 1.6-2.4 3-2.4s2.5.8 3 2.4M14 10h5M14 13h4"/></svg><span>Toma la foto con la cámara</span></div></div>
+            <div class="ced-status" id="ced-u1-status"></div>
+            <div class="ced-actions" id="ced-u1-actions"><button type="button" class="cam-btn cam-btn-primary" onclick="cedAbrir('u1')">Abrir cámara</button></div>
+          </div>
         </div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Soporte de ingresos</p>
         <div id="docsEmpleado" class="doc-grid" style="display:none">
@@ -497,7 +527,6 @@ textarea{resize:vertical;min-height:80px}
           <div class="upload-zone" onclick="clickUpload('u10')"><input type="file" id="u10" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏠</span><div class="uz-label">Recibo de servicios públicos <span style="color:#dc2626">*</span></div><div class="uz-hint">Confirma dirección</div></div>
           <div class="upload-zone" onclick="clickUpload('u12')"><input type="file" id="u12" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. de garantía / colateral</div><div class="uz-hint">Escritura, tarjeta propiedad...</div></div>
           
-          <div class="upload-zone" onclick="clickUpload('u14')"><input type="file" id="u14" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📊</span><div class="uz-label">Reporte DataCrédito Experian</div><div class="uz-hint">Opcional · descárguelo en <a href="https://usuario.midatacredito.com/login?product=midc&utm_source=MIDC&utm_medium=BOXMIDC&utm_campaign=HOME" target="_blank" onclick="event.stopPropagation()" style="color:var(--lime-d);font-weight:600">midatacredito.com</a></div></div>
         </div>
       </div>
     </div>
@@ -743,8 +772,18 @@ textarea{resize:vertical;min-height:80px}
         </div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Documentos del representante legal</p>
         <div class="doc-grid">
-          <div class="upload-zone" onclick="clickUpload('j-u4')"><input type="file" id="j-u4" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula rep. legal — Frontal <span style="color:#dc2626">*</span></div></div>
-          <div class="upload-zone" onclick="clickUpload('j-u5')"><input type="file" id="j-u5" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🪪</span><div class="uz-label">Cédula rep. legal — Reverso <span style="color:#dc2626">*</span></div></div>
+          <div class="ced" id="ced-j-u4" data-lado="frontal" data-num="j-repNumDoc" data-tipo="j-repTipoDoc">
+            <div class="ced-head"><b>Documento rep. legal — Frente <span style="color:#dc2626">*</span></b><span>Con su foto y número</span></div>
+            <div class="ced-stage" id="ced-j-u4-stage"><div class="ced-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.5-1.6 1.6-2.4 3-2.4s2.5.8 3 2.4M14 10h5M14 13h4"/></svg><span>Toma la foto con la cámara</span></div></div>
+            <div class="ced-status" id="ced-j-u4-status"></div>
+            <div class="ced-actions" id="ced-j-u4-actions"><button type="button" class="cam-btn cam-btn-primary" onclick="cedAbrir('j-u4')">Abrir cámara</button></div>
+          </div>
+          <div class="ced" id="ced-j-u5" data-lado="reverso" data-num="j-repNumDoc" data-tipo="j-repTipoDoc">
+            <div class="ced-head"><b>Documento rep. legal — Reverso <span style="color:#dc2626">*</span></b><span>Con huella y firma</span></div>
+            <div class="ced-stage" id="ced-j-u5-stage"><div class="ced-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5.5 16c.5-1.6 1.6-2.4 3-2.4s2.5.8 3 2.4M14 10h5M14 13h4"/></svg><span>Toma la foto con la cámara</span></div></div>
+            <div class="ced-status" id="ced-j-u5-status"></div>
+            <div class="ced-actions" id="ced-j-u5-actions"><button type="button" class="cam-btn cam-btn-primary" onclick="cedAbrir('j-u5')">Abrir cámara</button></div>
+          </div>
           
         </div>
         <p style="font-size:12px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Estados financieros</p>
@@ -760,7 +799,6 @@ textarea{resize:vertical;min-height:80px}
           
           <div class="upload-zone" onclick="clickUpload('j-u11')"><input type="file" id="j-u11" accept=".pdf,.jpg,.png" multiple onchange="markUp(this)"><span class="uz-icon">💳</span><div class="uz-label">Extractos bancarios de la empresa <span style="color:#dc2626">*</span></div><div class="uz-hint">Últimos 3 meses · un PDF o varios archivos</div></div>
           <div class="upload-zone" onclick="clickUpload('j-u14')"><input type="file" id="j-u14" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">🏡</span><div class="uz-label">Doc. garantía / colateral</div><div class="uz-hint">Escritura, avalúo...</div></div>
-          <div class="upload-zone" onclick="clickUpload('j-u15')"><input type="file" id="j-u15" accept=".pdf,.jpg,.png" onchange="markUp(this)"><span class="uz-icon">📊</span><div class="uz-label">Reporte DataCrédito Experian</div><div class="uz-hint">Opcional · descárguelo en <a href="https://usuario.midatacredito.com/login?product=midc&utm_source=MIDC&utm_medium=BOXMIDC&utm_campaign=HOME" target="_blank" onclick="event.stopPropagation()" style="color:var(--lime-d);font-weight:600">midatacredito.com</a></div></div>
         </div>
       </div>
     </div>
@@ -1063,6 +1101,7 @@ function getRequiredDocs(tipo){
 function validateStep(n){
   const cfg=CONFIG[tipoPersona];
   if(n===3){
+    if(document.querySelector('.ced-status.wait')){showToast('Espera a que termine la verificación del documento','err');return false;}
     const requiredDocs=getRequiredDocs(tipoPersona);
     const missing=requiredDocs.filter(d=>!archivosSeleccionados[d.id]);
     if(missing.length){showToast('Falta subir: '+missing[0].label,'err');requiredDocs.forEach(d=>{const z=document.getElementById(d.id)?.closest('.upload-zone');if(z)z.style.borderColor=archivosSeleccionados[d.id]?'':'#dc2626';});return false;}
@@ -1143,6 +1182,7 @@ function showStep(n){
   document.getElementById('stepSuccess').style.display='none';
   if(n>=cfg.totalSteps){showSuccess();return;}
   const stepEl=document.getElementById(cfg.prefix+'step'+n);if(stepEl)stepEl.style.display='block';
+  if(cedActiva){const p=cedActiva;cedDetener();cedReiniciar(p);}
   currentStep=n;updateNav();updateProgress();
   if(n===2&&tipoPersona==='natural')actualizarCamposLaborales();
   if(n===3&&tipoPersona==='natural')actualizarDocsLaborales();
@@ -1370,7 +1410,7 @@ async function submitForm(){
   let k=0;
   for(const[inputId,file] of lista){
     envioUI.fase(1,'Preparando documentos ('+(++k)+' de '+lista.length+')…');
-    try{const b64=await fileToBase64(file);documentos[inputId]={base64:b64,nombre:file.name,tipo:file.type};}catch(e){}
+    try{const b64=await fileToBase64(file);documentos[inputId]={base64:b64,nombre:file.name,tipo:file.type,validacion:file.validacion||null};}catch(e){}
   }
   data.documentos=documentos;
   try{
@@ -1462,6 +1502,132 @@ function camDetener(prefix){
     camState[prefix].stream.getTracks().forEach(t=>t.stop());
     camState[prefix].stream=null;
   }
+}
+
+/* ══ CÉDULA CON CÁMARA + VALIDACIÓN BÁSICA ══
+   Solo cámara (sin galería). La validación lee el texto de la foto (Tesseract.js, en el
+   navegador) y revisa: que parezca el documento del tipo elegido y, en el frente, que el
+   número coincida con el escrito. NO detecta falsificaciones: para eso hace falta un
+   proveedor KYC (pendiente). Tras 3 intentos fallidos se permite seguir, marcado
+   "sin verificar" para que el analista lo revise. */
+const cedState={}; let cedActiva=null, ocrWorker=null;
+function cedEstado(id,tipo,html){ const el=document.getElementById('ced-'+id+'-status'); el.className='ced-status show '+tipo; el.innerHTML=html; }
+function cedDetener(){ if(cedActiva&&cedState[cedActiva]?.stream){cedState[cedActiva].stream.getTracks().forEach(t=>t.stop());cedState[cedActiva].stream=null;} cedActiva=null; }
+function ocrPrecargar(){
+  if(ocrWorker)return ocrWorker;
+  ocrWorker=new Promise((ok,fail)=>{
+    const sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    sc.onload=()=>Tesseract.createWorker('spa').then(ok,fail);
+    sc.onerror=()=>fail(new Error('ocr'));
+    document.head.appendChild(sc);
+  });
+  ocrWorker.catch(()=>{ocrWorker=null;});
+  return ocrWorker;
+}
+async function cedAbrir(id){
+  if(cedActiva&&cedActiva!==id){ const prev=cedActiva; cedDetener(); cedReiniciar(prev); }
+  const st=cedState[id]||(cedState[id]={intentos:0});
+  const stage=document.getElementById('ced-'+id+'-stage'), acts=document.getElementById('ced-'+id+'-actions');
+  ocrPrecargar();
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+    st.stream=stream; cedActiva=id;
+    stage.innerHTML='<video autoplay playsinline muted></video><div class="ced-guide"></div><div class="cam-tip">Encuadra el documento dentro del marco</div>';
+    stage.querySelector('video').srcObject=stream;
+    acts.innerHTML='<button type="button" class="cam-shutter" aria-label="Tomar foto" onclick="cedTomar(\''+id+'\')"></button><button type="button" class="cam-btn cam-btn-ghost" onclick="cedDetener();cedReiniciar(\''+id+'\')">Cancelar</button>';
+    document.getElementById('ced-'+id+'-status').className='ced-status';
+  }catch(e){
+    cedEstado(id,'bad',e&&e.name==='NotAllowedError'?'Permite el acceso a la cámara en tu navegador para continuar.':'No encontramos una cámara disponible. Abre el formulario desde tu celular para tomar la foto.');
+  }
+}
+function cedReiniciar(id){
+  if(cedState[id]?.foto)return cedMostrar(id);
+  document.getElementById('ced-'+id+'-stage').innerHTML='<div class="ced-ph"><span>Toma la foto con la cámara</span></div>';
+  document.getElementById('ced-'+id+'-actions').innerHTML='<button type="button" class="cam-btn cam-btn-primary" onclick="cedAbrir(\''+id+'\')">Abrir cámara</button>';
+}
+function cedMostrar(id){
+  const st=cedState[id];
+  document.getElementById('ced-'+id+'-stage').innerHTML='<img src="'+st.foto+'" alt="Documento">';
+  document.getElementById('ced-'+id+'-actions').innerHTML='<button type="button" class="cam-btn cam-btn-ghost" onclick="cedAbrir(\''+id+'\')">↺ Repetir foto</button>';
+}
+function cedTomar(id){
+  const v=document.querySelector('#ced-'+id+'-stage video'); if(!v||!v.videoWidth)return;
+  // Recorta el área del marco (82% del ancho, proporción de tarjeta) y la deja en 1400 px
+  const vw=v.videoWidth, vh=v.videoHeight, sr=1.585;
+  let cw=vw, ch=vw/sr; if(ch>vh){ch=vh;cw=vh*sr;}           // lo visible (object-fit:cover)
+  const gw=cw*0.82, gh=gw/sr, gx=(vw-gw)/2, gy=(vh-gh)/2;
+  const c=document.createElement('canvas'); c.width=1400; c.height=Math.round(1400/sr);
+  c.getContext('2d').drawImage(v,gx,gy,gw,gh,0,0,c.width,c.height);
+  cedDetener();
+  const st=cedState[id]; st.foto=c.toDataURL('image/jpeg',0.88); st.verificado=false;
+  delete archivosSeleccionados[id];
+  document.getElementById('ced-'+id).classList.remove('done');
+  cedMostrar(id);
+  cedValidar(id,c);
+}
+function cedCalidad(c){
+  const w=160,h=Math.round(160*c.height/c.width), m=document.createElement('canvas'); m.width=w; m.height=h;
+  const x=m.getContext('2d'); x.drawImage(c,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data, g=new Float32Array(w*h); let lum=0;
+  for(let i=0;i<w*h;i++){g[i]=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];lum+=g[i];}
+  lum/=w*h;
+  let sum=0,sq=0,n=0;                                        // nitidez: varianza del Laplaciano
+  for(let y=1;y<h-1;y++)for(let xx=1;xx<w-1;xx++){const k=y*w+xx;const L=g[k-1]+g[k+1]+g[k-w]+g[k+w]-4*g[k];sum+=L;sq+=L*L;n++;}
+  return {lum, nitidez:sq/n-(sum/n)**2};
+}
+const sinTildes=t=>t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+function numeroCoincide(texto,num){
+  num=String(num||'').replace(/\D/g,''); if(num.length<5)return true;   // sin número que comparar
+  const dig=texto.replace(/[\s.,'·-]/g,'').replace(/[OQD]/g,'0').replace(/[IL|]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/\D+/g,' ');
+  return dig.split(' ').some(run=>{
+    if(run.includes(num))return true;
+    for(let i=0;i+num.length<=run.length;i++){let dif=0;for(let j=0;j<num.length;j++)if(run[i+j]!==num[j])dif++;if(dif<=1)return true;}
+    return false;
+  });
+}
+function textoCoincide(texto,tipo,lado){
+  const T=sinTildes(texto), hay=w=>T.includes(w), cuenta=ws=>ws.filter(hay).length;
+  if(/PASAPORTE/i.test(tipo)) return lado==='reverso' || cuenta(['PASAPORTE','PASSPORT','P<'])>=1;
+  if(/EXTRANJ/i.test(tipo)) return cuenta(['EXTRANJERIA','MIGRACION','COLOMBIA','CEDULA','IDENTIFICACION'])>=(lado==='frontal'?2:1) || /[A-Z0-9<]{20,}/.test(T.replace(/\s/g,''));
+  if(lado==='frontal') return cuenta(['REPUBLICA','COLOMBIA','CEDULA','CIUDADANIA','IDENTIFICACION','PERSONAL','NUIP','APELLIDOS','NOMBRES','NUMERO'])>=2;
+  return cuenta(['NACIMIENTO','ESTATURA','SEXO','REGISTRADOR','INDICE','DERECHO','EXPEDICION','LUGAR','FECHA','COL'])>=2 || /I[CD]COL|<{3,}/.test(T.replace(/\s/g,''));
+}
+async function cedValidar(id,c){
+  const st=cedState[id], box=document.getElementById('ced-'+id), lado=box.dataset.lado;
+  const tipo=document.getElementById(box.dataset.tipo)?.value||'Cédula de ciudadanía';
+  const num=document.getElementById(box.dataset.num)?.value||'';
+  const q=cedCalidad(c);
+  let motivo='';
+  if(q.lum<50)motivo='La foto quedó muy oscura. Busca más luz.';
+  else if(q.lum>225)motivo='La foto quedó con mucho brillo. Evita reflejos o luz directa.';
+  else if(q.nitidez<40)motivo='La foto quedó borrosa. Acerca el documento y mantén la mano quieta.';
+  if(!motivo){
+    cedEstado(id,'wait','<span class="ced-spin"></span>Verificando el documento…');
+    try{
+      const w=await ocrPrecargar();
+      const {data:{text}}=await w.recognize(c);
+      if(!textoCoincide(text,tipo,lado)) motivo='No logramos reconocer el documento. Asegúrate de que sea el '+(lado==='frontal'?'frente':'reverso')+' y que se lea bien.';
+      else if(lado==='frontal'&&!numeroCoincide(text,num)) motivo='El número del documento no coincide con el que escribiste en el paso 1 ('+num+').';
+    }catch(e){ motivo='ocr'; }
+  }
+  if(motivo==='ocr'){ // si el lector no carga (red), no bloqueamos: queda para revisión manual
+    return cedAceptar(id,'sin_verificar','Foto tomada. No pudimos verificarla automáticamente; la revisará un asesor.');
+  }
+  if(!motivo) return cedAceptar(id,'verificada','✓ Documento verificado');
+  st.intentos++;
+  if(st.intentos>=3){
+    cedEstado(id,'bad',motivo+' <button type="button" class="cam-btn cam-btn-ghost" style="padding:5px 10px;font-size:12px;margin-left:auto" onclick="cedAceptar(\''+id+'\',\'sin_verificar\',\'Foto enviada sin verificar; la revisará un asesor.\')">Continuar así</button>');
+  } else cedEstado(id,'bad',motivo+' Repite la foto.');
+}
+function cedAceptar(id,validacion,msg){
+  const st=cedState[id];
+  fetch(st.foto).then(r=>r.blob()).then(b=>{
+    const f=new File([b],id+'.jpg',{type:'image/jpeg'}); f.validacion=validacion;
+    archivosSeleccionados[id]=f;
+  });
+  document.getElementById('ced-'+id).classList.add('done');
+  cedEstado(id,validacion==='verificada'?'ok':'bad',msg);
 }
 
 /* ══ FIRMA ELECTRÓNICA PAD ══ */

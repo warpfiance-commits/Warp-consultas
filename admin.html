@@ -807,7 +807,8 @@ async function verSolicitud(id){
         const boton=isPdf
           ? `<div data-url="${esc(url)}" data-nombre="${nombre}" onclick="abrirPdf(this.dataset.url,this.dataset.nombre)" class="doc-link">📄 Ver documento</div>`
           : `<a href="${esc(url)}" target="_blank" rel="noopener" class="doc-link">🖼 Ver imagen</a>`;
-        return `<div class="doc-item"><div class="doc-item-label">${nombre}</div>${boton}</div>`;
+        const marca=d.validacion==='verificada'?' <span style="color:#15803d;text-transform:none">✓ verificado</span>':d.validacion==='sin_verificar'?' <span style="color:#b45309;text-transform:none">⚠ sin verificar</span>':'';
+        return `<div class="doc-item"><div class="doc-item-label">${nombre}${marca}</div>${boton}</div>`;
       }
       return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
     }).join('');
@@ -956,7 +957,8 @@ async function verSolicitudJuridica(id){
         const boton=isPdf
           ? `<div data-url="${esc(url)}" data-nombre="${nombre}" onclick="abrirPdf(this.dataset.url,this.dataset.nombre)" class="doc-link">📄 Ver documento</div>`
           : `<a href="${esc(url)}" target="_blank" rel="noopener" class="doc-link">🖼 Ver imagen</a>`;
-        return `<div class="doc-item"><div class="doc-item-label">${nombre}</div>${boton}</div>`;
+        const marca=d.validacion==='verificada'?' <span style="color:#15803d;text-transform:none">✓ verificado</span>':d.validacion==='sin_verificar'?' <span style="color:#b45309;text-transform:none">⚠ sin verificar</span>':'';
+        return `<div class="doc-item"><div class="doc-item-label">${nombre}${marca}</div>${boton}</div>`;
       }
       return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
     }).join('');
