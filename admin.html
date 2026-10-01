@@ -272,8 +272,22 @@ tbody tr:hover{background:#fafbf9}
 .stat-card.accent .stat-ico{background:var(--lime-l);color:var(--lime-d)}
 .score-sin{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:#9ca3af}
 .score-sin::before{content:"";width:7px;height:7px;border-radius:50%;border:1.5px solid #9ca3af;box-sizing:border-box}
-</style>
-</head>
+() => `.sd{margin:10px 0 4px;border:1px solid #edf0ea;border-radius:12px;background:#fff}
+.sd summary{cursor:pointer;padding:10px 14px;font-size:13px;color:#374151;list-style:none}
+.sd summary::-webkit-details-marker{display:none}
+.sd summary::before{content:"▸ ";color:#9ca3af}
+.sd[open] summary::before{content:"▾ "}
+.sd summary b{color:var(--navy);margin-left:4px}
+.sd table{width:100%;border-collapse:collapse;font-size:12.5px}
+.sd td{padding:6px 14px;border-top:1px solid #f4f6f2;color:#374151}
+.sd tr.sd-c td{background:#f8faf7;font-weight:600;color:var(--navy);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.sd .sd-v{color:#6b7280}
+.sd .sd-p{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sd-bar{display:inline-block;width:46px;height:5px;border-radius:3px;background:#edf0ea;margin-right:8px;vertical-align:middle;overflow:hidden}
+.sd-bar i{display:block;height:100%;background:var(--lime-d)}
+.sd-corte{margin:0 14px 8px;padding:8px 10px;border-radius:8px;background:#fef2f2;color:#b91c1c;font-size:12.5px}
+.sd-nota{padding:8px 14px 12px;font-size:11.5px;color:#9ca3af}
+</style>\n</head>`
 <body>
 
 <!-- LOGIN -->
@@ -462,39 +476,85 @@ function boolItem(lbl,val){ const ok=!!val; return `<div class="check-item ${ok?
 /* ── SCORE INTERNO ── */
 function limpio(x){ return Number(String(x||0).replace(/\./g,'').replace(/,/g,'.').replace(/[^0-9.]/g,'')||0); }
 
-/* ── SCORE INTERNO (0-100) ──
-   Capacidad de pago 40 · Monto vs ingresos 20 · Antigüedad 20 · Contrato 10 · Vivienda 10.
-   Los valores coinciden EXACTO con las opciones del formulario (index.html). */
-const SCORE_ANTIGUEDAD={'Más de 5 años':20,'3 - 5 años':16,'1 - 3 años':12,'6 meses - 1 año':7,'Menos de 6 meses':0};
-const SCORE_CONTRATO={'Término indefinido':10,'Término fijo':7,'Obra o labor':5,'Prestación de servicios':5,'Temporal / agencia':4,'Aprendizaje (SENA)':3,'No aplica':4};
-const SCORE_VIVIENDA={'Propia (libre de hipoteca)':10,'Familiar / cedida':7,'Propia (con hipoteca)':6,'Arrendada':5};
+/* ── SCORE INTERNO · scorecard experta de 100 puntos (5 C del crédito) ──
+   Sin historial de pagos propio no se puede entrenar una regresión logística; lo
+   recomendado (Banco Mundial, CGAP) es una scorecard experta por las 5 C y recalibrarla
+   cuando haya datos de cuáles créditos se pagaron. Los valores de las tablas coinciden
+   EXACTO con las opciones del formulario (index.html).
+   No se usan edad, género ni estado civil (criterios discriminatorios). */
+const TASA_MENSUAL = 0.02;          // tasa de referencia para estimar la cuota (2 % M.V.) — ajustar a la real
+const PLAZO_DEFECTO = 24;           // meses, si la solicitud no trae plazo
+const PESO_INGRESO_VARIABLE = 0.6;  // ingresos adicionales cuentan al 60 %
+const DTI_CORTE = 0.60;             // deuda total / ingreso por encima de esto = No viable
+
+const TABLAS={
+  antiguedad:{'Más de 5 años':10,'3 - 5 años':8,'1 - 3 años':6,'6 meses - 1 año':3,'Menos de 6 meses':0},
+  contrato:{'Término indefinido':7,'Término fijo':5,'Obra o labor':3,'Prestación de servicios':3,'Temporal / agencia':2,'Aprendizaje (SENA)':1,'No aplica':3},
+  tiempoVivienda:{'Más de 5 años':4,'3 - 5 años':3,'1 - 3 años':2,'Menos de 1 año':1},
+  vivienda:{'Propia (libre de hipoteca)':10,'Propia (con hipoteca)':6,'Familiar / cedida':6,'Arrendada':3},
+  garantia:{'Inmueble':15,'CDT / Inversión':15,'Vehículo':11,'Codeudor':8,'Otra':5,'Sin garantía (libre inversión)':0},
+  destino:{'Vivienda / remodelación':5,'Educación':5,'Compra de vehículo':5,'Capital de trabajo':5,'Consolidación de deudas':4,'Salud':3,'Libre inversión':2,'Otro':2},
+  dependientes:{'0':4,'1':4,'2':3,'3':2,'4 o más':1}
+};
+const pctTxt=x=>Math.round(x*100)+'%';
+function cuotaMensual(monto,meses,i=TASA_MENSUAL){ return monto>0&&meses>0 ? monto*i/(1-Math.pow(1+i,-meses)) : 0; }
 
 function calcScore(s){
-  const ing=limpio(s.ingresosMensuales)+limpio(s.ingresosAdicionales);
-  // Sin ingresos no hay base para calificar: mejor decirlo que inventar un "alto riesgo".
-  if(!ing) return {pct:null,clase:'score-sin',label:'Sin datos'};
-  const egr=limpio(s.egresosMensuales)+limpio(s.obligacionesFinancieras);
-  const monto=limpio(s.montoSolicitado);
-  const pensionado=String(s.situacionLaboral||'').startsWith('Pensionad');
-  let pts=0;
+  const fijo=limpio(s.ingresosMensuales), variable=limpio(s.ingresosAdicionales);
+  const ing=fijo+variable*PESO_INGRESO_VARIABLE;
+  if(!ing) return {pct:null,clase:'score-sin',label:'Sin datos',detalle:[]};
+  const gastos=limpio(s.egresosMensuales), deudas=limpio(s.obligacionesFinancieras);
+  const monto=limpio(s.montoSolicitado), meses=parseInt(s.plazo)||PLAZO_DEFECTO;
+  const cuota=cuotaMensual(monto,meses);
+  const dti=(deudas+cuota)/ing, libre=(ing-gastos-deudas-cuota)/ing;
+  const pens=String(s.situacionLaboral||'').startsWith('Pensionad');
+  const indep=/Independiente|Empresario/.test(s.situacionLaboral||'');
+  const det=[];
+  const add=(c,factor,valor,pts,max)=>det.push({c,factor,valor:valor||'—',pts,max});
 
-  // Capacidad de pago: qué parte del ingreso queda libre
-  const libre=(ing-egr)/ing;
-  pts+= libre>=0.5?40 : libre>=0.3?28 : libre>=0.1?14 : 0;
+  // CAPACIDAD (45)
+  add('Capacidad','Deuda / ingreso con la nueva cuota',pctTxt(dti)+' · cuota estimada '+fmt(Math.round(cuota)),
+      dti<=0.30?28:dti<=0.36?24:dti<=0.45?16:dti<=0.50?9:dti<=0.60?3:0, 28);
+  add('Capacidad','Dinero libre después de gastos y cuota',pctTxt(Math.max(libre,-9))+' del ingreso',
+      libre>=0.30?13:libre>=0.15?9:libre>=0.05?4:0, 13);
+  add('Capacidad','Personas a cargo',s.numeroDependientes, TABLAS.dependientes[s.numeroDependientes]??2, 4);
+  // CARÁCTER / ESTABILIDAD (25)
+  add('Estabilidad','Antigüedad laboral',pens?'Pensionado':s.antiguedad, pens?10:(TABLAS.antiguedad[s.antiguedad]??4), 10);
+  add('Estabilidad','Tipo de contrato',pens?'Pensión':indep&&!s.tipoContrato?'Independiente':s.tipoContrato,
+      pens?7:(TABLAS.contrato[s.tipoContrato]??(indep?4:2)), 7);
+  add('Estabilidad','Tiempo en la vivienda actual',s.tiempoVivienda, TABLAS.tiempoVivienda[s.tiempoVivienda]??1, 4);
+  const docs=s.documentos||{}, v0=docs.u0?.validacion, v1=docs.u1?.validacion;
+  const verif=v0==='verificada'&&v1==='verificada';
+  add('Estabilidad','Documento de identidad',verif?'Verificado':(v0||v1)?'Sin verificar':'Sin validación', verif?4:0, 4);
+  // CAPITAL (10)
+  add('Capital','Vivienda',s.tipoVivienda, TABLAS.vivienda[s.tipoVivienda]??3, 10);
+  // GARANTÍA (15)
+  add('Garantía','Respaldo del crédito',s.garantia, TABLAS.garantia[s.garantia]??0, 15);
+  // CONDICIONES (5)
+  add('Condiciones','Destino del crédito',s.destinoCredito, TABLAS.destino[s.destinoCredito]??2, 5);
 
-  // Monto pedido frente al ingreso mensual
-  if(monto){ const veces=monto/ing; pts+= veces<=3?20 : veces<=6?12 : veces<=10?6 : 0; }
-  else pts+=10;
+  const pct=Math.min(100,det.reduce((a,d)=>a+d.pts,0));
+  const base={pct,detalle:det,dti,cuota,meses};
+  if(dti>DTI_CORTE) return {...base,clase:'score-rojo',label:'No viable · deuda '+pctTxt(dti),corte:'La deuda total con la nueva cuota supera el '+pctTxt(DTI_CORTE)+' del ingreso.'};
+  if(pct>=70) return {...base,clase:'score-verde',label:'Viable ('+pct+'/100)'};
+  if(pct>=50) return {...base,clase:'score-amarillo',label:'Revisar ('+pct+'/100)'};
+  return {...base,clase:'score-rojo',label:'Alto riesgo ('+pct+'/100)'};
+}
 
-  // Estabilidad: un pensionado tiene ingreso estable aunque no tenga antigüedad laboral
-  pts+= pensionado?20 : (SCORE_ANTIGUEDAD[s.antiguedad] ?? 10);
-  pts+= pensionado?10 : (SCORE_CONTRATO[s.tipoContrato] ?? 3);
-  pts+= SCORE_VIVIENDA[s.tipoVivienda] ?? 5;
-
-  const pct=Math.min(pts,100);
-  if(pct>=70) return {pct,clase:'score-verde',label:'Viable ('+pct+'/100)'};
-  if(pct>=45) return {pct,clase:'score-amarillo',label:'Revisar ('+pct+'/100)'};
-  return {pct,clase:'score-rojo',label:'Alto riesgo ('+pct+'/100)'};
+// Explicación para el analista: puntos por factor, agrupados por las 5 C
+function scoreDetalle(s){
+  const sc=calcScore(s); if(!sc.detalle.length)return '';
+  const porC={}; sc.detalle.forEach(d=>{(porC[d.c]=porC[d.c]||[]).push(d);});
+  const filas=Object.entries(porC).map(([c,ds])=>{
+    const p=ds.reduce((a,d)=>a+d.pts,0), m=ds.reduce((a,d)=>a+d.max,0);
+    return `<tr class="sd-c"><td>${c}</td><td></td><td class="sd-p">${p}/${m}</td></tr>`+
+      ds.map(d=>`<tr><td>${esc(d.factor)}</td><td class="sd-v">${v(d.valor)}</td><td class="sd-p"><span class="sd-bar"><i style="width:${Math.round(d.pts*100/d.max)}%"></i></span>${d.pts}/${d.max}</td></tr>`).join('');
+  }).join('');
+  return `<details class="sd"><summary>¿Cómo se calculó el score? <b>${sc.pct}/100</b></summary>
+    ${sc.corte?`<div class="sd-corte">⚠ ${sc.corte}</div>`:''}
+    <table>${filas}</table>
+    <div class="sd-nota">Cuota estimada con tasa de referencia ${(TASA_MENSUAL*100).toFixed(1)}% M.V. a ${sc.meses} meses. Viable ≥ 70 · Revisar 50–69 · Alto riesgo &lt; 50.</div>
+  </details>`;
 }
 
 function scoreBadge(s){
@@ -725,7 +785,7 @@ async function verSolicitud(id){
   /* Capacidad + Score */
   const secCap=`
     <div class="section-title"><span>📊</span> Capacidad de pago & Score interno</div>
-    ${capSemaforo(s)}`;
+    ${capSemaforo(s)}${scoreDetalle(s)}`;
 
   /* Identidad */
   const secIdent=`

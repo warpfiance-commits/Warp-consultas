@@ -94,6 +94,10 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
   elegido y que el número coincida. No detecta falsificaciones. Evaluar un
   proveedor KYC en Colombia (Truora, MetaMap…) que cruce con Registraduría y
   compare la cara con la selfie. Las fotos "sin verificar" se marcan en el panel.
+- **Score:** scorecard experta de 100 puntos por las 5 C, en `admin.html` (`calcScore`). La cuota se
+  estima con `TASA_MENSUAL` = 2 % M.V. de referencia: poner la tasa real. Cuando haya
+  historial de pagos (pagó / no pagó), recalibrar con regresión logística (WoE + PDO).
+  Personas jurídicas aún no tienen score.
 - El README menciona Railway y SQLite; ya no aplica ninguno de los dos.
 - No hay entorno de pruebas separado del de producción.
 
