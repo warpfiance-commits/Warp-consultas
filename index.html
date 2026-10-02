@@ -910,6 +910,18 @@ function actualizarCiudades(idDepto,idCiudad){
   if(municipios.includes(valorPrevio)||valorPrevio==='Otro municipio del departamento')selCiudad.value=valorPrevio;
 }
 
+/* Montos mayores a este valor exigen garantía (formulario y servidor) */
+const MONTO_GARANTIA=500000;
+function garantiaRequerida(p){ return Number(val(p+'montoSolicitado')||0)>MONTO_GARANTIA; }
+function avisoGarantia(p){
+  const sel=document.getElementById(p+'garantia'); if(!sel)return;
+  const lbl=sel.closest('.field')?.querySelector('label'); const req=garantiaRequerida(p);
+  if(lbl)lbl.classList.toggle('lbl-req',req);
+  let h=document.getElementById(p+'garantiaHint');
+  if(!h){h=document.createElement('div');h.id=p+'garantiaHint';h.style.cssText='font-size:11.5px;color:#b45309;margin-top:4px';sel.after(h);}
+  h.textContent=req?'Obligatoria: el monto es mayor a $'+MONTO_GARANTIA.toLocaleString('es-CO')+'. No aplica "Sin garantía".':'';
+}
+document.addEventListener('input',e=>{ if(e.target.id==='montoSolicitado')avisoGarantia(''); if(e.target.id==='j-montoSolicitado')avisoGarantia('j-'); });
 function val(id){const el=document.getElementById(id);if(!el)return'';const v=(el.value||'').trim();if(CAMPOS_MILES_ALL.includes(id))return v.replace(/\./g,'');return v;}
 
 function limpiarTelInput(el){
@@ -1060,6 +1072,15 @@ function validateStep(n){
     if(chkRep!==true){markError('j-repFechaNac',true);showToast(chkRep,'err');return false;}
     const chkRepCel=validarTelefono('j-repCelular','celular',false);
     if(chkRepCel!==true){markError('j-repCelular',true);showToast(chkRepCel,'err');return false;}
+  }
+  if(n===1){
+    const p=tipoPersona==='natural'?'':'j-';
+    if(garantiaRequerida(p)&&(!val(p+'garantia')||/^Sin garant/i.test(val(p+'garantia')))){
+      markError(p+'garantia',true);
+      showToast('Para montos mayores a $'+MONTO_GARANTIA.toLocaleString('es-CO')+' debes ofrecer una garantía','err');
+      document.getElementById(p+'garantia')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return false;
+    }
   }
   if(n===2&&tipoPersona==='juridica'){
     const chkRefTel=validarTelefono('j-refTelefono','celular',false);
@@ -1426,7 +1447,7 @@ function camDetener(prefix){
    Solo cámara (sin galería). La validación lee el texto de la foto (Tesseract.js, en el
    navegador) y revisa: que parezca el documento del tipo elegido y, en el frente, que el
    número coincida con el escrito. NO detecta falsificaciones: para eso hace falta un
-   proveedor KYC (pendiente). Tras 3 intentos fallidos se permite seguir, marcado
+   proveedor KYC (pendiente). Tras 2 intentos fallidos se permite seguir, marcado
    "sin verificar" para que el analista lo revise. */
 const cedState={}; let cedActiva=null, ocrWorker=null;
 function cedEstado(id,tipo,html){ const el=document.getElementById('ced-'+id+'-status'); el.className='ced-status show '+tipo; el.innerHTML=html; }
@@ -1484,6 +1505,31 @@ function cedTomar(id){
   cedMostrar(id);
   cedValidar(id,c);
 }
+// Mejora la imagen para el lector: escala de grises, contraste por percentiles
+// (quita el velo del holograma y el fondo de color) y, opcional, blanco/negro adaptativo.
+function cedMejorar(c,binaria){
+  const w=c.width,h=c.height,o=document.createElement('canvas'); o.width=w; o.height=h;
+  const x=o.getContext('2d'); x.drawImage(c,0,0);
+  const im=x.getImageData(0,0,w,h), d=im.data, g=new Uint8ClampedArray(w*h), hist=new Uint32Array(256);
+  for(let i=0;i<w*h;i++){const v=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];g[i]=v;hist[v|0]++;}
+  let acc=0,lo=0,hi=255; const n=w*h;
+  for(let v=0;v<256;v++){acc+=hist[v];if(acc<n*0.02)lo=v;if(acc<n*0.98)hi=v;}
+  const k=255/Math.max(1,hi-lo);
+  for(let i=0;i<n;i++)g[i]=Math.max(0,Math.min(255,(g[i]-lo)*k));
+  if(binaria){ // umbral adaptativo (media local, imagen integral)
+    const R=Math.round(w/45), I=new Float64Array((w+1)*(h+1));
+    for(let y=1;y<=h;y++){let fila=0;for(let xx=1;xx<=w;xx++){fila+=g[(y-1)*w+xx-1];I[y*(w+1)+xx]=I[(y-1)*(w+1)+xx]+fila;}}
+    const out=new Uint8ClampedArray(n);
+    for(let y=0;y<h;y++)for(let xx=0;xx<w;xx++){
+      const x0=Math.max(0,xx-R),x1=Math.min(w,xx+R+1),y0=Math.max(0,y-R),y1=Math.min(h,y+R+1);
+      const sum=I[y1*(w+1)+x1]-I[y0*(w+1)+x1]-I[y1*(w+1)+x0]+I[y0*(w+1)+x0];
+      out[y*w+xx]=g[y*w+xx]<sum/((x1-x0)*(y1-y0))-12?0:255;
+    }
+    g.set(out);
+  }
+  for(let i=0;i<n;i++){d[i*4]=d[i*4+1]=d[i*4+2]=g[i];}
+  x.putImageData(im,0,0); return o;
+}
 function cedCalidad(c){
   const w=160,h=Math.round(160*c.height/c.width), m=document.createElement('canvas'); m.width=w; m.height=h;
   const x=m.getContext('2d'); x.drawImage(c,0,0,w,h);
@@ -1500,16 +1546,25 @@ function numeroCoincide(texto,num){
   const dig=texto.replace(/[\s.,'·-]/g,'').replace(/[OQD]/g,'0').replace(/[IL|]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/\D+/g,' ');
   return dig.split(' ').some(run=>{
     if(run.includes(num))return true;
-    for(let i=0;i+num.length<=run.length;i++){let dif=0;for(let j=0;j<num.length;j++)if(run[i+j]!==num[j])dif++;if(dif<=1)return true;}
+    const tol=num.length>=9?2:1;for(let i=0;i+num.length<=run.length;i++){let dif=0;for(let j=0;j<num.length;j++)if(run[i+j]!==num[j])dif++;if(dif<=tol)return true;}
     return false;
   });
 }
+function distancia(a,b){ // Levenshtein
+  const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>[i]);
+  for(let j=1;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return dp[m][n];
+}
 function textoCoincide(texto,tipo,lado){
-  const T=sinTildes(texto), hay=w=>T.includes(w), cuenta=ws=>ws.filter(hay).length;
-  if(/PASAPORTE/i.test(tipo)) return lado==='reverso' || cuenta(['PASAPORTE','PASSPORT','P<'])>=1;
-  if(/EXTRANJ/i.test(tipo)) return cuenta(['EXTRANJERIA','MIGRACION','COLOMBIA','CEDULA','IDENTIFICACION'])>=(lado==='frontal'?2:1) || /[A-Z0-9<]{20,}/.test(T.replace(/\s/g,''));
-  if(lado==='frontal') return cuenta(['REPUBLICA','COLOMBIA','CEDULA','CIUDADANIA','IDENTIFICACION','PERSONAL','NUIP','APELLIDOS','NOMBRES','NUMERO'])>=2;
-  return cuenta(['NACIMIENTO','ESTATURA','SEXO','REGISTRADOR','INDICE','DERECHO','EXPEDICION','LUGAR','FECHA','COL'])>=2 || /I[CD]COL|<{3,}/.test(T.replace(/\s/g,''));
+  const T=sinTildes(texto).replace(/0/g,'O').replace(/1/g,'I');
+  const palabras=T.split(/[^A-Z<]+/).filter(p=>p.length>=3);
+  const hay=w=>T.includes(w)||palabras.some(p=>Math.abs(p.length-w.length)<=2&&distancia(p,w)<=(w.length>=8?2:1));
+  const cuenta=ws=>ws.filter(hay).length, compacto=T.replace(/\s/g,'');
+  if(/PASAPORTE/i.test(tipo)) return lado==='reverso'||cuenta(['PASAPORTE','PASSPORT'])>=1||/P<[A-Z]{3}/.test(compacto);
+  if(/EXTRANJ/i.test(tipo)) return cuenta(['EXTRANJERIA','MIGRACION','COLOMBIA','CEDULA','IDENTIFICACION'])>=1||/[A-Z<]{20,}/.test(compacto);
+  if(lado==='frontal') return cuenta(['REPUBLICA','COLOMBIA','CEDULA','CIUDADANIA','IDENTIFICACION','PERSONAL','NUIP','APELLIDOS','NOMBRES'])>=1;
+  return cuenta(['NACIMIENTO','ESTATURA','SEXO','REGISTRADOR','INDICE','DERECHO','EXPEDICION','LUGAR','FECHA','MEDELLIN','BOGOTA'])>=1||/I[CD]COL|<{3,}/.test(compacto);
 }
 async function cedValidar(id,c){
   const st=cedState[id], box=document.getElementById('ced-'+id), lado=box.dataset.lado;
@@ -1524,9 +1579,16 @@ async function cedValidar(id,c){
     cedEstado(id,'wait','<span class="ced-spin"></span>Verificando el documento…');
     try{
       const w=await ocrPrecargar();
-      const {data:{text}}=await w.recognize(c);
-      if(!textoCoincide(text,tipo,lado)) motivo='No logramos reconocer el documento. Asegúrate de que sea el '+(lado==='frontal'?'frente':'reverso')+' y que se lea bien.';
-      else if(lado==='frontal'&&!numeroCoincide(text,num)) motivo='El número del documento no coincide con el que escribiste en el paso 1 ('+num+').';
+      let docOk=false, numOk=lado!=='frontal';
+      for(const [img,psm] of [[cedMejorar(c,false),'11'],[cedMejorar(c,true),'6'],[c,'11']]){
+        await w.setParameters({tessedit_pageseg_mode:psm});
+        const {data:{text}}=await w.recognize(img);
+        docOk=docOk||textoCoincide(text,tipo,lado);
+        if(!numOk)numOk=numeroCoincide(text,num);
+        if(docOk&&numOk)break;
+      }
+      if(!docOk) motivo='No logramos reconocer el documento. Acércalo, evita reflejos y que se vea completo dentro del marco.';
+      else if(!numOk) motivo='No logramos leer el número del documento o no coincide con el que escribiste en el paso 1 ('+num+').';
     }catch(e){ motivo='ocr'; }
   }
   if(motivo==='ocr'){ // si el lector no carga (red), no bloqueamos: queda para revisión manual
@@ -1534,7 +1596,7 @@ async function cedValidar(id,c){
   }
   if(!motivo) return cedAceptar(id,'verificada','✓ Documento verificado');
   st.intentos++;
-  if(st.intentos>=3){
+  if(st.intentos>=2){
     cedEstado(id,'bad',motivo+' <button type="button" class="cam-btn cam-btn-ghost" style="padding:5px 10px;font-size:12px;margin-left:auto" onclick="cedAceptar(\''+id+'\',\'sin_verificar\',\'Foto enviada sin verificar; la revisará un asesor.\')">Continuar así</button>');
   } else cedEstado(id,'bad',motivo+' Repite la foto.');
 }

@@ -486,6 +486,11 @@ app.post('/api/solicitudes', async (req, res) => {
     const radicado = generarRadicado();
     const data = req.body;
     const esJuridica = data.tipoPersona === 'juridica';
+    // Montos mayores a $500.000 exigen garantía (misma regla que el formulario)
+    const montoPedido = Number(esJuridica ? data['j-montoSolicitado'] : data.montoSolicitado) || 0;
+    const garantiaDada = String((esJuridica ? data['j-garantia'] : data.garantia) || '');
+    if (montoPedido > 500000 && (!garantiaDada || /^Sin garant/i.test(garantiaDada)))
+      return res.status(400).json({ error: 'Para montos mayores a $500.000 debes ofrecer una garantía' });
 
     const nombresDoc = {
       // Persona Natural
