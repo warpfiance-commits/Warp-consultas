@@ -144,6 +144,8 @@ async function initDB() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_created ON solicitudes_juridica(created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_sol ON auditoria(solicitud_id);`);
   await pool.query(`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS ref_direccion TEXT;`);
+  // Persona con negocio (antes persona jurídica)
+  await pool.query(`ALTER TABLE solicitudes_juridica ADD COLUMN IF NOT EXISTS local_negocio TEXT, ADD COLUMN IF NOT EXISTS ref_comercial_tel TEXT;`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS admin_usuarios (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -374,6 +376,7 @@ function rowToSolicitudJuridica(r) {
     id: r.id, radicado: r.radicado, estado: r.estado,
     createdAt: r.created_at, updatedAt: r.updated_at,
     tipoPersona: 'juridica',
+    localNegocio: r.local_negocio, refComercialTel: r.ref_comercial_tel,
     razonSocial: r.razon_social, nit: r.nit, tipoSociedad: r.tipo_sociedad,
     fechaConstitucion: r.fecha_constitucion, actividadEconomica: r.actividad_economica,
     sectorEconomico: r.sector_economico, numEmpleados: r.num_empleados,
@@ -495,15 +498,15 @@ app.post('/api/solicitudes', async (req, res) => {
       u13:'Selfie sosteniendo cédula', u14:'Reporte DataCrédito Experian',
       selfieLive:'Selfie en vivo', firma:'Firma electrónica',
       // Persona Jurídica
-      'j-u0':'Cámara de comercio', 'j-u1':'RUT empresa',
-      'j-u2':'Acta nombramiento rep. legal', 'j-u3':'Composición accionaria',
-      'j-u4':'Cédula rep. legal — Frontal', 'j-u5':'Cédula rep. legal — Reverso',
+      'j-u0':'Fotos del negocio', 'j-u1':'RUT',
+      'j-u2':'Cámara de comercio', 'j-u3':'Composición accionaria',
+      'j-u4':'Documento — Frente', 'j-u5':'Documento — Reverso',
       'j-u6':'Selfie rep. legal con cédula', 'j-u7':'Balance general',
-      'j-u8':'Estado de resultados (P&G)', 'j-u9':'Declaración de renta empresa',
-      'j-u10':'Estados financieros intermedios', 'j-u11':'Extractos bancarios de la empresa',
+      'j-u8':'Estado de resultados (P&G)', 'j-u9':'Recibo de servicios del negocio',
+      'j-u10':'Estados financieros intermedios', 'j-u11':'Extractos bancarios — últimos 3 meses',
       'j-u12':'Extracto empresa — Mes 2', 'j-u13':'Extracto empresa — Mes 3',
-      'j-u14':'Documento de garantía / colateral', 'j-u15':'Reporte DataCrédito Experian',
-      'j-selfieLive':'Selfie en vivo del representante legal',
+      'j-u14':'Documento de garantía', 'j-u15':'Reporte DataCrédito Experian',
+      'j-selfieLive':'Selfie en vivo',
       // Compatibilidad con registros antiguos (claves descriptivas legacy)
       cedula_frontal:'Cédula Frontal', cedula_reverso:'Cédula Reverso',
       colillas:'Colillas de pago', certificado_laboral:'Certificado laboral',
@@ -550,11 +553,11 @@ app.post('/api/solicitudes', async (req, res) => {
         socio_principal, porcentaje_part, otros_socios, grupo_economico,
         ref_empresa, ref_contacto, ref_telefono, ref_relacion,
         decl_1, decl_2, decl_3, decl_4, decl_5, decl_6, decl_7, decl_8,
-        firma_electronica, documentos
+        firma_electronica, documentos, local_negocio, ref_comercial_tel
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
         $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,
-        $38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56
+        $38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58
       ) RETURNING id, radicado`;
 
       const valuesJ = [
@@ -584,7 +587,8 @@ app.post('/api/solicitudes', async (req, res) => {
         !!data.decl_1, !!data.decl_2, !!data.decl_3, !!data.decl_4,
         !!data.decl_5, !!data.decl_6, !!data.decl_7, !!data.decl_8,
         firmaRegistro,
-        JSON.stringify(documentosUrls)
+        JSON.stringify(documentosUrls),
+        data['j-localNegocio']||null, data['j-refComercialTel']||null
       ];
 
       const resultJ = await pool.query(qj, valuesJ);
@@ -964,14 +968,14 @@ app.get('/api/admin/exportar', authAdmin, async (req, res) => {
       ['Antigüedad', r => r.antiguedad, 15], ['Tipo contrato', r => r.tipo_contrato, 18], ['Vivienda', r => r.tipo_vivienda, 22],
       ['Analista', r => r.analista, 18], ['Nota de decisión', r => r.nota_analista, 34]
     ], nat.rows);
-    hoja('Persona jurídica', [
+    hoja('Persona con negocio', [
       ['Radicado', r => r.radicado, 18], ['Estado', r => ESTADOS[r.estado] || r.estado, 13], ['Fecha', r => fecha(r.created_at), 17, F],
-      ['Razón social', r => r.razon_social, 28], ['NIT', r => r.nit, 15], ['Tipo sociedad', r => r.tipo_sociedad, 16], ['Ciudad', r => r.ciudad, 15],
-      ['Representante legal', r => [r.rep_nombre, r.rep_apellido].filter(Boolean).join(' '), 24], ['Doc. representante', r => r.rep_num_doc, 15],
+      ['Negocio', r => r.razon_social, 26], ['Tipo de negocio', r => r.sector_economico, 20], ['Qué vende', r => r.descripcion_actividad, 30],
+      ['Tiempo funcionando', r => r.antiguedad_empresa, 16], ['Local', r => r.local_negocio, 14], ['RUT / NIT', r => r.nit, 15], ['Ciudad', r => r.ciudad, 15],
+      ['Titular', r => [r.rep_nombre, r.rep_apellido].filter(Boolean).join(' '), 24], ['Documento', r => r.rep_num_doc, 15],
       ['Celular', r => r.rep_celular, 15], ['Email', r => r.rep_email, 28],
-      ['Ventas anuales', r => num(r.ventas_anuales), 16, $], ['Ingresos mensuales', r => num(r.ingresos_mensuales), 16, $],
-      ['Total activos', r => num(r.total_activos), 16, $], ['Total pasivos', r => num(r.total_pasivos), 16, $],
-      ['Egresos', r => num(r.egresos_mensuales), 14, $], ['Obligaciones', r => num(r.obligaciones), 14, $],
+      ['Ventas mensuales', r => num(r.ingresos_mensuales), 16, $], ['Gastos del negocio', r => num(r.egresos_mensuales), 16, $],
+      ['Cuotas de deudas', r => num(r.obligaciones), 14, $],
       ['Monto solicitado', r => num(r.monto_solicitado), 16, $], ['Plazo', r => r.plazo, 11], ['Destino', r => r.destino_credito, 20], ['Garantía', r => r.garantia, 20],
       ['Analista', r => r.analista, 18], ['Nota de decisión', r => r.nota_analista, 34]
     ], jur.rows);

@@ -374,7 +374,7 @@ tbody tr:hover{background:#fafbf9}
       <div class="section" id="sec-solicitudes">
         <div style="display:flex;gap:8px;margin-bottom:12px">
           <button class="btn-sm" id="tab-tipo-natural" onclick="cambiarTipoLista('natural')" style="background:var(--navy);color:#fff;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">👤 Persona Natural <span id="badge-natural" style="background:rgba(255,255,255,.25);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">—</span></button>
-          <button class="btn-sm" id="tab-tipo-juridica" onclick="cambiarTipoLista('juridica')" style="background:#f3f4f6;color:#6b7280;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">🏢 Persona Jurídica <span id="badge-juridica" style="background:rgba(0,0,0,.08);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">—</span></button>
+          <button class="btn-sm" id="tab-tipo-juridica" onclick="cambiarTipoLista('juridica')" style="background:#f3f4f6;color:#6b7280;border:none;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer">🏪 Persona con negocio <span id="badge-juridica" style="background:rgba(0,0,0,.08);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">—</span></button>
         </div>
         <div class="search-bar">
           <input type="text" id="buscar" placeholder="Buscar por nombre, documento, email..." oninput="debSearch()">
@@ -393,7 +393,7 @@ tbody tr:hover{background:#fafbf9}
           <tbody id="sol-table"></tbody></table>
         </div>
         <div class="card" id="card-juridica" style="display:none">
-          <table><thead><tr><th>Radicado</th><th>Razón social</th><th>NIT</th><th>Representante</th><th>Monto</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <table><thead><tr><th>Radicado</th><th>Negocio</th><th>Documento</th><th>Titular</th><th>Monto</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
           <tbody id="solj-table"></tbody></table>
         </div>
       </div>
@@ -708,7 +708,7 @@ async function loadDashboard(){
   tbody.innerHTML=d.recientes.map(s=>`
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
-      <td style="font-weight:500">${s.tipo==='juridica'?v(s.razonSocial)+'<div style="font-size:11px;color:#9ca3af;font-weight:400">Empresa</div>':v(s.primerNombre)+' '+v(s.primerApellido)}</td>
+      <td style="font-weight:500">${s.tipo==='juridica'?v(s.razonSocial)+'<div style="font-size:11px;color:#9ca3af;font-weight:400">Negocio</div>':v(s.primerNombre)+' '+v(s.primerApellido)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${s.tipo==='juridica'?'<span style="color:#9ca3af;font-size:12px">—</span>':scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
@@ -775,7 +775,7 @@ async function loadSolicitudesJuridica(){
     <tr>
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
       <td style="font-weight:500">${v(s.razonSocial)}</td>
-      <td style="color:#6b7280">${v(s.nit)}</td>
+      <td style="color:#6b7280">${v(s.repNumDoc||s.nit)}</td>
       <td>${v(s.repNombre)} ${v(s.repApellido)}</td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${badge(s.estado)}</td>
@@ -960,38 +960,40 @@ function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('
 /* ── MODAL DETALLE — PERSONA JURÍDICA ── */
 async function verSolicitudJuridica(id){
   const s=await req('/api/admin/solicitudes-juridica/'+id); if(!s)return;
-  document.getElementById('modal-title').innerHTML=`${esc(s.radicado)} &nbsp;·&nbsp; ${badge(s.estado)} &nbsp;·&nbsp; 🏢 Jurídica`;
+  document.getElementById('modal-title').innerHTML=`${esc(s.radicado)} &nbsp;·&nbsp; ${badge(s.estado)} &nbsp;·&nbsp; 🏪 Persona con negocio`;
 
-  /* Empresa */
+  // ibx: solo muestra el dato si existe (solicitudes viejas de "persona jurídica" traen campos que ya no se piden)
+  const ibx=(l,x)=>x!=null&&x!==''?ib(l,x):'';
+  /* Titular y negocio */
   const secEmpresa=`
-    <div class="section-title"><span>🏢</span> Paso 1 — Datos de la Empresa</div>
+    <div class="section-title"><span>🙋</span> Paso 1 — Titular</div>
     <div class="info-grid">
-      ${ib('Razón social',s.razonSocial)}${ib('NIT',s.nit)}
-      ${ib('Tipo de sociedad',s.tipoSociedad)}${ib('Fecha constitución',s.fechaConstitucion)}
+      ${ib('Nombre',`${v(s.repNombre)} ${s.repSegundoNombre?v(s.repSegundoNombre)+' ':''}${v(s.repApellido)}`)}${ib('Tipo / N° documento',`${v(s.repTipoDoc)} ${v(s.repNumDoc)}`)}
+      ${ib('Fecha nacimiento',s.repFechaNac)}${ib('Celular',s.repCelular)}
+      ${ib('Email',s.repEmail)}${ibx('Cargo',s.repCargo)}
+    </div>
+    <div class="section-title" style="margin-top:4px"><span>🏪</span> Negocio</div>
+    <div class="info-grid">
+      ${ib('Nombre del negocio',s.razonSocial)}${ib('Tipo de negocio',s.sectorEconomico)}
+      ${ib('Tiempo funcionando',s.antiguedadEmpresa)}${ib('Personas que trabajan',s.numEmpleados)}
+      ${ib('El local es',s.localNegocio)}${ib('RUT / NIT',s.nit)}
+      ${ibx('Tipo de sociedad',s.tipoSociedad)}${ibx('Fecha constitución',s.fechaConstitucion)}${ibx('Actividad (CIIU)',s.actividadEconomica)}
     </div>
     <div class="info-grid">
-      ${ib('Actividad económica',s.actividadEconomica)}${ib('Sector económico',s.sectorEconomico)}
-      ${ib('N° empleados',s.numEmpleados)}${ib('Antigüedad empresa',s.antiguedadEmpresa)}
+      <div class="ib span2"><div class="lbl">Qué vende o qué servicio presta</div><div class="val">${v(s.descripcionActividad)}</div></div>
     </div>
     <div class="info-grid-3">
-      ${ib('Departamento',s.departamento)}${ib('Ciudad',s.ciudad)}${ib('Dirección comercial',s.direccionComercial)}
-    </div>
-    <div class="section-title" style="margin-top:4px"><span>👤</span> Representante legal</div>
-    <div class="info-grid">
-      ${ib('Nombre',`${v(s.repNombre)} ${v(s.repSegundoNombre)} ${v(s.repApellido)}`)}${ib('Cargo',s.repCargo)}
-      ${ib('Tipo / N° documento',`${v(s.repTipoDoc)} ${v(s.repNumDoc)}`)}${ib('Fecha nacimiento',s.repFechaNac)}
-      ${ib('Celular',s.repCelular)}${ib('Email',s.repEmail)}
+      ${ib('Departamento',s.departamento)}${ib('Ciudad',s.ciudad)}${ib('Dirección del negocio',s.direccionComercial)}
     </div>`;
 
-  /* Financiero */
+  /* Ingresos y crédito */
   const secFin=`
-    <div class="section-title"><span>💰</span> Paso 2 — Perfil Financiero</div>
-    <div class="info-grid">
-      ${ib('Ingresos mensuales',fmt(s.ingresosMensuales),'hl')}${ib('Ventas anuales',fmt(s.ventasAnuales))}
-      ${ib('Total activos',fmt(s.totalActivos))}${ib('Total pasivos',fmt(s.totalPasivos))}
-      ${ib('Egresos mensuales',fmt(s.egresosMensuales))}${ib('Deudas totales',fmt(s.obligaciones))}
+    <div class="section-title"><span>💰</span> Paso 2 — Ingresos del negocio</div>
+    <div class="info-grid-3">
+      ${ib('Ventas mensuales',fmt(s.ingresosMensuales),'hl')}${ib('Gastos del negocio',fmt(s.egresosMensuales))}${ib('Cuotas de deudas',fmt(s.obligaciones))}
     </div>
-    <div class="section-title" style="margin-top:4px"><span>🏦</span> Relación bancaria</div>
+    ${s.ventasAnuales||s.totalActivos||s.totalPasivos?`<div class="info-grid-3">${ibx('Ventas anuales',s.ventasAnuales&&fmt(s.ventasAnuales))}${ibx('Total activos',s.totalActivos&&fmt(s.totalActivos))}${ibx('Total pasivos',s.totalPasivos&&fmt(s.totalPasivos))}</div>`:''}
+    <div class="section-title" style="margin-top:4px"><span>🏦</span> Cuenta bancaria</div>
     <div class="info-grid-3">
       ${ib('Banco',s.banco)}${ib('Tipo de cuenta',s.tipoCuenta)}${ib('Número de cuenta',s.numeroCuenta)}
     </div>
@@ -1000,28 +1002,18 @@ async function verSolicitudJuridica(id){
       ${ib('Monto solicitado',fmt(s.montoSolicitado),'hl')}${ib('Plazo',s.plazo)}${ib('Garantía',s.garantia)}
     </div>
     <div class="info-grid">
-      <div class="ib span2"><div class="lbl">Destino del crédito</div><div class="val">${v(s.destinoCredito)}</div></div>
+      <div class="ib span2"><div class="lbl">Para qué es el crédito</div><div class="val">${v(s.destinoCredito)}</div></div>
     </div>`;
 
-  /* Operacional */
+  /* Referencias */
   const secOp=`
-    <div class="section-title"><span>⚙️</span> Paso 3 — Información Operacional</div>
-    <div class="info-grid">
-      ${ib('Sucursales',s.sucursales)}${ib('Mercado',s.mercado)}
-      ${ib('Proveedores',s.proveedores)}${ib('Grupo económico',s.grupoEconomico)}
-    </div>
-    <div class="info-grid">
-      <div class="ib span2"><div class="lbl">Descripción de la actividad</div><div class="val">${v(s.descripcionActividad)}</div></div>
-    </div>
-    <div class="info-grid">
-      ${ib('Socio / accionista principal',s.socioPrincipal)}${ib('% Participación',s.porcentajePart)}
-      ${ib('Otros socios',s.otrosSocios)}
-    </div>
+    <div class="section-title"><span>👤</span> Paso 3 — Referencias</div>
     <div class="info-grid-3">
-      ${ib('Empresa referencia',s.refEmpresa)}${ib('Contacto referencia',s.refContacto)}${ib('Tel. referencia',s.refTelefono)}
+      ${ib('Referencia personal',s.refContacto)}${ib('Relación',s.refRelacion)}${ib('Celular',s.refTelefono)}
     </div>
     <div class="info-grid">
-      ${ib('Relación con la referencia',s.refRelacion)}
+      ${ib('Referencia comercial',s.refEmpresa)}${ib('Teléfono',s.refComercialTel)}
+      ${ibx('Socio principal',s.socioPrincipal)}${ibx('Sucursales',s.sucursales)}
     </div>`;
 
   /* Documentos */
@@ -1052,10 +1044,10 @@ async function verSolicitudJuridica(id){
   const secDecl=`
     <div class="section-title"><span>✍️</span> Paso 5 — Declaraciones y Firma</div>
     <div class="check-grid">
-      ${boolItem('Declaración 1',s.decl1)}${boolItem('Declaración 2',s.decl2)}
-      ${boolItem('Declaración 3',s.decl3)}${boolItem('Declaración 4',s.decl4)}
-      ${boolItem('Declaración 5',s.decl5)}${boolItem('Declaración 6',s.decl6)}
-      ${boolItem('Declaración 7',s.decl7)}${boolItem('Declaración 8',s.decl8)}
+      ${boolItem('Veracidad',s.decl1)}${boolItem('Centrales de riesgo',s.decl2)}
+      ${boolItem('Datos personales',s.decl3)}${boolItem('SARLAFT',s.decl4)}
+      ${boolItem('No PEP',s.decl5)}${boolItem('Débito automático',s.decl6)}
+      ${s.decl7?boolItem('Sin insolvencia',s.decl7):''}${s.decl8?boolItem('Verificación DIAN',s.decl8):''}
     </div>
     <div class="info-grid">
       ${firmaBloque(s)}
