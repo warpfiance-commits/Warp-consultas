@@ -291,6 +291,11 @@ tbody tr:hover{background:#fafbf9}
 .pipe-item[role=button]{transition:border-color .15s,background .15s}
 .pipe-item[role=button]:hover{border-color:#cfe3d0;background:#fafcf9}
 .chip-hoy{border:1px solid #cfe3d0;background:#eef4ee;color:var(--navy);border-radius:20px;padding:0 12px;font:600 12px 'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.tel-val{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wa-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#e8f8ee;color:#128c4a;text-decoration:none;transition:background .15s}
+.wa-btn:hover{background:#25d366;color:#fff}
+.wa-copy{width:26px;height:26px;border-radius:8px;border:1px solid #e5e9e4;background:#fff;color:#6b7280;cursor:pointer;font-size:13px;line-height:1}
+.wa-copy:hover{background:#f3f6f2}
 </style>
 </head>
 <body>
@@ -480,6 +485,36 @@ function ib(lbl,val,cls=''){ return `<div class="ib ${cls}"><div class="lbl">${l
 function firmaBloque(s){
   const url=s.documentos?.firma?.url?urlSegura(s.documentos.firma.url):'';
   return `<div class="ib span2"><div class="lbl">Firma electrónica</div>${url?`<img src="${esc(url)}" alt="Firma" style="max-width:260px;max-height:90px;display:block;margin:6px 0;background:#fff;border:1px solid #eef0ec;border-radius:8px">`:''}<div class="val" style="font-size:12px;color:#6b7280">${v(s.firmaElectronica)}</div></div>`;
+}
+/* ── WHATSAPP: abrir el chat desde la cuenta del equipo ──
+   Computador: WhatsApp Web (la sesión abierta en el navegador). Celular: la app
+   (si hay WhatsApp y WhatsApp Business, el teléfono pregunta cuál usar). */
+const WA_ICO='<svg viewBox="0 0 32 32" width="15" height="15" fill="currentColor"><path d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.2.6 4.4 1.7 6.3L3 29l7.3-1.9c1.8 1 3.8 1.5 5.7 1.5 7 0 12.7-5.7 12.7-12.7S23 3 16 3zm0 23.2c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-4.3 1.1 1.2-4.2-.3-.4c-1-1.6-1.5-3.5-1.5-5.4C5.6 9.8 10.3 5.2 16 5.2S26.4 9.8 26.4 15.6 21.7 26.2 16 26.2zm5.7-7.8c-.3-.2-1.9-.9-2.2-1s-.5-.2-.7.2-.8 1-1 1.2-.4.2-.7.1a8.6 8.6 0 0 1-4.3-3.7c-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4s-1.2 1.1-1.2 2.7 1.2 3.2 1.4 3.4 2.4 3.6 5.7 5c2.1.9 2.9 1 4 .8.6-.1 1.9-.8 2.2-1.5s.3-1.4.2-1.5-.3-.2-.6-.3z"/></svg>';
+function waNumero(x){
+  let d=String(x||'').replace(/\D/g,'');
+  if(d.length===10&&d[0]==='3')d='57'+d;          // celular colombiano sin indicativo
+  return d.length>=11&&d.length<=15?d:'';
+}
+function waUrl(num,texto){
+  const t=encodeURIComponent(texto||'');
+  return matchMedia('(pointer:coarse)').matches
+    ? 'https://wa.me/'+num+'?text='+t
+    : 'https://web.whatsapp.com/send?phone='+num+'&text='+t;
+}
+function waMensaje(s,rol){
+  const titular=[s.primerNombre||s.repNombre,s.primerApellido||s.repApellido].filter(Boolean).join(' ');
+  const nombre=(s.primerNombre||s.repNombre||'').split(' ')[0];
+  return rol==='referencia'
+    ? 'Hola, te escribimos de Financial Services. '+titular+' te registró como referencia en su solicitud de crédito '+s.radicado+'.'
+    : 'Hola'+(nombre?' '+nombre:'')+', te escribimos de Financial Services sobre tu solicitud de crédito '+s.radicado+'.';
+}
+function waBotones(num,s,rol){
+  const n=waNumero(num); if(!n)return '';
+  return `<a class="wa-btn" href="${esc(waUrl(n,waMensaje(s,rol)))}" target="whatsapp" rel="noopener" title="Escribir por WhatsApp">${WA_ICO}</a><button type="button" class="wa-copy" title="Copiar número" onclick="navigator.clipboard.writeText('+${n}').then(()=>{this.textContent='✓';setTimeout(()=>this.textContent='⧉',1500)})">⧉</button>`;
+}
+// Celular con botones de WhatsApp y copiar
+function ibTel(lbl,num,s,rol){
+  return `<div class="ib"><div class="lbl">${lbl}</div><div class="val tel-val">${v(num)}${waBotones(num,s,rol)}</div></div>`;
 }
 function boolItem(lbl,val){ const ok=!!val; return `<div class="check-item ${ok?'si':'no'}">${ok?'✓':'✗'} ${lbl}</div>`; }
 
@@ -755,7 +790,7 @@ async function loadSolicitudes(){
       <td style="font-family:monospace;color:#9ca3af;font-size:11px">${esc(s.radicado)}</td>
       <td style="font-weight:500">${v(s.primerNombre)} ${v(s.primerApellido)}</td>
       <td style="color:#6b7280">${v(s.numDocumento)}</td>
-      <td>${v(s.celular)}</td>
+      <td><span class="tel-val">${v(s.celular)}${waBotones(s.celular,s,'titular')}</span></td>
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
@@ -818,7 +853,7 @@ async function verSolicitud(id){
       ${ib('Fecha nacimiento',s.fechaNacimiento)}${ib('País nacimiento',s.paisNacimiento)}${ib('Ciudad nacimiento',s.ciudadNacimiento)}
     </div>
     <div class="info-grid">
-      ${ib('Celular',s.celular)}${ib('Tel. alternativo',s.telefonoAlt)}
+      ${ibTel('Celular',s.celular,s,'titular')}${ibTel('Tel. alternativo',s.telefonoAlt,s,'titular')}
       ${ib('Email principal',s.email)}${ib('Email alternativo',s.emailAlt)}
     </div>
     <div class="info-grid-3">
@@ -870,7 +905,7 @@ async function verSolicitud(id){
       ${ib('Núm. dependientes',s.numeroDependientes)}${ib('Referencia — nombre',s.refNombre)}${ib('Parentesco',s.refParentesco)}
     </div>
     <div class="info-grid">
-      ${ib('Celular referencia',s.refCelular)}${ib('Dirección referencia',s.refDireccion)}${s.refAdicional?ib('Referencia adicional',s.refAdicional):''}
+      ${ibTel('Celular referencia',s.refCelular,s,'referencia')}${ib('Dirección referencia',s.refDireccion)}${s.refAdicional?ib('Referencia adicional',s.refAdicional):''}
     </div>`;
 
   /* Documentos */
@@ -969,7 +1004,7 @@ async function verSolicitudJuridica(id){
     <div class="section-title"><span>🙋</span> Paso 1 — Titular</div>
     <div class="info-grid">
       ${ib('Nombre',`${v(s.repNombre)} ${s.repSegundoNombre?v(s.repSegundoNombre)+' ':''}${v(s.repApellido)}`)}${ib('Tipo / N° documento',`${v(s.repTipoDoc)} ${v(s.repNumDoc)}`)}
-      ${ib('Fecha nacimiento',s.repFechaNac)}${ib('Celular',s.repCelular)}
+      ${ib('Fecha nacimiento',s.repFechaNac)}${ibTel('Celular',s.repCelular,s,'titular')}
       ${ib('Email',s.repEmail)}${ibx('Cargo',s.repCargo)}
     </div>
     <div class="section-title" style="margin-top:4px"><span>🏪</span> Negocio</div>
@@ -1009,10 +1044,10 @@ async function verSolicitudJuridica(id){
   const secOp=`
     <div class="section-title"><span>👤</span> Paso 3 — Referencias</div>
     <div class="info-grid-3">
-      ${ib('Referencia personal',s.refContacto)}${ib('Relación',s.refRelacion)}${ib('Celular',s.refTelefono)}
+      ${ib('Referencia personal',s.refContacto)}${ib('Relación',s.refRelacion)}${ibTel('Celular',s.refTelefono,s,'referencia')}
     </div>
     <div class="info-grid">
-      ${ib('Referencia comercial',s.refEmpresa)}${ib('Teléfono',s.refComercialTel)}
+      ${ib('Referencia comercial',s.refEmpresa)}${ibTel('Teléfono',s.refComercialTel,s,'referencia')}
       ${ibx('Socio principal',s.socioPrincipal)}${ibx('Sucursales',s.sucursales)}
     </div>`;
 
