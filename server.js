@@ -144,6 +144,9 @@ async function initDB() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_solj_created ON solicitudes_juridica(created_at DESC);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_sol ON auditoria(solicitud_id);`);
   await pool.query(`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS ref_direccion TEXT;`);
+  // Papelera: eliminar es reversible; "definitivo" borra la fila y sus archivos
+  for (const t of ['solicitudes', 'solicitudes_juridica'])
+    await pool.query(`ALTER TABLE ${t} ADD COLUMN IF NOT EXISTS eliminada_at TIMESTAMPTZ, ADD COLUMN IF NOT EXISTS eliminada_por TEXT, ADD COLUMN IF NOT EXISTS eliminada_motivo TEXT;`);
   // Persona con negocio (antes persona jurídica)
   await pool.query(`ALTER TABLE solicitudes_juridica ADD COLUMN IF NOT EXISTS local_negocio TEXT, ADD COLUMN IF NOT EXISTS ref_comercial_tel TEXT;`);
   await pool.query(`
@@ -329,6 +332,7 @@ async function auditLog(solicitudId, accion, usuario, detalle) {
 
 function rowToSolicitud(r) {
   return {
+    eliminadaAt: r.eliminada_at, eliminadaPor: r.eliminada_por, eliminadaMotivo: r.eliminada_motivo,
     id: r.id, radicado: r.radicado, estado: r.estado,
     createdAt: r.created_at, updatedAt: r.updated_at,
     tipoDocumento: r.tipo_documento, numDocumento: r.num_documento,
@@ -373,6 +377,7 @@ function rowToSolicitud(r) {
 
 function rowToSolicitudJuridica(r) {
   return {
+    eliminadaAt: r.eliminada_at, eliminadaPor: r.eliminada_por, eliminadaMotivo: r.eliminada_motivo,
     id: r.id, radicado: r.radicado, estado: r.estado,
     createdAt: r.created_at, updatedAt: r.updated_at,
     tipoPersona: 'juridica',
@@ -789,7 +794,8 @@ app.get('/api/admin/solicitudes', authAdmin, async (req, res) => {
     let { estado, buscar, limit=100, offset=0 } = req.query;
     limit = Math.min(Number(limit), 200); offset = Number(offset);
     let where = [], params = [], i = 1;
-    if (estado && estado !== 'TODAS') { where.push(`estado=$${i++}`); params.push(estado); }
+    if (estado === 'ELIMINADAS') where.push('eliminada_at IS NOT NULL');
+    else { where.push('eliminada_at IS NULL'); if (estado && estado !== 'TODAS') { where.push(`estado=$${i++}`); params.push(estado); } }
     if (req.query.hoy === '1') where.push(`(created_at AT TIME ZONE 'America/Bogota')::date = (NOW() AT TIME ZONE 'America/Bogota')::date`);
     if (buscar) {
       const terminos = String(buscar).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
@@ -837,13 +843,64 @@ app.patch('/api/admin/solicitudes/:id/estado', authAdmin, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Papelera ──────────────────────────────────────────────────────────────────
+// Borra un archivo de Cloudinary a partir de su URL de entrega (firma igual que la subida)
+async function borrarDeCloudinary(url) {
+  const m = String(url || '').match(/\/(image|raw|video)\/upload\/(?:.*?\/)?v\d+\/(.+)$/);
+  if (!m || !CLOUD_NAME || !API_KEY || !API_SECRET) return false;
+  const tipo = m[1], publicId = tipo === 'raw' ? decodeURIComponent(m[2]) : decodeURIComponent(m[2]).replace(/\.[a-z0-9]+$/i, '');
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = crypto.createHash('sha1').update(`invalidate=true&public_id=${publicId}&timestamp=${timestamp}${API_SECRET}`).digest('hex');
+  const body = new URLSearchParams({ public_id: publicId, timestamp: String(timestamp), api_key: API_KEY, invalidate: 'true', signature });
+  try {
+    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${tipo}/destroy`, { method: 'POST', body });
+    const j = await r.json();
+    return j.result === 'ok' || j.result === 'not found';
+  } catch (e) { return false; }
+}
+for (const [ruta, tabla] of [['solicitudes', 'solicitudes'], ['solicitudes-juridica', 'solicitudes_juridica']]) {
+  app.post(`/api/admin/${ruta}/:id/eliminar`, authAdmin, async (req, res) => {
+    try {
+      const motivo = String(req.body.motivo || '').trim();
+      if (motivo.length < 3) return res.status(400).json({ error: 'Escribe el motivo de la eliminación' });
+      const r = await pool.query(`UPDATE ${tabla} SET eliminada_at=NOW(), eliminada_por=$1, eliminada_motivo=$2 WHERE (id::text=$3 OR radicado=$3) AND eliminada_at IS NULL RETURNING id, radicado`, [req.admin.email, motivo, req.params.id]);
+      if (!r.rows.length) return res.status(404).json({ error: 'No encontrada o ya está en la papelera' });
+      await auditLog(r.rows[0].id, 'SOLICITUD_A_PAPELERA', req.admin.email, motivo);
+      res.json({ ok: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+  });
+  app.post(`/api/admin/${ruta}/:id/restaurar`, authAdmin, async (req, res) => {
+    try {
+      const r = await pool.query(`UPDATE ${tabla} SET eliminada_at=NULL, eliminada_por=NULL, eliminada_motivo=NULL WHERE (id::text=$1 OR radicado=$1) AND eliminada_at IS NOT NULL RETURNING id`, [req.params.id]);
+      if (!r.rows.length) return res.status(404).json({ error: 'No está en la papelera' });
+      await auditLog(r.rows[0].id, 'SOLICITUD_RESTAURADA', req.admin.email, '');
+      res.json({ ok: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+  });
+  // Definitivo: solo desde la papelera. Borra la fila y sus documentos en Cloudinary.
+  app.delete(`/api/admin/${ruta}/:id`, authAdmin, async (req, res) => {
+    try {
+      const r = await pool.query(`SELECT id, radicado, documentos, eliminada_motivo FROM ${tabla} WHERE (id::text=$1 OR radicado=$1) AND eliminada_at IS NOT NULL`, [req.params.id]);
+      if (!r.rows.length) return res.status(404).json({ error: 'Primero envía la solicitud a la papelera' });
+      const sol = r.rows[0];
+      const urls = Object.values(sol.documentos || {}).map(d => d && d.url).filter(Boolean);
+      const borrados = await Promise.all(urls.map(borrarDeCloudinary));
+      await pool.query(`DELETE FROM ${tabla} WHERE id=$1`, [sol.id]);
+      const fallos = borrados.filter(x => !x).length;
+      await auditLog(sol.id, 'SOLICITUD_ELIMINADA_DEFINITIVA', req.admin.email, `Radicado ${sol.radicado} · ${urls.length - fallos}/${urls.length} archivos borrados · ${sol.eliminada_motivo || ''}`);
+      res.json({ ok: true, archivos: urls.length, archivosConError: fallos });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+  });
+}
+
 // ── GET solicitudes JURÍDICA ───────────────────────────────────────────────────
 app.get('/api/admin/solicitudes-juridica', authAdmin, async (req, res) => {
   try {
     let { estado, buscar, limit=100, offset=0 } = req.query;
     limit = Math.min(Number(limit), 200); offset = Number(offset);
     let where = [], params = [], i = 1;
-    if (estado && estado !== 'TODAS') { where.push(`estado=$${i++}`); params.push(estado); }
+    if (estado === 'ELIMINADAS') where.push('eliminada_at IS NOT NULL');
+    else { where.push('eliminada_at IS NULL'); if (estado && estado !== 'TODAS') { where.push(`estado=$${i++}`); params.push(estado); } }
     if (req.query.hoy === '1') where.push(`(created_at AT TIME ZONE 'America/Bogota')::date = (NOW() AT TIME ZONE 'America/Bogota')::date`);
     if (buscar) {
       const terminos = String(buscar).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
@@ -896,8 +953,8 @@ app.patch('/api/admin/solicitudes-juridica/:id/estado', authAdmin, async (req, r
 app.get('/api/admin/contadores', authAdmin, async (req, res) => {
   try {
     const [pendN, pendJ] = await Promise.all([
-      pool.query(`SELECT COUNT(*) FROM solicitudes WHERE estado IN ('RADICADA','EN_ANALISIS')`),
-      pool.query(`SELECT COUNT(*) FROM solicitudes_juridica WHERE estado IN ('RADICADA','EN_ANALISIS')`)
+      pool.query(`SELECT COUNT(*) FROM solicitudes WHERE estado IN ('RADICADA','EN_ANALISIS') AND eliminada_at IS NULL`),
+      pool.query(`SELECT COUNT(*) FROM solicitudes_juridica WHERE estado IN ('RADICADA','EN_ANALISIS') AND eliminada_at IS NULL`)
     ]);
     res.json({
       pendientesNatural: Number(pendN.rows[0].count),
@@ -909,15 +966,15 @@ app.get('/api/admin/contadores', authAdmin, async (req, res) => {
 app.get('/api/admin/dashboard', authAdmin, async (req, res) => {
   try {
     // Natural y jurídica juntas: el panel es de todas las solicitudes.
-    const ambas = `(SELECT estado, created_at, monto_solicitado FROM solicitudes
-                    UNION ALL SELECT estado, created_at, monto_solicitado FROM solicitudes_juridica) t`;
+    const ambas = `(SELECT estado, created_at, monto_solicitado FROM solicitudes WHERE eliminada_at IS NULL
+                    UNION ALL SELECT estado, created_at, monto_solicitado FROM solicitudes_juridica WHERE eliminada_at IS NULL) t`;
     const hoyBogota = `(created_at AT TIME ZONE 'America/Bogota')::date = (NOW() AT TIME ZONE 'America/Bogota')::date`;
     const [byEstado, hoyN, montoRes, recN, recJ] = await Promise.all([
       pool.query(`SELECT estado, COUNT(*) AS cnt FROM ${ambas} GROUP BY estado`),
       pool.query(`SELECT COUNT(*) FROM ${ambas} WHERE ${hoyBogota}`),
       pool.query(`SELECT COALESCE(SUM(monto_solicitado),0) AS total FROM ${ambas} WHERE estado IN ('APROBADA','DESEMBOLSADA')`),
-      pool.query('SELECT * FROM solicitudes ORDER BY created_at DESC LIMIT 10'),
-      pool.query('SELECT * FROM solicitudes_juridica ORDER BY created_at DESC LIMIT 10')
+      pool.query('SELECT * FROM solicitudes WHERE eliminada_at IS NULL ORDER BY created_at DESC LIMIT 10'),
+      pool.query('SELECT * FROM solicitudes_juridica WHERE eliminada_at IS NULL ORDER BY created_at DESC LIMIT 10')
     ]);
     const em = {};
     byEstado.rows.forEach(r => { em[r.estado] = Number(r.cnt); });
@@ -941,8 +998,8 @@ app.get('/api/admin/exportar', authAdmin, async (req, res) => {
   try {
     const ExcelJS = require('exceljs');
     const [nat, jur] = await Promise.all([
-      pool.query('SELECT * FROM solicitudes ORDER BY created_at DESC'),
-      pool.query('SELECT * FROM solicitudes_juridica ORDER BY created_at DESC')
+      pool.query('SELECT * FROM solicitudes WHERE eliminada_at IS NULL ORDER BY created_at DESC'),
+      pool.query('SELECT * FROM solicitudes_juridica WHERE eliminada_at IS NULL ORDER BY created_at DESC')
     ]);
     const wb = new ExcelJS.Workbook();
     wb.creator = 'Finanzas Inteligentes';

@@ -313,6 +313,16 @@ tbody tr:hover{background:#fafbf9}
 .wa-btn:hover{background:#25d366;color:#fff}
 .wa-copy{width:26px;height:26px;border-radius:8px;border:1px solid #e5e9e4;background:#fff;color:#6b7280;cursor:pointer;font-size:13px;line-height:1}
 .wa-copy:hover{background:#f3f6f2}
+.btn-del{margin-right:auto;color:#b91c1c;border-color:#f3d4d4}
+.btn-del:hover{background:#fdf3f3}
+.pap-nota{margin-right:auto;font-size:12px;color:#6b7280;max-width:55%}
+.dlg-bg{position:fixed;inset:0;z-index:3000;background:rgba(10,20,12,.55);display:flex;align-items:center;justify-content:center;padding:1rem}
+.dlg{background:#fff;border-radius:16px;padding:1.4rem 1.4rem 1.1rem;width:100%;max-width:440px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45)}
+.dlg h3{font:700 16px 'Sora',sans-serif;color:var(--navy);margin-bottom:6px}
+.dlg p{font-size:13.5px;color:#4b5563;line-height:1.5;margin-bottom:12px}
+.dlg textarea,.dlg input{width:100%;margin-bottom:6px}
+.dlg-err{font-size:12px;color:#b91c1c;min-height:16px}
+.dlg-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -408,6 +418,7 @@ tbody tr:hover{background:#fafbf9}
             <option value="APROBADA">Aprobada</option>
             <option value="RECHAZADA">Rechazada</option>
             <option value="DESEMBOLSADA">Desembolsada</option>
+            <option value="ELIMINADAS">🗑 Papelera</option>
           </select>
         </div>
         <div class="card" id="card-natural">
@@ -981,7 +992,11 @@ async function verSolicitud(id){
     secCap+secIdent+secFin+secLab+secDocs+secDecl+secGestion+histHtml;
 
   const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
-  document.getElementById('modal-foot').innerHTML=`
+  document.getElementById('modal-foot').innerHTML=s.eliminadaAt
+    ? `<div class="pap-nota">🗑 En la papelera desde el ${fdate(s.eliminadaAt)} · ${esc(s.eliminadaPor||'')} · “${esc(s.eliminadaMotivo||'')}”</div>
+       <button class="btn-sm btn-ghost" onclick="restaurarSolicitud('natural','${s.id}')">↺ Restaurar</button>
+       <button class="btn-sm btn-red" onclick="eliminarDefinitivo('natural','${s.id}','${esc(s.radicado)}')">Eliminar definitivamente</button>`
+    : `<button class="btn-sm btn-ghost btn-del" onclick="eliminarSolicitud('natural','${s.id}','${esc(s.radicado)}')">🗑 Eliminar</button>
     ${pendiente?`
       <button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
       <button class="btn-sm btn-red"   onclick="cambiarEstado('${s.id}','RECHAZADA')">✕ Rechazar</button>
@@ -996,6 +1011,48 @@ async function cambiarEstado(id,estado){
   const r=await req('/api/admin/solicitudes/'+id+'/estado',{method:'PATCH',body:JSON.stringify({estado,nota})});
   if(r?.ok){showToast(`Solicitud marcada como ${estado}`,'ok');closeModal();loadSolicitudes();loadDashboard();loadContadores();}
   else if(r) showToast(r.error||'Error cambiando estado','err');
+}
+/* ── PAPELERA ── */
+// Diálogo propio (no el confirm del navegador): motivo y/o palabra de confirmación
+function dialogo({titulo,texto,motivo,palabra,boton,peligro}){
+  return new Promise(res=>{
+    const bg=document.createElement('div'); bg.className='dlg-bg';
+    bg.innerHTML=`<div class="dlg" role="dialog" aria-modal="true"><h3>${titulo}</h3><p>${texto}</p>
+      ${motivo?'<textarea id="dlgMotivo" rows="3" placeholder="Motivo (obligatorio)"></textarea>':''}
+      ${palabra?`<input id="dlgPalabra" placeholder="Escribe ${palabra} para confirmar" autocomplete="off">`:''}
+      <div class="dlg-err" id="dlgErr"></div>
+      <div class="dlg-btns"><button class="btn-sm btn-ghost" data-x="no">Cancelar</button><button class="btn-sm ${peligro?'btn-red':'btn-navy'}" data-x="si">${boton}</button></div></div>`;
+    const cerrar=v=>{bg.remove();res(v);};
+    bg.onclick=e=>{
+      if(e.target===bg||e.target.dataset.x==='no')return cerrar(null);
+      if(e.target.dataset.x!=='si')return;
+      const m=(bg.querySelector('#dlgMotivo')?.value||'').trim(), p=(bg.querySelector('#dlgPalabra')?.value||'').trim();
+      if(motivo&&m.length<3)return bg.querySelector('#dlgErr').textContent='Escribe el motivo.';
+      if(palabra&&p.toUpperCase()!==palabra)return bg.querySelector('#dlgErr').textContent='Escribe '+palabra+' exactamente.';
+      cerrar(m||true);
+    };
+    bg.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();cerrar(null);}});
+    document.body.appendChild(bg); (bg.querySelector('textarea,input')||bg.querySelector('[data-x=si]')).focus();
+  });
+}
+const rutaTipo=t=>t==='juridica'?'/api/admin/solicitudes-juridica/':'/api/admin/solicitudes/';
+function trasPapelera(msg){ showToast(msg,'ok'); closeModal(); loadSolicitudesActivas(); loadDashboard(); loadContadores(); }
+async function eliminarSolicitud(tipo,id,rad){
+  const motivo=await dialogo({titulo:'Eliminar '+rad,texto:'La solicitud sale del panel y pasa a la papelera. Desde allí puedes restaurarla.',motivo:true,boton:'Enviar a la papelera',peligro:true});
+  if(!motivo)return;
+  const r=await req(rutaTipo(tipo)+id+'/eliminar',{method:'POST',body:JSON.stringify({motivo})});
+  if(r?.ok)trasPapelera('Solicitud enviada a la papelera'); else if(r)showToast(r.error||'No se pudo eliminar','err');
+}
+async function restaurarSolicitud(tipo,id){
+  const r=await req(rutaTipo(tipo)+id+'/restaurar',{method:'POST'});
+  if(r?.ok)trasPapelera('Solicitud restaurada'); else if(r)showToast(r.error||'No se pudo restaurar','err');
+}
+async function eliminarDefinitivo(tipo,id,rad){
+  const ok=await dialogo({titulo:'Eliminar definitivamente '+rad,texto:'Se borran la solicitud y todos sus documentos (cédula, extractos, selfie, firma). <b>No se puede deshacer.</b> La auditoría conserva solo el radicado.',palabra:'ELIMINAR',boton:'Eliminar para siempre',peligro:true});
+  if(!ok)return;
+  const r=await req(rutaTipo(tipo)+id,{method:'DELETE'});
+  if(r?.ok)trasPapelera('Eliminada definitivamente'+(r.archivosConError?' · '+r.archivosConError+' archivo(s) no se pudieron borrar de Cloudinary':''));
+  else if(r)showToast(r.error||'No se pudo eliminar','err');
 }
 function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('modalBg').classList.remove('open'); }
 
@@ -1109,7 +1166,11 @@ async function verSolicitudJuridica(id){
     secEmpresa+secFin+secOp+secDocs+secDecl+secGestion+histHtml;
 
   const pendiente=['RADICADA','EN_ANALISIS'].includes(s.estado);
-  document.getElementById('modal-foot').innerHTML=`
+  document.getElementById('modal-foot').innerHTML=s.eliminadaAt
+    ? `<div class="pap-nota">🗑 En la papelera desde el ${fdate(s.eliminadaAt)} · ${esc(s.eliminadaPor||'')} · “${esc(s.eliminadaMotivo||'')}”</div>
+       <button class="btn-sm btn-ghost" onclick="restaurarSolicitud('juridica','${s.id}')">↺ Restaurar</button>
+       <button class="btn-sm btn-red" onclick="eliminarDefinitivo('juridica','${s.id}','${esc(s.radicado)}')">Eliminar definitivamente</button>`
+    : `<button class="btn-sm btn-ghost btn-del" onclick="eliminarSolicitud('juridica','${s.id}','${esc(s.radicado)}')">🗑 Eliminar</button>
     ${pendiente?`
       <button class="btn-sm btn-ghost" onclick="cambiarEstadoJuridica('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
       <button class="btn-sm btn-red"   onclick="cambiarEstadoJuridica('${s.id}','RECHAZADA')">✕ Rechazar</button>
