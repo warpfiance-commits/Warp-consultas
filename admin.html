@@ -115,8 +115,25 @@ td{padding:10px 14px;color:#374151}
 .toast.show{display:block}
 .section{display:none}
 .section.visible{display:block}
-.pdf-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem}
-.pdf-modal-bg.open{display:flex}
+.dv-bg{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:2vh 2vw;background:rgba(10,20,12,.62);backdrop-filter:blur(3px)}
+.dv-bg.open{display:flex}
+.dv{background:#fff;border-radius:16px;width:min(1100px,96vw);height:94vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.5)}
+.dv-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eef0ec;flex-shrink:0}
+.dv-title{flex:1;min-width:0;display:flex;align-items:baseline;gap:10px}
+.dv-title b{font:700 14px 'Sora',sans-serif;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dv-title span{font-size:12px;color:#9ca3af;white-space:nowrap}
+.dv-nav{width:34px;height:34px;border-radius:9px;border:1px solid #e3e8e2;background:#fff;font-size:20px;line-height:1;color:var(--navy);cursor:pointer}
+.dv-nav:hover{background:#f3f6f2}
+.dv-btn{border:1px solid #e3e8e2;background:#fff;border-radius:9px;padding:7px 12px;font:600 12.5px 'DM Sans',sans-serif;color:#374151;cursor:pointer;text-decoration:none;white-space:nowrap}
+.dv-btn:hover{background:#f3f6f2}
+.dv-body{flex:1;overflow:auto;background:#f2f4f1;display:flex;flex-direction:column;align-items:center;padding:16px}
+.dv-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;cursor:zoom-in;box-shadow:0 6px 24px -10px rgba(0,0,0,.35)}
+.dv-img.zoom{max-width:none;max-height:none;cursor:zoom-out}
+.dv-pages{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.dv-page{max-width:100%;background:#fff;border-radius:6px;box-shadow:0 6px 24px -12px rgba(0,0,0,.35)}
+.dv-load{font-size:12px;color:#9ca3af;padding:14px}
+.dv-frame{width:100%;height:100%;border:none;background:#fff;border-radius:8px}
+@media(max-width:768px){.dv{height:96vh;width:100vw;border-radius:0}.dv-bg{padding:0}.dv-btn{padding:7px 9px}#dvOrig{display:none}}
 .topbar-logout{display:none}
 
 /* ─────────── Responsive / móvil (barra inferior tipo app) ─────────── */
@@ -446,14 +463,17 @@ tbody tr:hover{background:#fafbf9}
   </div>
 </div>
 
-<!-- VISOR PDF -->
-<div class="pdf-modal-bg" id="pdfBg" onclick="closePdf(event)">
-  <div style="background:#fff;border-radius:14px;width:90vw;max-width:900px;height:90vh;display:flex;flex-direction:column;overflow:hidden" onclick="event.stopPropagation()">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e5e7eb;flex-shrink:0">
-      <div style="font-family:Sora,sans-serif;font-size:14px;font-weight:700;color:#0D2340" id="pdfTitle">Documento</div>
-      <button onclick="closePdf()" style="border:none;background:#f3f4f6;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600;color:#374151">✕ Cerrar</button>
+<!-- VISOR DE DOCUMENTOS -->
+<div class="dv-bg" id="dvBg" onclick="if(event.target===this)cerrarDoc()">
+  <div class="dv" role="dialog" aria-modal="true" aria-labelledby="dvTitle">
+    <div class="dv-head">
+      <button class="dv-nav" id="dvPrev" onclick="verDoc(DV.i-1)" aria-label="Documento anterior">‹</button>
+      <div class="dv-title"><b id="dvTitle">Documento</b><span id="dvPos"></span></div>
+      <button class="dv-nav" id="dvNext" onclick="verDoc(DV.i+1)" aria-label="Documento siguiente">›</button>
+      <a class="dv-btn" id="dvOrig" href="#" target="_blank" rel="noopener">Abrir original ↗</a>
+      <button class="dv-btn" onclick="cerrarDoc()">✕ Cerrar</button>
     </div>
-    <iframe id="pdfFrame" src="" style="flex:1;border:none;width:100%;background:#f9fafb"></iframe>
+    <div class="dv-body" id="dvBody"></div>
   </div>
 </div>
 
@@ -911,20 +931,7 @@ async function verSolicitud(id){
   /* Documentos */
   let docsHtml='';
   if(s.documentos&&Object.keys(s.documentos).length>0){
-    const items=Object.entries(s.documentos).map(([k,d])=>{
-      const nombre=esc(d?.nombre||k);
-      const url=d&&d.url?urlSegura(d.url):'';
-      if(url){
-        const isPdf=url.includes('.pdf')||url.includes('/docs/');
-        const boton=isPdf
-          ? `<div data-url="${esc(url)}" data-nombre="${nombre}" onclick="abrirPdf(this.dataset.url,this.dataset.nombre)" class="doc-link">📄 Ver documento</div>`
-          : `<a href="${esc(url)}" target="_blank" rel="noopener" class="doc-link">🖼 Ver imagen</a>`;
-        const marca=d.validacion==='verificada'?' <span style="color:#15803d;text-transform:none">✓ verificado</span>':d.validacion==='sin_verificar'?' <span style="color:#b45309;text-transform:none">⚠ sin verificar</span>':'';
-        return `<div class="doc-item"><div class="doc-item-label">${nombre}${marca}</div>${boton}</div>`;
-      }
-      return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
-    }).join('');
-    docsHtml=`<div class="docs-grid">${items}</div>`;
+    docsHtml=docsGrid(s.documentos);
   }else{
     docsHtml=`<div style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:7px">Sin documentos adjuntos</div>`;
   }
@@ -1054,20 +1061,7 @@ async function verSolicitudJuridica(id){
   /* Documentos */
   let docsHtml='';
   if(s.documentos&&Object.keys(s.documentos).length>0){
-    const items=Object.entries(s.documentos).map(([k,d])=>{
-      const nombre=esc(d?.nombre||k);
-      const url=d&&d.url?urlSegura(d.url):'';
-      if(url){
-        const isPdf=url.includes('.pdf')||url.includes('/docs/');
-        const boton=isPdf
-          ? `<div data-url="${esc(url)}" data-nombre="${nombre}" onclick="abrirPdf(this.dataset.url,this.dataset.nombre)" class="doc-link">📄 Ver documento</div>`
-          : `<a href="${esc(url)}" target="_blank" rel="noopener" class="doc-link">🖼 Ver imagen</a>`;
-        const marca=d.validacion==='verificada'?' <span style="color:#15803d;text-transform:none">✓ verificado</span>':d.validacion==='sin_verificar'?' <span style="color:#b45309;text-transform:none">⚠ sin verificar</span>':'';
-        return `<div class="doc-item"><div class="doc-item-label">${nombre}${marca}</div>${boton}</div>`;
-      }
-      return `<div class="doc-item"><div class="doc-item-label">${nombre}</div><div class="doc-error">⚠ No disponible</div></div>`;
-    }).join('');
-    docsHtml=`<div class="docs-grid">${items}</div>`;
+    docsHtml=docsGrid(s.documentos);
   }else{
     docsHtml=`<div style="font-size:12px;color:#9ca3af;padding:10px;background:#f9fafb;border-radius:7px">Sin documentos adjuntos</div>`;
   }
@@ -1198,7 +1192,7 @@ let pendientesPrevios=null;
 function marcarActualizado(){ document.getElementById('ultimaAct').textContent='Actualizado '+new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}); }
 async function refrescoAutomatico(){
   if(!TOKEN||document.hidden)return;
-  if(document.getElementById('modalBg').classList.contains('open')||document.getElementById('pdfBg').classList.contains('open'))return;
+  if(document.getElementById('modalBg').classList.contains('open')||document.getElementById('dvBg').classList.contains('open'))return;
   const d=await req('/api/admin/contadores'); if(!d)return;
   document.getElementById('badge-natural').textContent=d.pendientesNatural;
   document.getElementById('badge-juridica').textContent=d.pendientesJuridica;
@@ -1227,8 +1221,58 @@ async function exportExcel(btn){
   }catch(e){ showToast('No se pudo generar el Excel','err'); }
   finally{ t.textContent=antes; btn.disabled=false; }
 }
-function abrirPdf(url,nombre){ document.getElementById('pdfTitle').textContent=nombre||'Documento'; document.getElementById('pdfFrame').src=url; document.getElementById('pdfBg').classList.add('open'); }
-function closePdf(e){ if(!e||e.target.id==='pdfBg'){document.getElementById('pdfBg').classList.remove('open');document.getElementById('pdfFrame').src='';} }
+/* ── VISOR DE DOCUMENTOS: se abre sobre la página ── */
+const DV={lista:[],i:0};
+function esPdf(d){ return /pdf/i.test(d.tipo||'')||/\.pdf($|\?)/i.test(d.url); }
+// Cloudinary convierte cada página del PDF en imagen: así se ve siempre, sin depender del visor del navegador
+function paginaPdf(url,n){ return /\/image\/upload\//.test(url) ? url.replace('/image/upload/','/image/upload/pg_'+n+',w_1400,q_auto/').replace(/\.pdf($|\?)/i,'.jpg$1') : ''; }
+function docsGrid(documentos){
+  DV.lista=[];
+  return '<div class="docs-grid">'+Object.entries(documentos).map(([k,d])=>{
+    const nombre=esc(d?.nombre||k), url=d&&d.url?urlSegura(d.url):'';
+    if(!url) return '<div class="doc-item"><div class="doc-item-label">'+nombre+'</div><div class="doc-error">⚠ No disponible</div></div>';
+    const idx=DV.lista.push({nombre:d?.nombre||k,url,tipo:d.tipo||''})-1;
+    const marca=d.validacion==='verificada'?' <span style="color:#15803d;text-transform:none">✓ verificado</span>':d.validacion==='sin_verificar'?' <span style="color:#b45309;text-transform:none">⚠ sin verificar</span>':'';
+    const pdf=esPdf(DV.lista[idx]);
+    return '<div class="doc-item"><div class="doc-item-label">'+nombre+marca+'</div><div class="doc-link" role="button" tabindex="0" onclick="verDoc('+idx+')">'+(pdf?'📄 Ver documento':'🖼 Ver imagen')+'</div></div>';
+  }).join('')+'</div>';
+}
+function verDoc(i){
+  if(!DV.lista.length)return;
+  DV.i=(i+DV.lista.length)%DV.lista.length;
+  const d=DV.lista[DV.i], body=document.getElementById('dvBody');
+  document.getElementById('dvBg').classList.add('open');
+  document.getElementById('dvTitle').textContent=d.nombre;
+  document.getElementById('dvPos').textContent=DV.lista.length>1?(DV.i+1)+' de '+DV.lista.length:'';
+  document.getElementById('dvOrig').href=d.url;
+  ['dvPrev','dvNext'].forEach(id=>document.getElementById(id).style.visibility=DV.lista.length>1?'':'hidden');
+  if(esPdf(d)&&paginaPdf(d.url,1)){
+    body.innerHTML='<div class="dv-pages" id="dvPages"></div><div class="dv-load" id="dvLoad">Cargando páginas…</div>';
+    const cont=document.getElementById('dvPages'), esta=DV.i;
+    const pagina=n=>{ // carga páginas una tras otra hasta que no haya más (máx. 30)
+      if(n>30||DV.i!==esta||!document.getElementById('dvBg').classList.contains('open'))return;
+      const img=new Image(); img.alt=d.nombre+' — página '+n; img.className='dv-page';
+      img.onload=()=>{cont.appendChild(img);pagina(n+1);};
+      img.onerror=()=>{
+        if(n===1){ body.innerHTML='<iframe class="dv-frame" src="'+esc(d.url)+'"></iframe>'; return; }
+        const l=document.getElementById('dvLoad'); if(l)l.textContent='Fin del documento · '+(n-1)+(n-1===1?' página':' páginas');
+      };
+      img.src=paginaPdf(d.url,n);
+    };
+    pagina(1);
+  }else if(esPdf(d)){
+    body.innerHTML='<iframe class="dv-frame" src="'+esc(d.url)+'"></iframe>';
+  }else{
+    body.innerHTML='<img class="dv-img" src="'+esc(d.url)+'" alt="'+esc(d.nombre)+'" onclick="this.classList.toggle(\'zoom\')" title="Clic para ampliar">';
+  }
+}
+function cerrarDoc(){ document.getElementById('dvBg').classList.remove('open'); document.getElementById('dvBody').innerHTML=''; }
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('dvBg')?.classList.contains('open'))return;
+  if(e.key==='Escape'){cerrarDoc();e.stopPropagation();}
+  else if(e.key==='ArrowRight')verDoc(DV.i+1);
+  else if(e.key==='ArrowLeft')verDoc(DV.i-1);
+},true);
 
 /* ── INIT ── */
 window.onload=()=>{
