@@ -332,6 +332,12 @@ tbody tr:hover{background:#fafbf9}
 .con-btns{display:none;gap:8px}
 .conectando.error .con-btns{display:flex}
 .conectando.error .con-spin{display:none}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-right:42px}
+.pass-ver{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:15px;opacity:.55;padding:6px}
+.recordar{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#374151;margin:2px 0 14px;cursor:pointer;font-weight:500}
+.recordar input{width:auto;margin:0}
+.recordar small{color:#9ca3af;font-weight:400;font-size:12px}
 </style>
 </head>
 <body>
@@ -342,9 +348,12 @@ tbody tr:hover{background:#fafbf9}
     <div class="login-logo">FINANCIAL SERVICES</div>
     <div class="login-title">Panel de Solicitudes</div>
     <div class="login-sub">Administración interna · Acceso restringido</div>
-    <div class="field"><label>Email</label><input type="email" id="loginUser" placeholder="tu@warpfinance.co" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <div class="field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">Ingresar →</button>
+    <form id="loginForm" method="post" action="#" autocomplete="on" onsubmit="event.preventDefault();doLogin()">
+    <div class="field"><label for="loginUser">Email</label><input type="email" id="loginUser" name="username" placeholder="tu@warpfinance.co" autocomplete="username" required></div>
+    <div class="field"><label for="loginPass">Contraseña</label><div class="pass-wrap"><input type="password" id="loginPass" name="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="pass-ver" onclick="verPass(this)" aria-label="Mostrar contraseña" title="Mostrar contraseña">👁</button></div></div>
+    <label class="recordar"><input type="checkbox" id="loginRecordar"><span>Mantener sesión iniciada por 30 días <small>· solo en equipos personales</small></span></label>
+    <button type="submit" class="btn btn-primary" id="loginBtn">Ingresar →</button>
+    </form>
     <div class="err-msg" id="loginErr">Credenciales incorrectas</div>
   </div>
 </div>
@@ -703,16 +712,18 @@ async function doLogin(){
   btn.textContent='Ingresando...'; btn.disabled=true;
   const lento=setTimeout(()=>{btn.textContent='Despertando el servidor, puede tardar hasta un minuto…';},4000);
   try{
-    const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,password:p})});
+    const r=await fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,password:p,recordar:document.getElementById('loginRecordar').checked})});
     const j=await r.json(); clearTimeout(lento);
     if(r.ok&&j.token){ TOKEN=j.token; localStorage.setItem('warp-admin-token',TOKEN);
-      document.getElementById('loginPass').value='';
+      setTimeout(()=>{document.getElementById('loginPass').value='';},1500); // después de que el navegador ofrezca guardarla
       document.getElementById('loginErr').style.display='none';
       btn.textContent='Ingresar →'; btn.disabled=false;
       entrarApp();
     }else{ errLogin(j.error); btn.textContent='Ingresar →'; btn.disabled=false; }
   }catch(e){ clearTimeout(lento); errLogin('No se pudo conectar con el servidor'); btn.textContent='Ingresar →'; btn.disabled=false; }
 }
+function verPass(b){ const i=document.getElementById('loginPass'); const ver=i.type==='password'; i.type=ver?'text':'password'; b.setAttribute('aria-label',ver?'Ocultar contraseña':'Mostrar contraseña'); b.style.opacity=ver?1:.55; }
+document.addEventListener('DOMContentLoaded',()=>{ const c=document.getElementById('loginRecordar'); if(c){ c.checked=localStorage.getItem('warp-recordar')==='1'; c.onchange=()=>localStorage.setItem('warp-recordar',c.checked?'1':'0'); } });
 function errLogin(msg){ const e=document.getElementById('loginErr'); e.textContent=msg||'Credenciales incorrectas'; e.style.display='block'; e.style.color=''; }
 async function entrarApp(){
   document.getElementById('loginWrap').style.display='none';

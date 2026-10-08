@@ -33,6 +33,7 @@ const ADMIN_INICIAL_EMAIL  = (process.env.ADMIN_INICIAL_EMAIL || '').trim().toLo
 const ADMIN_INICIAL_NOMBRE = process.env.ADMIN_INICIAL_NOMBRE || 'Administrador';
 const ADMIN_INICIAL_PASS   = process.env.ADMIN_INICIAL_PASS || '';
 const SESION_HORAS = 12;
+const SESION_HORAS_RECORDAR = 24 * 30;   // "Mantener sesión iniciada"
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'warpfiance@gmail.com';
 const SENDGRID_KEY = process.env.SENDGRID_API_KEY || '';
 
@@ -719,7 +720,7 @@ app.post('/api/admin/login', async (req, res) => {
       await pool.query(`DELETE FROM admin_sesiones WHERE expira<NOW()`);
       await pool.query(
         `INSERT INTO admin_sesiones (token, usuario_id, expira) VALUES ($1,$2,NOW()+($3 || ' hours')::interval)`,
-        [token, u.id, String(SESION_HORAS)]);
+        [token, u.id, String(req.body.recordar === true ? SESION_HORAS_RECORDAR : SESION_HORAS)]);
       await pool.query(`UPDATE admin_usuarios SET ultimo_acceso=NOW() WHERE id=$1`, [u.id]);
       return res.json({ ok: true, token, usuario: { email: u.email, nombre: u.nombre } });
     }
