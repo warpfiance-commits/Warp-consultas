@@ -148,6 +148,8 @@ async function initDB() {
   // Papelera: eliminar es reversible; "definitivo" borra la fila y sus archivos
   for (const t of ['solicitudes', 'solicitudes_juridica'])
     await pool.query(`ALTER TABLE ${t} ADD COLUMN IF NOT EXISTS eliminada_at TIMESTAMPTZ, ADD COLUMN IF NOT EXISTS eliminada_por TEXT, ADD COLUMN IF NOT EXISTS eliminada_motivo TEXT;`);
+  await pool.query(`ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS estrato TEXT;`);
+  await pool.query(`ALTER TABLE solicitudes_juridica ADD COLUMN IF NOT EXISTS barrio TEXT, ADD COLUMN IF NOT EXISTS estrato TEXT;`);
   // Persona con negocio (antes persona jurídica)
   await pool.query(`ALTER TABLE solicitudes_juridica ADD COLUMN IF NOT EXISTS local_negocio TEXT, ADD COLUMN IF NOT EXISTS ref_comercial_tel TEXT;`);
   await pool.query(`
@@ -344,7 +346,7 @@ function rowToSolicitud(r) {
     celular: r.celular, telefonoAlt: r.telefono_alt,
     email: r.email, emailAlt: r.email_alt,
     departamento: r.departamento, ciudad: r.ciudad,
-    barrio: r.barrio, direccion: r.direccion,
+    barrio: r.barrio, direccion: r.direccion, estrato: r.estrato,
     tipoVivienda: r.tipo_vivienda, tiempoVivienda: r.tiempo_vivienda,
     ingresosMensuales: r.ingresos_mensuales ? Number(r.ingresos_mensuales) : null,
     fuenteIngresos: r.fuente_ingresos,
@@ -382,7 +384,7 @@ function rowToSolicitudJuridica(r) {
     id: r.id, radicado: r.radicado, estado: r.estado,
     createdAt: r.created_at, updatedAt: r.updated_at,
     tipoPersona: 'juridica',
-    localNegocio: r.local_negocio, refComercialTel: r.ref_comercial_tel,
+    localNegocio: r.local_negocio, refComercialTel: r.ref_comercial_tel, barrio: r.barrio, estrato: r.estrato,
     razonSocial: r.razon_social, nit: r.nit, tipoSociedad: r.tipo_sociedad,
     fechaConstitucion: r.fecha_constitucion, actividadEconomica: r.actividad_economica,
     sectorEconomico: r.sector_economico, numEmpleados: r.num_empleados,
@@ -564,11 +566,11 @@ app.post('/api/solicitudes', async (req, res) => {
         socio_principal, porcentaje_part, otros_socios, grupo_economico,
         ref_empresa, ref_contacto, ref_telefono, ref_relacion,
         decl_1, decl_2, decl_3, decl_4, decl_5, decl_6, decl_7, decl_8,
-        firma_electronica, documentos, local_negocio, ref_comercial_tel
+        firma_electronica, documentos, local_negocio, ref_comercial_tel, barrio, estrato
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
         $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,
-        $38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58
+        $38,$39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58,$59,$60
       ) RETURNING id, radicado`;
 
       const valuesJ = [
@@ -599,7 +601,8 @@ app.post('/api/solicitudes', async (req, res) => {
         !!data.decl_5, !!data.decl_6, !!data.decl_7, !!data.decl_8,
         firmaRegistro,
         JSON.stringify(documentosUrls),
-        data['j-localNegocio']||null, data['j-refComercialTel']||null
+        data['j-localNegocio']||null, data['j-refComercialTel']||null,
+        data['j-barrio']||null, data['j-estrato']||null
       ];
 
       const resultJ = await pool.query(qj, valuesJ);
@@ -628,12 +631,12 @@ app.post('/api/solicitudes', async (req, res) => {
       ref_nombre, ref_parentesco, ref_celular, ref_adicional,
       declaracion_veracidad, autorizacion_centrales, autorizacion_datos,
       declaracion_sarlaft, declaracion_pep, autorizacion_debito,
-      firma_electronica, documentos, ref_direccion
+      firma_electronica, documentos, ref_direccion, estrato
     ) VALUES (
       $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
       $16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,
       $32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43,$44,
-      $45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58,$59,$60
+      $45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58,$59,$60,$61
     ) RETURNING id, radicado`;
 
     const values = [
@@ -672,7 +675,8 @@ app.post('/api/solicitudes', async (req, res) => {
       !!(data.declaracionPep ?? data.decl_5), !!(data.autorizacionDebito ?? data.decl_6),
       firmaRegistro,
       JSON.stringify(documentosUrls),
-      data.refDireccion||null
+      data.refDireccion||null,
+      data.estrato||null
     ];
 
     const result = await pool.query(q, values);
@@ -1023,7 +1027,7 @@ app.get('/api/admin/exportar', authAdmin, async (req, res) => {
       ['Radicado', r => r.radicado, 18], ['Estado', r => ESTADOS[r.estado] || r.estado, 13], ['Fecha', r => fecha(r.created_at), 17, F],
       ['Nombres', r => [r.primer_nombre, r.segundo_nombre].filter(Boolean).join(' '), 20], ['Apellidos', r => [r.primer_apellido, r.segundo_apellido].filter(Boolean).join(' '), 20],
       ['Tipo doc.', r => r.tipo_documento, 18], ['N° documento', r => r.num_documento, 15], ['Email', r => r.email, 28], ['Celular', r => r.celular, 15],
-      ['Ciudad', r => r.ciudad, 15], ['Departamento', r => r.departamento, 15],
+      ['Ciudad', r => r.ciudad, 15], ['Departamento', r => r.departamento, 15], ['Barrio', r => r.barrio, 18], ['Estrato', r => r.estrato, 9], ['Dirección', r => r.direccion, 28],
       ['Monto solicitado', r => num(r.monto_solicitado), 16, $], ['Plazo', r => r.plazo, 11], ['Destino', r => r.destino_credito, 20], ['Garantía', r => r.garantia, 20],
       ['Ingresos', r => num(r.ingresos_mensuales), 14, $], ['Ingresos adicionales', r => num(r.ingresos_adicionales), 14, $],
       ['Egresos', r => num(r.egresos_mensuales), 14, $], ['Obligaciones', r => num(r.obligaciones_financieras), 14, $],
@@ -1034,7 +1038,7 @@ app.get('/api/admin/exportar', authAdmin, async (req, res) => {
     hoja('Persona con negocio', [
       ['Radicado', r => r.radicado, 18], ['Estado', r => ESTADOS[r.estado] || r.estado, 13], ['Fecha', r => fecha(r.created_at), 17, F],
       ['Negocio', r => r.razon_social, 26], ['Tipo de negocio', r => r.sector_economico, 20], ['Qué vende', r => r.descripcion_actividad, 30],
-      ['Tiempo funcionando', r => r.antiguedad_empresa, 16], ['Local', r => r.local_negocio, 14], ['RUT / NIT', r => r.nit, 15], ['Ciudad', r => r.ciudad, 15],
+      ['Tiempo funcionando', r => r.antiguedad_empresa, 16], ['Local', r => r.local_negocio, 14], ['RUT / NIT', r => r.nit, 15], ['Ciudad', r => r.ciudad, 15], ['Barrio', r => r.barrio, 18], ['Estrato', r => r.estrato, 9], ['Dirección', r => r.direccion_comercial, 28],
       ['Titular', r => [r.rep_nombre, r.rep_apellido].filter(Boolean).join(' '), 24], ['Documento', r => r.rep_num_doc, 15],
       ['Celular', r => r.rep_celular, 15], ['Email', r => r.rep_email, 28],
       ['Ventas mensuales', r => num(r.ingresos_mensuales), 16, $], ['Gastos del negocio', r => num(r.egresos_mensuales), 16, $],
