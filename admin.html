@@ -323,6 +323,15 @@ tbody tr:hover{background:#fafbf9}
 .dlg textarea,.dlg input{width:100%;margin-bottom:6px}
 .dlg-err{font-size:12px;color:#b91c1c;min-height:16px}
 .dlg-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.main{position:relative}
+.conectando{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(244,246,242,.92)}
+.conectando.show{display:flex}
+.con-box{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;font-size:14px;color:#374151;max-width:340px;padding:1rem}
+.con-spin{width:34px;height:34px;border-radius:50%;border:3px solid #dfe9df;border-top-color:var(--lime-d);animation:conGiro .8s linear infinite}
+@keyframes conGiro{to{transform:rotate(360deg)}}
+.con-btns{display:none;gap:8px}
+.conectando.error .con-btns{display:flex}
+.conectando.error .con-spin{display:none}
 </style>
 </head>
 <body>
@@ -360,6 +369,10 @@ tbody tr:hover{background:#fafbf9}
   </div>
 
   <div class="main">
+    <div class="conectando" id="conectando" role="status" aria-live="polite">
+      <div class="con-box"><span class="con-spin"></span><div id="conectandoTxt">Conectando con el servidor…</div>
+        <div class="con-btns"><button class="btn-sm btn-navy" onclick="entrarApp()">Reintentar</button><button class="btn-sm btn-ghost" onclick="logout()">Ir al ingreso</button></div></div>
+    </div>
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div style="display:flex;gap:8px">
@@ -499,7 +512,25 @@ let searchTimer;
 
 function showToast(msg,tipo='ok'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+tipo+' show'; setTimeout(()=>t.classList.remove('show'),4500); }
 function headers(){ return {'Content-Type':'application/json','x-admin-token':TOKEN}; }
-async function req(url,opts={}){ opts.headers={...headers(),...(opts.headers||{})}; const r=await fetch(API+url,opts); if(r.status===401){logout();return null;} return r.json(); }
+// Pide al servidor y reintenta si está despertando (plan gratis de Render: errores 502/503 o
+// fallo de red durante ~1 min). 401 = sesión vencida → vuelve al ingreso con el motivo.
+async function req(url,opts={},intentos=3){
+  opts.headers={...headers(),...(opts.headers||{})};
+  if((opts.method||'GET').toUpperCase()!=='GET') intentos=1; // acciones: nunca repetir (podría duplicarse)
+  for(let k=1;k<=intentos;k++){
+    try{
+      const r=await fetch(API+url,{...opts,signal:AbortSignal.timeout(65000)});
+      if(r.status===401){ logout('expirada'); return null; }
+      if(r.status>=500&&r.status!==500&&k<intentos){ await esperar(k*4000); continue; } // 502/503/504: despertando
+      return await r.json().catch(()=>({error:'Respuesta inválida del servidor'}));
+    }catch(e){
+      if(k<intentos){ await esperar(k*4000); continue; }
+      if(!opts.silencioso) showToast('No hay conexión con el servidor. Intenta de nuevo en un momento.','err');
+      return null;
+    }
+  }
+}
+const esperar=ms=>new Promise(r=>setTimeout(r,ms));
 
 function badge(estado){
   const map={RADICADA:'badge-blue',EN_ANALISIS:'badge-amber',APROBADA:'badge-green',RECHAZADA:'badge-red',DESEMBOLSADA:'badge-green'};
@@ -682,18 +713,32 @@ async function doLogin(){
     }else{ errLogin(j.error); btn.textContent='Ingresar →'; btn.disabled=false; }
   }catch(e){ clearTimeout(lento); errLogin('No se pudo conectar con el servidor'); btn.textContent='Ingresar →'; btn.disabled=false; }
 }
-function errLogin(msg){ const e=document.getElementById('loginErr'); e.textContent=msg||'Credenciales incorrectas'; e.style.display='block'; }
-function entrarApp(){
+function errLogin(msg){ const e=document.getElementById('loginErr'); e.textContent=msg||'Credenciales incorrectas'; e.style.display='block'; e.style.color=''; }
+async function entrarApp(){
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('appWrap').style.display='flex';
-  loadDashboard(); loadContadores(); marcarActualizado();
-  req('/api/admin/yo').then(u=>{ if(u){ USUARIO=u; pintarUsuario(u); saludoHero(); } });
+  const ov=document.getElementById('conectando'), txt=document.getElementById('conectandoTxt');
+  ov.classList.add('show'); ov.classList.remove('error');
+  txt.textContent='Conectando con el servidor…';
+  const lento=setTimeout(()=>{txt.textContent='Despertando el servidor, puede tardar hasta un minuto…';},4000);
+  const u=await req('/api/admin/yo',{silencioso:true},6);   // hasta ~1,5 min mientras Render despierta
+  clearTimeout(lento);
+  if(!TOKEN){ ov.classList.remove('show'); return; }        // sesión vencida: ya está en el ingreso
+  if(!u||u.error){ ov.classList.add('error'); txt.textContent='No pudimos conectar con el servidor.'; return; }
+  ov.classList.remove('show');
+  USUARIO=u; pintarUsuario(u);
+  loadDashboard(); loadContadores(); marcarActualizado(); saludoHero();
 }
-function logout(){
-  if(TOKEN)fetch(API+'/api/admin/logout',{method:'POST',headers:headers()}).catch(()=>{});
+function logout(motivo){
+  if(TOKEN&&motivo!=='expirada')fetch(API+'/api/admin/logout',{method:'POST',headers:headers()}).catch(()=>{});
   TOKEN=''; localStorage.removeItem('warp-admin-token'); pendientesPrevios=null;
+  document.getElementById('conectando')?.classList.remove('show');
   document.getElementById('appWrap').style.display='none';
-  document.getElementById('loginWrap').style.display='flex'; }
+  document.getElementById('loginWrap').style.display='flex';
+  const e=document.getElementById('loginErr');
+  if(motivo==='expirada'){ e.textContent='Tu sesión expiró. Vuelve a ingresar.'; e.style.display='block'; e.style.color='#6b7280'; }
+  else { e.style.display='none'; e.style.color=''; }
+}
 
 /* ── NAVEGACIÓN ── */
 function showSection(name,btn){
@@ -1260,7 +1305,7 @@ function marcarActualizado(){ document.getElementById('ultimaAct').textContent='
 async function refrescoAutomatico(){
   if(!TOKEN||document.hidden)return;
   if(document.getElementById('modalBg').classList.contains('open')||document.getElementById('dvBg').classList.contains('open'))return;
-  const d=await req('/api/admin/contadores'); if(!d)return;
+  const d=await req('/api/admin/contadores',{silencioso:true}); if(!d||d.error)return;
   document.getElementById('badge-natural').textContent=d.pendientesNatural;
   document.getElementById('badge-juridica').textContent=d.pendientesJuridica;
   const pend=d.pendientesNatural+d.pendientesJuridica;
@@ -1280,7 +1325,7 @@ async function exportExcel(btn){
   const t=btn.querySelector('.btn-txt'), antes=t.textContent; t.textContent='Generando…'; btn.disabled=true;
   try{
     const r=await fetch(API+'/api/admin/exportar',{headers:headers()});
-    if(r.status===401){logout();return;}
+    if(r.status===401){logout('expirada');return;}
     if(!r.ok)throw new Error();
     const url=URL.createObjectURL(await r.blob()), a=document.createElement('a');
     a.href=url; a.download='solicitudes-'+new Date().toISOString().slice(0,10)+'.xlsx'; a.click();
