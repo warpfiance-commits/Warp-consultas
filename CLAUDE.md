@@ -77,6 +77,12 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
 
 ## Pendientes conocidos
 
+- **Incidente 2026-10-08:** el proyecto warpfinance-funcional (workflow `deploy.yml`, server-dir `../`)
+  quedó con la cuenta FTP `deployfinanzas` en sus secrets y publicó warpfinance dentro de
+  `/public_html/form`, tumbando el formulario. Se limpió con el workflow "Revisar carpeta en
+  Hostinger" y se republicó. La carpeta lleva la marca `finanzas-inteligentes.txt`. Falta en
+  warpfinance: volver a su propia cuenta FTP y agregar el freno que detecta esa marca.
+
 - **Migrar a dominio propio** cuando se compre (hoy es un subdominio de
   warpfinance.co). Nota: el plan Premium marca 3/3 sitios, hay que liberar un
   cupo o subir de plan. Al migrar: nueva carpeta y cuenta FTP, actualizar
