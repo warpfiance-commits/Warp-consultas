@@ -1,0 +1,4 @@
+Esta carpeta es de FINANZAS INTELIGENTES (form.warpfinance.co).
+No publicar aqui el sitio de warpfinance.co.
+Si un despliegue ve este archivo, esta usando la cuenta FTP equivocada
+(u858606443.deployfinanzas) y debe detenerse.

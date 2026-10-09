@@ -14,7 +14,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const PAGINAS = ['index.html', 'admin.html'];
+const PAGINAS = ['index.html', 'admin.html', 'finanzas-inteligentes.txt']; // el .txt marca la carpeta como nuestra
 const SITIO = 'https://form.warpfinance.co';
 
 const c = { ok: '\x1b[32m', mal: '\x1b[31m', dim: '\x1b[90m', bold: '\x1b[1m', off: '\x1b[0m' };

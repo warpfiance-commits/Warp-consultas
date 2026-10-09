@@ -9,7 +9,7 @@ name: Publicar páginas en Hostinger
 on:
   push:
     branches: [main]
-    paths: [index.html, admin.html]
+    paths: [index.html, admin.html, finanzas-inteligentes.txt]
   workflow_dispatch:
 
 concurrency:
