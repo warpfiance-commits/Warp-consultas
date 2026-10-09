@@ -16,28 +16,30 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Listar y limpiar
+        shell: bash
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
           BORRAR: ${{ github.event.inputs.borrar }}
         run: |
-          cfg() { printf 'user = "%s:%s"\n' "$FTP_USER" "$FTP_PASS"; }
-          ftp() { cfg | curl -K - --ssl-reqd --connect-timeout 20 -sS --resolve "servidor.hstgr.io:21:$FTP_HOST" "$@"; }
-          listar() { echo "== /$1"; ftp "ftp://servidor.hstgr.io/$1" | sed 's/^/   /'; }
-          listar ""
-          # una carpeta = se borra su contenido y luego la carpeta
-          borrar_ruta() {
-            local p="$1"
-            case "$p" in index.html|admin.html|""|.|..) echo "omitido: $p"; return;; esac
-            if ftp --list-only "ftp://servidor.hstgr.io/$p/" >/tmp/l 2>/dev/null && [ -s /tmp/l ]; then
-              while read -r h; do [ "$h" = "." ] || [ "$h" = ".." ] || borrar_ruta "$p/$h"; done </tmp/l
-              ftp -Q "RMD $p" "ftp://servidor.hstgr.io/" -o /dev/null && echo "carpeta borrada: $p"
-            elif ftp --list-only "ftp://servidor.hstgr.io/$p/" -o /dev/null 2>/dev/null; then
-              ftp -Q "RMD $p" "ftp://servidor.hstgr.io/" -o /dev/null && echo "carpeta borrada: $p"
+          set +e
+          U="ftp://servidor.hstgr.io"
+          ftp() { printf 'user = "%s:%s"\n' "$FTP_USER" "$FTP_PASS" | curl -K - --ssl-reqd --connect-timeout 20 -sS --resolve "servidor.hstgr.io:21:$FTP_HOST" "$@"; }
+          comando() { ftp -Q "$1" "$U/" -o /dev/null 2>/dev/null; }
+          echo "== Contenido"; ftp "$U/" | sed 's/^/   /'
+          for p in $BORRAR; do
+            case "$p" in index.html|admin.html|.|..|*/*) echo "omitido (protegido o ruta no permitida): $p"; continue;; esac
+            # ¿Es carpeta? Si se puede listar como carpeta, se vacía y se elimina.
+            nombres=$(ftp --list-only "$U/$p/" 2>/dev/null)
+            if [ $? -eq 0 ]; then
+              for n in $nombres; do
+                [ "$n" = "." ] || [ "$n" = ".." ] || { comando "DELE $p/$n" && echo "archivo borrado: $p/$n" || echo "NO se pudo borrar: $p/$n"; }
+              done
+              comando "RMD $p" && echo "carpeta borrada: $p" || echo "NO se pudo borrar la carpeta: $p"
             else
-              ftp -Q "DELE $p" "ftp://servidor.hstgr.io/" -o /dev/null && echo "archivo borrado: $p"
+              comando "DELE $p" && echo "archivo borrado: $p" || echo "NO se pudo borrar: $p"
             fi
-          }
-          for p in $BORRAR; do borrar_ruta "$p"; done
-          if [ -n "$BORRAR" ]; then echo; listar ""; fi
+          done
+          if [ -n "$BORRAR" ]; then echo "== Contenido después"; ftp "$U/" | sed 's/^/   /'; fi
+          exit 0
