@@ -1,0 +1,43 @@
+# Mantenimiento: lista (y opcionalmente limpia) archivos ajenos en la carpeta de
+# Finanzas Inteligentes en Hostinger. Nunca toca index.html ni admin.html.
+name: Revisar carpeta en Hostinger
+
+on:
+  workflow_dispatch:
+    inputs:
+      borrar:
+        description: 'Archivos o carpetas a borrar, separados por espacio (vacío = solo listar)'
+        required: false
+        default: ''
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Listar y limpiar
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          BORRAR: ${{ github.event.inputs.borrar }}
+        run: |
+          cfg() { printf 'user = "%s:%s"\n' "$FTP_USER" "$FTP_PASS"; }
+          ftp() { cfg | curl -K - --ssl-reqd --connect-timeout 20 -sS --resolve "servidor.hstgr.io:21:$FTP_HOST" "$@"; }
+          listar() { echo "== /$1"; ftp "ftp://servidor.hstgr.io/$1" | sed 's/^/   /'; }
+          listar ""
+          # una carpeta = se borra su contenido y luego la carpeta
+          borrar_ruta() {
+            local p="$1"
+            case "$p" in index.html|admin.html|""|.|..) echo "omitido: $p"; return;; esac
+            if ftp --list-only "ftp://servidor.hstgr.io/$p/" >/tmp/l 2>/dev/null && [ -s /tmp/l ]; then
+              while read -r h; do [ "$h" = "." ] || [ "$h" = ".." ] || borrar_ruta "$p/$h"; done </tmp/l
+              ftp -Q "RMD $p" "ftp://servidor.hstgr.io/" -o /dev/null && echo "carpeta borrada: $p"
+            elif ftp --list-only "ftp://servidor.hstgr.io/$p/" -o /dev/null 2>/dev/null; then
+              ftp -Q "RMD $p" "ftp://servidor.hstgr.io/" -o /dev/null && echo "carpeta borrada: $p"
+            else
+              ftp -Q "DELE $p" "ftp://servidor.hstgr.io/" -o /dev/null && echo "archivo borrado: $p"
+            fi
+          }
+          for p in $BORRAR; do borrar_ruta "$p"; done
+          if [ -n "$BORRAR" ]; then echo; listar ""; fi
