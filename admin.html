@@ -340,6 +340,25 @@ tbody tr:hover{background:#fafbf9}
 .recordar small{color:#9ca3af;font-weight:400;font-size:12px}
 .mapa-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;background:#eef4ee;color:var(--navy);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap}
 .mapa-btn:hover{background:#dfeedf}
+.gsearch{position:relative;flex:1;max-width:460px;margin:0 18px;display:flex;align-items:center}
+.gsearch>svg{position:absolute;left:12px;width:16px;height:16px;color:#9ca3af;pointer-events:none}
+.gsearch input{padding:9px 12px 9px 36px;border-radius:10px;border:1px solid #e3e8e2;background:#f7f9f6;font-size:13.5px}
+.gsearch input:focus{background:#fff;border-color:var(--lime-d)}
+.gs-res{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:300;background:#fff;border:1px solid #e6ebe5;border-radius:12px;box-shadow:0 18px 40px -16px rgba(0,0,0,.28);max-height:420px;overflow:auto;display:none}
+.gs-res.open{display:block}
+.gs-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f3f5f2}
+.gs-item:last-child{border-bottom:none}
+.gs-item.sel,.gs-item:hover{background:#f3f8f3}
+.gs-main{min-width:0;display:flex;flex-direction:column;gap:2px}
+.gs-main b{font-size:13.5px;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs-main span{font-size:11.5px;color:#9ca3af;font-family:monospace}
+.gs-tag{display:inline-block;font:600 10px 'DM Sans',sans-serif!important;color:var(--lime-d)!important;background:#eef4ee;border-radius:6px;padding:1px 6px;width:max-content}
+.gs-side{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;font-size:11px;color:#9ca3af}
+.gs-msg{padding:14px;font-size:13px;color:#6b7280}
+@media(max-width:768px){
+  .topbar{flex-wrap:wrap;gap:8px}
+  .gsearch{order:3;flex:1 1 100%;max-width:none;margin:0}
+}
 </style>
 </head>
 <body>
@@ -386,6 +405,12 @@ tbody tr:hover{background:#fafbf9}
     </div>
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="gsearch" id="gsearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="gsInput" placeholder="Buscar por nombre, cédula o radicado…" autocomplete="off" aria-label="Buscar solicitud"
+          oninput="gsBuscar()" onkeydown="gsTeclas(event)" onfocus="if(this.value.trim().length>=2)gsBuscar()">
+        <div class="gs-res" id="gsRes" role="listbox"></div>
+      </div>
       <div style="display:flex;gap:8px">
         <span id="ultimaAct" title="El panel se actualiza solo cada 30 segundos" style="align-self:center;font-size:11px;color:#9ca3af"></span>
         <button class="btn-sm btn-ghost" onclick="exportExcel(this)">📥 <span class="btn-txt">Exportar Excel</span></button>
@@ -927,6 +952,47 @@ function irAFiltro(estado,hoy){
   document.getElementById('chipHoy').style.display=filtroHoy?'':'none';
   showSection('solicitudes',document.querySelectorAll('.nav-item')[1]);
 }
+/* ── BÚSQUEDA GLOBAL ── */
+let gsTimer=null, gsSel=-1, gsItems=[];
+function gsBuscar(){
+  clearTimeout(gsTimer);
+  const q=document.getElementById('gsInput').value.trim(), box=document.getElementById('gsRes');
+  if(q.length<2){ box.classList.remove('open'); return; }
+  box.innerHTML='<div class="gs-msg">Buscando…</div>'; box.classList.add('open');
+  gsTimer=setTimeout(async()=>{
+    const p='?buscar='+encodeURIComponent(q)+'&estado=TODAS&limit=8';
+    const [n,j]=await Promise.all([req('/api/admin/solicitudes'+p,{silencioso:true}),req('/api/admin/solicitudes-juridica'+p,{silencioso:true})]);
+    if(document.getElementById('gsInput').value.trim()!==q)return;   // llegó una búsqueda más nueva
+    gsItems=[
+      ...((n&&n.solicitudes)||[]).map(s=>({tipo:'natural',id:s.id,rad:s.radicado,nombre:[s.primerNombre,s.primerApellido].filter(Boolean).join(' '),doc:s.numDocumento,estado:s.estado,fecha:s.createdAt})),
+      ...((j&&j.solicitudes)||[]).map(s=>({tipo:'juridica',id:s.id,rad:s.radicado,nombre:s.razonSocial||[s.repNombre,s.repApellido].filter(Boolean).join(' '),doc:s.repNumDoc||s.nit,estado:s.estado,fecha:s.createdAt}))
+    ].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+    gsSel=gsItems.length?0:-1;
+    box.innerHTML=gsItems.length
+      ? gsItems.map((x,i)=>`<div class="gs-item${i===gsSel?' sel':''}" role="option" onmousedown="gsAbrir(${i})">
+          <div class="gs-main"><b>${esc(x.nombre||'—')}</b>${x.tipo==='juridica'?'<span class="gs-tag">Negocio</span>':''}<span>${esc(x.rad)} · ${x.doc?'CC '+esc(x.doc):'sin documento'}</span></div>
+          <div class="gs-side">${badge(x.estado)}<span>${fdate(x.fecha).split(' · ')[0]}</span></div></div>`).join('')
+      : '<div class="gs-msg">No hay solicitudes que coincidan con “'+esc(q)+'”.</div>';
+  },300);
+}
+function gsMarcar(){ document.querySelectorAll('#gsRes .gs-item').forEach((el,i)=>el.classList.toggle('sel',i===gsSel)); document.querySelector('#gsRes .gs-item.sel')?.scrollIntoView({block:'nearest'}); }
+function gsTeclas(e){
+  const box=document.getElementById('gsRes');
+  if(e.key==='Escape'){ box.classList.remove('open'); e.target.blur(); return; }
+  if(!gsItems.length||!box.classList.contains('open'))return;
+  if(e.key==='ArrowDown'){ gsSel=Math.min(gsSel+1,gsItems.length-1); gsMarcar(); e.preventDefault(); }
+  else if(e.key==='ArrowUp'){ gsSel=Math.max(gsSel-1,0); gsMarcar(); e.preventDefault(); }
+  else if(e.key==='Enter'&&gsSel>=0){ gsAbrir(gsSel); e.preventDefault(); }
+}
+function gsAbrir(i){
+  const x=gsItems[i]; if(!x)return;
+  document.getElementById('gsRes').classList.remove('open');
+  document.getElementById('gsInput').blur();
+  x.tipo==='juridica'?verSolicitudJuridica(x.id):verSolicitud(x.id);
+}
+document.addEventListener('mousedown',e=>{ if(!e.target.closest('#gsearch'))document.getElementById('gsRes')?.classList.remove('open'); });
+// Atajo: "/" enfoca el buscador desde cualquier parte del panel
+document.addEventListener('keydown',e=>{ if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&document.getElementById('appWrap').style.display!=='none'){ e.preventDefault(); document.getElementById('gsInput').focus(); } });
 function debSearch(){ clearTimeout(searchTimer); searchTimer=setTimeout(loadSolicitudesActivas,400); }
 
 /* ── MODAL DETALLE ── */
