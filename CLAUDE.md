@@ -99,26 +99,29 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
   de warpfinance): una API key de Brevo y un client secret de Google. Rotarlas y borrar esas líneas.
 - **Opcional:** cambiar la contraseña de `deployfinanzas` (estuvo un día en los secrets de
   warpfinance-funcional) y actualizar `FTP_PASS` en este repo.
-- **Monitoreo del formulario:** UptimeRobot con monitor de palabra clave "Solicitud de Crédito"
-  en https://form.warpfinance.co para enterarse en minutos si alguien lo pisa.
+- **Correos desactivados:** `/health` reporta `"email": false` porque falta `SENDGRID_API_KEY`
+  en Render. Sin eso no salen los avisos de solicitud nueva ni la confirmación al cliente.
 
-- **Incidente 2026-10-08:** el proyecto warpfinance-funcional (workflow `deploy.yml`, server-dir `../`)
+- **Incidente 2026-10-08 (resuelto 2026-10-10):** el proyecto warpfinance-funcional (workflow `deploy.yml`, server-dir `../`)
   quedó con la cuenta FTP `deployfinanzas` en sus secrets y publicó warpfinance dentro de
   `/public_html/form`, tumbando el formulario. Se limpió con el workflow "Revisar carpeta en
   Hostinger" y se republicó. La carpeta lleva la marca `finanzas-inteligentes.txt`. Desde el
   2026-10-09 el deploy de warpfinance tiene un freno (paso "Verificar destino FTP") que cancela
-  si ve esa marca, y usa server-dir `./` pensado para la cuenta `u858606443.deploy`. Falta que
-  sus secrets FTP_* usen esa cuenta.
+  si ve esa marca, y usa server-dir `./` con la cuenta `u858606443.deploy` (sus secrets FTP_*
+  se corrigieron el 2026-10-10; deploy #111 publicó bien en warpfinance.co).
 
 - **Migrar a dominio propio** cuando se compre (hoy es un subdominio de
   warpfinance.co). Nota: el plan Premium marca 3/3 sitios, hay que liberar un
   cupo o subir de plan. Al migrar: nueva carpeta y cuenta FTP, actualizar
-  `FTP_*` en GitHub, la URL en `mantener-despierto.yml` si cambia el backend.
+  `FTP_*` en GitHub, y las URLs de los monitores de UptimeRobot.
 - **Repo limpio para migración:** renombrar `Warp-consultas` a un nombre sin
   "warp", y evaluar cuentas de servicio propias de la empresa (GitHub, Render,
   Neon hoy están bajo warpfiance-commits / warpfiance@gmail.com).
-- **Demora de Render gratis:** hoy se mitiga con `mantener-despierto.yml`
-  (GitHub, cada 5 min); mejor cron-job.org cada 2 min, o Render Starter.
+- **Monitoreo (UptimeRobot, cuenta warpfiance@gmail.com, cada 5 min, alertas por correo):**
+  "Formulario Finanzas Inteligentes" (palabra clave "Solicitud de Crédito" en
+  form.warpfinance.co) y "Servidor Finanzas Inteligentes" (/health en Render). El segundo
+  además evita que Render gratis duerma el servidor. Reemplazó al workflow de GitHub
+  `mantener-despierto.yml`, que GitHub solo corría cada 3-7 h.
 - **Borrar la clave vieja de Cloudinary** (la que empieza por `985348`) en la
   consola de Cloudinary: estuvo en el repo público. Las claves nuevas ya viven
   solo en las variables de Render (`CLOUDINARY_*`); el código no trae ninguna.
