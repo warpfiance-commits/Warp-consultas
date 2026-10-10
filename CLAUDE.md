@@ -9,10 +9,28 @@ solo contiene Finanzas Inteligentes; no mezclar cambios de warpfinance aquí.
 
 Finanzas Inteligentes vive en `form.warpfinance.co`, carpeta
 `/public_html/form` dentro del plan Premium. **`/public_html` es el sitio
-principal de warpfinance: nunca publicar ahí.** La publicación usa una cuenta
-FTP propia (`u858606443.deployform`) cuyo directorio es solo `/public_html/form`.
-Hay otras cuentas FTP (`deploy`, `pruebas01`) que apuntan a otras carpetas y
-no deben usarse para publicar.
+principal de warpfinance: nunca publicar ahí.** Cada sistema tiene su cuenta
+FTP, encerrada en su carpeta, y nunca se comparten:
+
+| Sistema | Repo | Cuenta FTP | Carpeta |
+|---|---|---|---|
+| Finanzas Inteligentes | `Warp-consultas` (secrets `FTP_*`) | `u858606443.deployfinanzas` | `/public_html/form` |
+| warpfinance.co | `warpfinance-funcional` (secrets `FTP_*`) | `u858606443.deploy` | `/public_html` |
+
+`pruebas01` (apunta a `/public_html/public_html`) no se usa. La carpeta del
+formulario lleva la marca `finanzas-inteligentes.txt`; el deploy de warpfinance
+tiene un freno que cancela si la ve.
+
+### Si form.warpfinance.co "no abre" o muestra otra página
+
+1. `curl -s https://form.warpfinance.co/ | grep -o "<title>[^<]*"` — debe decir
+   "Solicitud de Crédito". Si dice "Warp Finance", alguien publicó encima.
+2. GitHub Actions → **Revisar carpeta en Hostinger** (sin parámetros) lista la carpeta.
+3. Mismo workflow con `borrar` = archivos ajenos (p. ej. `assets .htaccess
+   .ftp-deploy-sync-state-v2.json`). Nunca borra index.html ni admin.html.
+4. **Publicar páginas en Hostinger** → Run workflow, para restaurar el formulario.
+5. Buscar la causa: `gh run list -R warpfiance-commits/warpfinance-funcional` y
+   `gh secret list -R warpfiance-commits/warpfinance-funcional` (fecha de cambio).
 
 ## Cómo está desplegado (importante)
 
@@ -76,6 +94,13 @@ email no existe; no pisa cambios hechos desde el panel). El acceso viejo
 El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
 
 ## Pendientes conocidos
+
+- **Claves en texto plano en ~/.claude/settings.json** (reglas de permiso viejas de la sesión
+  de warpfinance): una API key de Brevo y un client secret de Google. Rotarlas y borrar esas líneas.
+- **Opcional:** cambiar la contraseña de `deployfinanzas` (estuvo un día en los secrets de
+  warpfinance-funcional) y actualizar `FTP_PASS` en este repo.
+- **Monitoreo del formulario:** UptimeRobot con monitor de palabra clave "Solicitud de Crédito"
+  en https://form.warpfinance.co para enterarse en minutos si alguien lo pisa.
 
 - **Incidente 2026-10-08:** el proyecto warpfinance-funcional (workflow `deploy.yml`, server-dir `../`)
   quedó con la cuenta FTP `deployfinanzas` en sus secrets y publicó warpfinance dentro de
