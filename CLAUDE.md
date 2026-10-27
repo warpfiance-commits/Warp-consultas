@@ -110,6 +110,12 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
   si ve esa marca, y usa server-dir `./` con la cuenta `u858606443.deploy` (sus secrets FTP_*
   se corrigieron el 2026-10-10; deploy #111 publicó bien en warpfinance.co).
 
+- **Incidente 2026-10-27: cuota de Neon agotada.** `/health` consultaba la base y UptimeRobot
+  lo llama cada 5 min, así que Neon nunca se suspendía y gastó las horas gratis del mes; el
+  servidor no arrancaba (panel en "Despertando el servidor…"). Corregido: `/health` ya no toca
+  la base (usar `/health/db` para verla) y el servidor arranca aunque la base falle. Si vuelve
+  a pasar, `/health/db` muestra el error de Neon. **No volver a apuntar monitores a `/health/db`.**
+
 - **Migrar a dominio propio** cuando se compre (hoy es un subdominio de
   warpfinance.co). Nota: el plan Premium marca 3/3 sitios, hay que liberar un
   cupo o subir de plan. Al migrar: nueva carpeta y cuenta FTP, actualizar
