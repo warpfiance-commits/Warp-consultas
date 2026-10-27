@@ -479,7 +479,13 @@ app.get('/docs/:radicado/:filename', (req, res) => {
 });
 
 // ── Health ────────────────────────────────────────────────────────────────────
-app.get('/health', async (req, res) => {
+// /health NO toca la base: UptimeRobot lo llama cada 5 min para que Render no
+// duerma, y si consultara Neon la base nunca se suspendería y agotaría las
+// horas gratis del mes. Para ver la base: /health/db.
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', db: dbLista ? 'lista' : 'conectando', email: !!SENDGRID_KEY, timestamp: new Date().toISOString() });
+});
+app.get('/health/db', async (req, res) => {
   try {
     const [r, rj] = await Promise.all([pool.query('SELECT COUNT(*) FROM solicitudes'), pool.query('SELECT COUNT(*) FROM solicitudes_juridica')]);
     res.json({ status: 'ok', db: 'postgresql', solicitudes: Number(r.rows[0].count), solicitudesJuridica: Number(rj.rows[0].count), email: !!SENDGRID_KEY, timestamp: new Date().toISOString() });
@@ -1073,14 +1079,20 @@ app.get('*', (req, res) => {
 });
 
 // ── Arranque ──────────────────────────────────────────────────────────────────
-initDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`\n🚀 Financial Services en puerto ${PORT}`);
-    console.log(`🐘 PostgreSQL conectado`);
-    console.log(`📧 Email: ${SENDGRID_KEY ? 'activo' : 'inactivo (falta SENDGRID_API_KEY)'}`);
-    console.log(`🌐 http://localhost:${PORT}\n`);
-  });
-}).catch(err => {
-  console.error('❌ Error DB:', err.message);
-  process.exit(1);
+// Escucha aunque la base no responda: así el panel recibe un error claro en vez
+// de quedarse colgado, y la conexión se reintenta cada 30 s.
+let dbLista = false;
+app.listen(PORT, () => {
+  console.log(`\n🚀 Financial Services en puerto ${PORT}`);
+  console.log(`📧 Email: ${SENDGRID_KEY ? 'activo' : 'inactivo (falta SENDGRID_API_KEY)'}`);
+  console.log(`🌐 http://localhost:${PORT}\n`);
 });
+(function conectarDB() {
+  initDB().then(() => {
+    dbLista = true;
+    console.log('🐘 PostgreSQL conectado');
+  }).catch(err => {
+    console.error('❌ Error DB (reintento en 30 s):', err.message);
+    setTimeout(conectarDB, 30000);
+  });
+})();
