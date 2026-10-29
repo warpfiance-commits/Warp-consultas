@@ -1,0 +1,22 @@
+# Copia las solicitudes de la base vieja (Neon) a la nueva (Supabase).
+# Se corre a mano: Actions → "Migrar base de datos" → Run workflow.
+# Necesita los secrets NEON_DATABASE_URL y SUPABASE_DATABASE_URL.
+# No borra nada y se puede repetir sin duplicar.
+name: Migrar base de datos
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --omit=dev
+      - run: node migrar-base.mjs
+        env:
+          ORIGEN_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DESTINO_URL: ${{ secrets.SUPABASE_DATABASE_URL }}

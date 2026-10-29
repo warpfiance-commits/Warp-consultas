@@ -1,0 +1,15 @@
+# Supabase gratis pausa el proyecto tras 1 semana sin uso. Una consulta diaria
+# a /health/db lo evita. (No poner /health/db en UptimeRobot: cada 5 min es
+# innecesario y con Neon agotó la cuota.)
+name: Mantener base activa
+
+on:
+  schedule:
+    - cron: '0 13 * * *'   # 8:00 a. m. Bogotá
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS --retry 3 --retry-delay 30 -m 90 https://warp-consultas-t6sj.onrender.com/health/db
