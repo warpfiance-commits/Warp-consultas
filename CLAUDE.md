@@ -40,9 +40,9 @@ El README está desactualizado: dice Railway, pero **hoy no se usa Railway**.
 |---|---|---|
 | `index.html`, `admin.html` | Hostinger — `form.warpfinance.co` | push a GitHub → Action `publicar-paginas.yml` sube por FTPS |
 | `server.js` | Render (cuenta propia, GitHub warpfiance-commits) — `warp-consultas-t6sj.onrender.com`, Ohio | push a GitHub, Render redespliega solo (Blueprint `render.yaml`) |
-| PostgreSQL | Neon, proyecto en AWS us-east-2 (Ohio), plan gratis sin vencimiento | — (`DATABASE_URL` en Render) |
+| PostgreSQL | Supabase, proyecto "finanzas-inteligentes" (East US, Ohio), plan Free | — (`DATABASE_URL` en Render, Session pooler) |
 
-Desde 2026-09-30 se usa este Render + Neon. El servicio viejo
+Desde 2026-09-30 se usa este Render; la base pasó de Neon a Supabase el 2026-10-29 (datos viejos copiados el 2026-11-09 con el workflow "Migrar base de datos", que no borra y se puede repetir). Supabase Free no tiene tope de horas pero se pausa tras 7 días sin uso: lo evita el workflow diario `mantener-base-activa.yml`. Neon queda como respaldo, sin uso. El servicio viejo
 `warp-consultas.onrender.com` estaba en una cuenta de Render a la que nadie
 tiene acceso; sus datos (4 solicitudes de prueba) se dejaron atrás.
 
