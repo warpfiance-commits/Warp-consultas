@@ -42,7 +42,7 @@ El README está desactualizado: dice Railway, pero **hoy no se usa Railway**.
 | `server.js` | Render (cuenta propia, GitHub warpfiance-commits) — `warp-consultas-t6sj.onrender.com`, Ohio | push a GitHub, Render redespliega solo (Blueprint `render.yaml`) |
 | PostgreSQL | Supabase, proyecto "finanzas-inteligentes" (East US, Ohio), plan Free | — (`DATABASE_URL` en Render, Session pooler) |
 
-Desde 2026-09-30 se usa este Render; la base pasó de Neon a Supabase el 2026-10-29 (datos viejos copiados el 2026-11-09 con el workflow "Migrar base de datos", que no borra y se puede repetir). Supabase Free no tiene tope de horas pero se pausa tras 7 días sin uso: lo evita el workflow diario `mantener-base-activa.yml`. Neon queda como respaldo, sin uso. El servicio viejo
+Desde 2026-09-30 se usa este Render; la base pasó de Neon a Supabase el 2026-10-29 (datos viejos copiados el 2026-11-09 con el workflow "Migrar base de datos", que no borra y se puede repetir). Supabase Free no tiene tope de horas pero se pausa tras 7 días sin uso: lo evita el monitor de UptimeRobot "Base de datos Finanzas Inteligentes" (/health/db). Neon queda como respaldo, sin uso. El servicio viejo
 `warp-consultas.onrender.com` estaba en una cuenta de Render a la que nadie
 tiene acceso; sus datos (4 solicitudes de prueba) se dejaron atrás.
 
@@ -114,7 +114,7 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
   lo llama cada 5 min, así que Neon nunca se suspendía y gastó las horas gratis del mes; el
   servidor no arrancaba (panel en "Despertando el servidor…"). Corregido: `/health` ya no toca
   la base (usar `/health/db` para verla) y el servidor arranca aunque la base falle. Si vuelve
-  a pasar, `/health/db` muestra el error de Neon. **No volver a apuntar monitores a `/health/db`.**
+  a pasar, `/health/db` muestra el error de Neon. Con Neon nunca apuntar monitores a `/health/db`; con Supabase sí (no cobra por horas).
 
 - **Migrar a dominio propio** cuando se compre (hoy es un subdominio de
   warpfinance.co). Nota: el plan Premium marca 3/3 sitios, hay que liberar un
@@ -128,6 +128,9 @@ El panel se refresca solo cada 30 s (no mientras hay un detalle abierto).
   form.warpfinance.co) y "Servidor Finanzas Inteligentes" (/health en Render). El segundo
   además evita que Render gratis duerma el servidor. Reemplazó al workflow de GitHub
   `mantener-despierto.yml`, que GitHub solo corría cada 3-7 h.
+  Tercer monitor: "Base de datos Finanzas Inteligentes" (/health/db), mantiene activo Supabase
+  y avisa si la base falla. Reemplazó a `mantener-base-activa.yml` (GitHub apaga las tareas
+  programadas tras 60 días sin cambios en el repo).
 - **Borrar la clave vieja de Cloudinary** (la que empieza por `985348`) en la
   consola de Cloudinary: estuvo en el repo público. Las claves nuevas ya viven
   solo en las variables de Render (`CLOUDINARY_*`); el código no trae ninguna.
