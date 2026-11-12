@@ -869,6 +869,56 @@ async function borrarDeCloudinary(url) {
     return j.result === 'ok' || j.result === 'not found';
   } catch (e) { return false; }
 }
+// ── Editar datos ──────────────────────────────────────────────────────────────
+// Solo estas columnas se pueden editar desde el panel (el estado, la firma, las
+// declaraciones y los documentos no). El panel manda las llaves en camelCase.
+const EDITABLES = {
+  solicitudes: `tipo_documento num_documento primer_nombre segundo_nombre primer_apellido segundo_apellido
+    fecha_nacimiento pais_nacimiento ciudad_nacimiento genero celular telefono_alt email email_alt
+    departamento ciudad barrio direccion estrato tipo_vivienda tiempo_vivienda
+    ingresos_mensuales fuente_ingresos ingresos_adicionales concepto_ingresos_ad egresos_mensuales obligaciones_financieras
+    banco tipo_cuenta numero_cuenta otras_cuentas monto_solicitado plazo garantia destino_credito
+    situacion_laboral sector_economico empresa nit_empresa cargo antiguedad tipo_contrato telefono_trabajo direccion_trabajo
+    estado_civil nivel_educativo numero_dependientes ref_nombre ref_parentesco ref_celular ref_adicional ref_direccion`,
+  solicitudes_juridica: `rep_nombre rep_segundo_nombre rep_apellido rep_tipo_doc rep_num_doc rep_fecha_nac rep_celular rep_email
+    razon_social sector_economico antiguedad_empresa num_empleados local_negocio nit descripcion_actividad
+    departamento ciudad barrio direccion_comercial estrato ingresos_mensuales egresos_mensuales obligaciones
+    banco tipo_cuenta numero_cuenta monto_solicitado plazo garantia destino_credito
+    ref_contacto ref_relacion ref_telefono ref_empresa ref_comercial_tel`
+};
+const NUMERICAS = new Set(['ingresos_mensuales', 'ingresos_adicionales', 'egresos_mensuales', 'obligaciones_financieras', 'obligaciones', 'monto_solicitado']);
+const aCamel = c => c.replace(/_([a-z])/g, (_, l) => l.toUpperCase());
+
+for (const [ruta, tabla, mapear] of [['solicitudes', 'solicitudes', rowToSolicitud], ['solicitudes-juridica', 'solicitudes_juridica', rowToSolicitudJuridica]]) {
+  const columnas = EDITABLES[tabla].split(/\s+/).filter(Boolean);
+  app.patch(`/api/admin/${ruta}/:id/datos`, authAdmin, async (req, res) => {
+    try {
+      const campos = req.body.campos || {};
+      const actual = await pool.query(`SELECT * FROM ${tabla} WHERE (id::text=$1 OR radicado=$1) AND eliminada_at IS NULL`, [req.params.id]);
+      if (!actual.rows.length) return res.status(404).json({ error: 'No encontrada (o está en la papelera)' });
+      const antes = actual.rows[0];
+      const sets = [], valores = [], cambios = [];
+      for (const col of columnas) {
+        const llave = aCamel(col);
+        if (!(llave in campos)) continue;
+        let nuevo = String(campos[llave] ?? '').trim().slice(0, 2000);
+        if (NUMERICAS.has(col)) nuevo = nuevo.replace(/[^0-9]/g, '');
+        nuevo = nuevo === '' ? null : (NUMERICAS.has(col) ? Number(nuevo) : nuevo);
+        const viejo = antes[col] == null || antes[col] === '' ? null : (NUMERICAS.has(col) ? Number(antes[col]) : String(antes[col]));
+        if (viejo === nuevo) continue;
+        valores.push(nuevo); sets.push(`${col}=$${valores.length}`);
+        const corto = x => x == null ? '(vacío)' : String(x).slice(0, 60);
+        cambios.push(`${col.replace(/_/g, ' ')}: ${corto(viejo)} → ${corto(nuevo)}`);
+      }
+      if (!sets.length) return res.json({ ok: true, cambios: 0, solicitud: mapear(antes) });
+      valores.push(antes.id);
+      const r = await pool.query(`UPDATE ${tabla} SET ${sets.join(', ')}, updated_at=NOW() WHERE id=$${valores.length} RETURNING *`, valores);
+      await auditLog(antes.id, 'DATOS_EDITADOS', req.admin.email, cambios.join(' · '));
+      res.json({ ok: true, cambios: cambios.length, solicitud: mapear(r.rows[0]) });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+  });
+}
+
 for (const [ruta, tabla] of [['solicitudes', 'solicitudes'], ['solicitudes-juridica', 'solicitudes_juridica']]) {
   app.post(`/api/admin/${ruta}/:id/eliminar`, authAdmin, async (req, res) => {
     try {

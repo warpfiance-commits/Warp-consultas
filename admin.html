@@ -315,6 +315,17 @@ tbody tr:hover{background:#fafbf9}
 .wa-copy:hover{background:#f3f6f2}
 .btn-del{margin-right:auto;color:#b91c1c;border-color:#f3d4d4}
 .btn-del:hover{background:#fdf3f3}
+.acc-fila{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.btn-ico{width:28px;height:26px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;cursor:pointer;font-size:13px;line-height:1;color:#374151;transition:all .2s}
+.btn-ico:hover{background:#f3f4f6}
+.btn-ico.del{color:#b91c1c}
+.btn-ico.del:hover{background:#fdf3f3;border-color:#f3d4d4}
+.edit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px 12px;margin-bottom:14px}
+.edit-f{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:600;color:#6b7280}
+.edit-f.span2{grid-column:1/-1}
+.edit-f input,.edit-f textarea{font:inherit;font-size:13px;font-weight:400;color:#111827;padding:7px 9px;border:1px solid #d1d5db;border-radius:7px;resize:vertical}
+.edit-f input:focus,.edit-f textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(27,94,32,.12)}
+.edit-nota{font-size:11px;color:#9ca3af;margin:4px 0 0}
 .pap-nota{margin-right:auto;font-size:12px;color:#6b7280;max-width:55%}
 .dlg-bg{position:fixed;inset:0;z-index:3000;background:rgba(10,20,12,.55);display:flex;align-items:center;justify-content:center;padding:1rem}
 .dlg{background:#fff;border-radius:16px;padding:1.4rem 1.4rem 1.1rem;width:100%;max-width:440px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45)}
@@ -874,7 +885,7 @@ async function loadDashboard(){
       <td>${s.tipo==='juridica'?'<span style="color:#9ca3af;font-size:12px">—</span>':scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
-      <td><button class="btn-sm btn-navy" onclick="${s.tipo==='juridica'?'verSolicitudJuridica':'verSolicitud'}('${s.id}')">Ver →</button></td>
+      <td>${accionesFila(s.tipo==='juridica'?'juridica':'natural',s)}</td>
     </tr>`).join('');
 }
 
@@ -921,7 +932,7 @@ async function loadSolicitudes(){
       <td>${scoreBadge(s)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
-      <td><button class="btn-sm btn-navy" onclick="verSolicitud('${s.id}')">Ver →</button></td>
+      <td>${accionesFila('natural',s)}</td>
     </tr>`).join('');
 }
 
@@ -941,7 +952,7 @@ async function loadSolicitudesJuridica(){
       <td>${fmt(s.montoSolicitado)}</td>
       <td>${badge(s.estado)}</td>
       <td style="color:#9ca3af">${fdate(s.createdAt)}</td>
-      <td><button class="btn-sm btn-navy" onclick="verSolicitudJuridica('${s.id}')">Ver →</button></td>
+      <td>${accionesFila('juridica',s)}</td>
     </tr>`).join('');
 }
 let filtroHoy=false;
@@ -1133,6 +1144,7 @@ async function verSolicitud(id){
        <button class="btn-sm btn-ghost" onclick="restaurarSolicitud('natural','${s.id}')">↺ Restaurar</button>
        <button class="btn-sm btn-red" onclick="eliminarDefinitivo('natural','${s.id}','${esc(s.radicado)}')">Eliminar definitivamente</button>`
     : `<button class="btn-sm btn-ghost btn-del" onclick="eliminarSolicitud('natural','${s.id}','${esc(s.radicado)}')">🗑 Eliminar</button>
+    <button class="btn-sm btn-ghost" onclick="editarSolicitud('natural','${s.id}')">✎ Editar</button>
     ${pendiente?`
       <button class="btn-sm btn-ghost" onclick="cambiarEstado('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
       <button class="btn-sm btn-red"   onclick="cambiarEstado('${s.id}','RECHAZADA')">✕ Rechazar</button>
@@ -1191,6 +1203,67 @@ async function eliminarDefinitivo(tipo,id,rad){
   else if(r)showToast(r.error||'No se pudo eliminar','err');
 }
 function closeModal(e){ if(!e||e.target.id==='modalBg')document.getElementById('modalBg').classList.remove('open'); }
+
+/* ── EDITAR DATOS ── */
+// Mismas llaves que devuelve el servidor; el servidor tiene su propia lista de columnas permitidas.
+// Tercer valor: 'n' = número (pesos), 'l' = texto largo.
+const EDIT_CAMPOS={
+  natural:[
+    ['👤 Identidad y contacto',[['tipoDocumento','Tipo doc.'],['numDocumento','Núm. documento'],['primerNombre','Primer nombre'],['segundoNombre','Segundo nombre'],['primerApellido','Primer apellido'],['segundoApellido','Segundo apellido'],['fechaNacimiento','Fecha nacimiento'],['genero','Género'],['paisNacimiento','País nacimiento'],['ciudadNacimiento','Ciudad nacimiento'],['celular','Celular'],['telefonoAlt','Tel. alternativo'],['email','Email principal'],['emailAlt','Email alternativo'],['departamento','Departamento'],['ciudad','Ciudad'],['barrio','Barrio'],['direccion','Dirección'],['estrato','Estrato'],['tipoVivienda','Tipo vivienda'],['tiempoVivienda','Tiempo en vivienda']]],
+    ['💰 Perfil financiero',[['ingresosMensuales','Ingresos mensuales','n'],['egresosMensuales','Egresos mensuales','n'],['fuenteIngresos','Fuente de ingresos'],['obligacionesFinancieras','Total deudas mensuales','n'],['ingresosAdicionales','Ingresos adicionales','n'],['conceptoIngresosAd','Concepto ing. adicionales'],['banco','Banco'],['tipoCuenta','Tipo de cuenta'],['numeroCuenta','Número de cuenta'],['otrasCuentas','Otras cuentas']]],
+    ['📄 Crédito solicitado',[['montoSolicitado','Monto solicitado','n'],['plazo','Plazo'],['garantia','Garantía'],['destinoCredito','Destino del crédito','l']]],
+    ['💼 Laboral y referencia',[['situacionLaboral','Situación laboral'],['sectorEconomico','Sector económico'],['empresa','Empresa'],['nitEmpresa','NIT empresa'],['cargo','Cargo'],['antiguedad','Antigüedad'],['tipoContrato','Tipo contrato'],['telefonoTrabajo','Tel. trabajo'],['direccionTrabajo','Dirección trabajo'],['estadoCivil','Estado civil'],['nivelEducativo','Nivel educativo'],['numeroDependientes','Núm. dependientes'],['refNombre','Referencia — nombre'],['refParentesco','Parentesco'],['refCelular','Celular referencia'],['refDireccion','Dirección referencia'],['refAdicional','Referencia adicional']]]
+  ],
+  juridica:[
+    ['🙋 Titular',[['repNombre','Nombre'],['repSegundoNombre','Segundo nombre'],['repApellido','Apellidos'],['repTipoDoc','Tipo doc.'],['repNumDoc','Núm. documento'],['repFechaNac','Fecha nacimiento'],['repCelular','Celular'],['repEmail','Email']]],
+    ['🏪 Negocio',[['razonSocial','Nombre del negocio'],['sectorEconomico','Tipo de negocio'],['antiguedadEmpresa','Tiempo funcionando'],['numEmpleados','Personas que trabajan'],['localNegocio','El local es'],['nit','RUT / NIT'],['descripcionActividad','Qué vende o qué servicio presta','l'],['departamento','Departamento'],['ciudad','Ciudad'],['barrio','Barrio'],['direccionComercial','Dirección del negocio'],['estrato','Estrato del local']]],
+    ['💰 Ingresos y crédito',[['ingresosMensuales','Ventas mensuales','n'],['egresosMensuales','Gastos del negocio','n'],['obligaciones','Cuotas de deudas','n'],['banco','Banco'],['tipoCuenta','Tipo de cuenta'],['numeroCuenta','Número de cuenta'],['montoSolicitado','Monto solicitado','n'],['plazo','Plazo'],['garantia','Garantía'],['destinoCredito','Para qué es el crédito','l']]],
+    ['👤 Referencias',[['refContacto','Referencia personal'],['refRelacion','Relación'],['refTelefono','Celular referencia'],['refEmpresa','Referencia comercial'],['refComercialTel','Teléfono ref. comercial']]]
+  ]
+};
+let editOriginal=null;
+async function editarSolicitud(tipo,id){
+  const s=await req(rutaTipo(tipo)+id); if(!s)return;
+  if(s.eliminadaAt){ showToast('Restaura la solicitud antes de editarla','err'); return; }
+  editOriginal={tipo,id:s.id,valores:{}};
+  const nombre=tipo==='juridica'?s.razonSocial:[s.primerNombre,s.primerApellido].filter(Boolean).join(' ');
+  document.getElementById('modal-title').innerHTML=`✎ Editar ${esc(s.radicado)} &nbsp;·&nbsp; <span style="font-weight:500">${esc(nombre||'')}</span>`;
+  document.getElementById('modal-body').innerHTML=EDIT_CAMPOS[tipo].map(([titulo,campos])=>`
+    <div class="section-title">${titulo}</div>
+    <div class="edit-grid">${campos.map(([k,lbl,tp])=>{
+      const val=s[k]==null?'':String(s[k]); editOriginal.valores[k]=val;
+      return `<label class="edit-f${tp==='l'?' span2':''}"><span>${lbl}</span>${tp==='l'
+        ?`<textarea data-k="${k}" rows="2">${esc(val)}</textarea>`
+        :`<input data-k="${k}" value="${esc(val)}"${tp==='n'?' inputmode="numeric" placeholder="Solo números"':''}>`}</label>`;
+    }).join('')}</div>`).join('')
+    +`<p class="edit-nota">El estado, la firma, las declaraciones y los documentos no se editan. Cada cambio queda en el historial con tu usuario.</p>`;
+  document.getElementById('modal-foot').innerHTML=`
+    <button class="btn-sm btn-ghost" onclick="${tipo==='juridica'?'verSolicitudJuridica':'verSolicitud'}('${s.id}')">Cancelar</button>
+    <button class="btn-sm btn-navy" id="btnGuardarEd" onclick="guardarEdicion()">Guardar cambios</button>`;
+  document.getElementById('modalBg').classList.add('open');
+  document.getElementById('modal-body').scrollTop=0;
+}
+async function guardarEdicion(){
+  const {tipo,id,valores}=editOriginal, campos={};
+  document.querySelectorAll('#modal-body [data-k]').forEach(el=>{ if(el.value.trim()!==valores[el.dataset.k].trim()) campos[el.dataset.k]=el.value; });
+  if(!Object.keys(campos).length){ showToast('No hay cambios para guardar','err'); return; }
+  const b=document.getElementById('btnGuardarEd'); b.disabled=true; b.textContent='Guardando…';
+  const r=await req(rutaTipo(tipo)+id+'/datos',{method:'PATCH',body:JSON.stringify({campos})});
+  if(r?.ok){
+    showToast(r.cambios===1?'1 dato actualizado':r.cambios+' datos actualizados','ok');
+    loadSolicitudesActivas(); loadDashboard();
+    tipo==='juridica'?verSolicitudJuridica(id):verSolicitud(id);
+  } else { b.disabled=false; b.textContent='Guardar cambios'; if(r)showToast(r.error||'No se pudo guardar','err'); }
+}
+// Botones de cada fila: ver, editar, eliminar
+function accionesFila(tipo,s){
+  const ver=tipo==='juridica'?'verSolicitudJuridica':'verSolicitud';
+  return `<div class="acc-fila">
+    <button class="btn-sm btn-navy" onclick="${ver}('${s.id}')">Ver →</button>
+    <button class="btn-ico" title="Editar" aria-label="Editar" onclick="editarSolicitud('${tipo}','${s.id}')">✎</button>
+    <button class="btn-ico del" title="Eliminar" aria-label="Eliminar" onclick="eliminarSolicitud('${tipo}','${s.id}','${esc(s.radicado)}')">🗑</button>
+  </div>`;
+}
 
 /* ── MODAL DETALLE — PERSONA JURÍDICA ── */
 async function verSolicitudJuridica(id){
@@ -1310,6 +1383,7 @@ async function verSolicitudJuridica(id){
        <button class="btn-sm btn-ghost" onclick="restaurarSolicitud('juridica','${s.id}')">↺ Restaurar</button>
        <button class="btn-sm btn-red" onclick="eliminarDefinitivo('juridica','${s.id}','${esc(s.radicado)}')">Eliminar definitivamente</button>`
     : `<button class="btn-sm btn-ghost btn-del" onclick="eliminarSolicitud('juridica','${s.id}','${esc(s.radicado)}')">🗑 Eliminar</button>
+    <button class="btn-sm btn-ghost" onclick="editarSolicitud('juridica','${s.id}')">✎ Editar</button>
     ${pendiente?`
       <button class="btn-sm btn-ghost" onclick="cambiarEstadoJuridica('${s.id}','EN_ANALISIS')">🔍 En análisis</button>
       <button class="btn-sm btn-red"   onclick="cambiarEstadoJuridica('${s.id}','RECHAZADA')">✕ Rechazar</button>
