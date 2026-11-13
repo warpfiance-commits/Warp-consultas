@@ -663,6 +663,8 @@ const TABLAS={
   dependientes:{'0':4,'1':4,'2':3,'3':2,'4 o más':1}
 };
 const pctTxt=x=>Math.round(x*100)+'%';
+// "1 semana" y "15 días" se pagan completos dentro del mes: cuentan como 1 mes
+function plazoMeses(p){ const t=String(p||''), n=parseInt(t); if(!n) return PLAZO_DEFECTO; return /seman|d[ií]a/i.test(t)?1:n; }
 function cuotaMensual(monto,meses,i=TASA_MENSUAL){ return monto>0&&meses>0 ? monto*i/(1-Math.pow(1+i,-meses)) : 0; }
 
 function calcScore(s){
@@ -670,7 +672,7 @@ function calcScore(s){
   const ing=fijo+variable*PESO_INGRESO_VARIABLE;
   if(!ing) return {pct:null,clase:'score-sin',label:'Sin datos',detalle:[]};
   const gastos=limpio(s.egresosMensuales), deudas=limpio(s.obligacionesFinancieras);
-  const monto=limpio(s.montoSolicitado), meses=parseInt(s.plazo)||PLAZO_DEFECTO;
+  const monto=limpio(s.montoSolicitado), meses=plazoMeses(s.plazo);
   const cuota=cuotaMensual(monto,meses);
   const dti=(deudas+cuota)/ing, libre=(ing-gastos-deudas-cuota)/ing;
   const pens=String(s.situacionLaboral||'').startsWith('Pensionad');
